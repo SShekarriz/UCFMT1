@@ -182,8 +182,7 @@ We then selected and visualized only those base positions that were identical ac
 FMT are closer to the donor’s SNV profile (less number of SNV) or contain increased SNVs. The SNV
 tables were filtered and visualized in v. 1.2.3 in R using tidyverse packages.
 
-## Species- and strain-specific markers for a metagenomic survey of IBD patients
-## and healthy controls
+## Species- and strain-specific markers for a metagenomic survey of IBD patients and healthy controls
 
 To build species-specific marker, a group of genomes from distinct species were selected from Dorea
 sp., Feacalibacterium sp., and Fusicatenibacter sp. collections for pangenome analysis. Species-specific
