@@ -5,7 +5,7 @@ exec > >(tee -i CEMG_PIPER_${DATE}.log)
 exec 2>&1
 ####################################################################################
 
-Don=SHCM15
+Don=DonorB
 proj=$PWD
 org=$PWD/raw-reads
 trim=$PWD/raw-reads_trimmed
@@ -62,7 +62,7 @@ do
 done
 
 echo "####################################################"
-echo "#######building CEMG library, co-assem pp + stool ##"
+echo "#######building CEMG library, co-asseM #############"
 echo "####################################################"
 
 Don_lib=$assem/${Don}_CEMG
@@ -84,8 +84,7 @@ else
                 echo "${Don} contains: $sample_R1, $sample_R2"
                 python2.7 $InterLeave $Don_temp/${sample}_1P.fastq $Don_temp/${sample}_2P.fastq $Don_temp/${sample}_inter.fastq
 	done
-	echo "removing SHCM15ana10b_inter.fastq from CEMG pool, this is not part of CEMG"
-	mv $Don_temp/SHCM15ana10b_inter.fastq $Don_temp/SHCM15ana10b_inter_OUTofCEMG.fastq
+	
         echo "'$Don_temp/*_inter.fastq' into $Don_lib"
         cat $Don_temp/*_inter.fastq >> ${Don_lib}_inter.fastq
         echo "Cleaning up the tem directory"
@@ -170,12 +169,12 @@ echo "################################"
         echo "#####selecting large contigs####"
         echo "################################"
 
-        dRef=${contig_file%.fasta}_1k.fa
+        dRef=${contig_file%.fasta}_25k.fa
         if [ -f $dRef ]; then
         echo "The file '$dRef' exists."
         else
         echo "The file '$dRef' is not found."
-        echo "Selecting contig >= 1kb"
+        echo "Selecting contig >= 2.5kb"
         python2.7 $LongExractor $contig_file
         mv ${contig_file}_out $dRef
         fi
@@ -368,130 +367,3 @@ echo "################################"
         echo "The file '$gtdb_out' is not found."
         gtdbtk classify_wf --genome_dir $BIN --cpus 20 --out_dir $BINT --extension fa --prefix $Don
         fi
-
-
-echo "#########################################################"
-echo "comparing SHCM15 VS DonorB"
-echo "1. percentage of mapped reads"
-echo "#########################################################"
-
-B_DMGs="/dataone/shekas3/UCFMT1/DonorB_metagenomics/Trim_interleaved"
-B_cov=$assem/DonorB_DMG_coverage
-mkdir -p $B_cov
-
-out=$B_cov/DonorB_D_2013.flagstat
-if [ -f $out ]; then
-	echo "The file '$out' exists."
-else
-	echo "The file '$out' is not found."
-	cd $B_DMGs
-	ext="_001_inter.fastq"
-	for file in *$ext
-	do
-		echo $file
-		sample=${file%$ext}
-		echo $sample
-                bwa mem -t 15 -p $dRef \
-		$file | $Samtools sort -@ 15 | $Samtools view -@ 15 -bS \
-		-o $B_cov/${sample}.bam
-
-		$Samtools flagstat $B_cov/${sample}.bam > $B_cov/${sample}.flagstat
-
-	done
-	cd $proj
-fi
-
-
-echo "#########################################################"
-echo "comparing SHCM15 VS DonorB"
-echo "2. Donor B's commonly engrafted strains marker coverage"
-echo "#########################################################"
-
-CEGs=$B_marker/gene_engraft_all_com_complete.fasta
-SPM=$B_marker/species_markers.fa
-
-if [ -f ${CEGs}.fai ]; then
-   echo "The file '${CEGs}.fai' exists."
-else
-   echo "The file '${CEGs}.fai' is not found."
-   echo "Indexing the contig file now"
-   bwa index $CEGs
-   samtools faidx $CEGs
-fi
-
-if [ -f ${SPM}.fai ]; then
-   echo "The file '${SPM}.fai' exists."
-else
-   echo "The file '${SPM}.fai' is not found."
-   echo "Indexing the contig file now"
-   bwa index $SPM
-   samtools faidx $SPM
-fi
-
-B_marker_cov=$B_marker/coverage
-mkdir -p $B_marker_cov
-stool_s=$Don_temp/${Don}Stool_inter.fastq.gz
-
-out=$B_marker_cov/${Don}Stool_to_CEGs.coverage.txt
-if [ -f $out ]; then
-   echo "The file '$out' exists."
-else
-   echo "The file '$out' is not found."
-
-	bwa mem -t 15 -p $CEGs $stool_s \
- 	-O 60 -E 10 -L 100 | $Samtools sort -@ 15 | $Samtools view \
-	-@ 15 -F 4 -o $B_marker_cov/${Don}Stool_to_CEGs.bam
-	$Samtools coverage $B_marker_cov/${Don}Stool_to_CEGs.bam \
-	> $B_marker_cov/${Don}Stool_to_CEGs.coverage.txt
-
-	bwa mem -t 15 -p $SPM $stool_s \
-        -O 60 -E 10 -L 100 | $Samtools sort -@ 15 | $Samtools view \
-        -@ 15 -F 4 -o $B_marker_cov/${Don}Stool_to_SpeciesMarker.bam
-	$Samtools coverage $B_marker_cov/${Don}Stool_to_SpeciesMarker.bam \
-	> $B_marker_cov/${Don}Stool_to_SpeciesMarker.coverage.txt
-fi
-
-
-echo "#########################################################"
-echo "Figures: comparing B vs. SHCM15"
-echo "#########################################################"
-
-out=$Res/marker_in_SHCM15.png
-if [ -f $out ]; then
-	echo "the file '$out' exists."
-else
-        echo "the file '$out' is not found."
-	Rscript $bin/BvsSHCM15.R
-fi
-
-
-
-
-
-:<<"END"
-echo "#########################################################"
-echo "Running Humann3 on the metagenomic reads"
-echo "#########################################################"
-source /home/shekas3/anaconda3/bin/activate humann3
-#Humann2 wants to have paired-end reads in a concatanated form, it can't properly
-# use the paired-end information
-mkdir -p $human
-
-cd $inter
-for sample in *_inter.fastq.gz
-do
-        echo $sample
-        basename=${sample%_inter.fastq.gz}
-        human_out=$human/${basename}/${basename}_inter_genefamilies.tsv
-        if [ -f $human_out ]; then
-        echo "the file '$human_out' exists."
-        else
-        echo "the file '$human_out' is not found."
-        humann --input ${sample} --output $human/${basename} --threads 15
-        fi
-done
-
-
-END
-
-

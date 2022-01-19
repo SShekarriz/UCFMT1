@@ -67,61 +67,8 @@ genefamilies <- read.csv("Humann2/UCFMT1_ShotgunRead_genefamilies_norm.txt",
 metaphlan2 <- read.csv("Humann2/UCFMT1_ShotgunRead_metaphlan2.txt", 
                        sep = "\t", stringsAsFactors = FALSE)
 
-#fate of patiensts (Responders/NonResponders)
-Patient_fate <- data.frame(Initial = c("PM","AF","DAB","KG","WAF","BN",
-                                       "TJD","PT","MP","EB","ES"),
-                           Fate = c("R", "R", "P", "R", "N", "R", "N",
-                                    "R", "N", "N", "R"))
-#Import the mapfile from the UCFMT1
-mapfile <- read.csv("MapFile_metagenomics_July17.txt", sep = "\t",
-                    stringsAsFactors = FALSE) 
-mapfile %>% filter(Mehtod == "DMG") %>%
-  left_join(Patient_fate, by = "Initial") %>%
-  mutate(SampleName = gsub("INCREASE", "increase", SampleName)) %>%
-  mutate(Timepoint= case_when(Timepoint == "0" ~ paste("WK0"),
-                            Timepoint == "6" ~ paste("WK6"),
-                            is.na(Timepoint) ~ paste("Donor"),
-                             TRUE ~ as.character(Timepoint))) %>% 
-  mutate(Treatment= case_when(Status== "Healthy" ~ paste("Donor"),
-                            TRUE ~ as.character(Treatment))) %>%
-  mutate(Remission= case_when(Fate == "N" ~ paste("NoRes"),
-                              Fate == "R" ~ paste("Res"),
-                              Fate == "P" ~ paste("Placebo"),
-                            is.na(Fate) ~ paste("Donor"),
-                            TRUE ~ as.character(Remission))) %>%
-  mutate(Fig_lab = case_when(Status == "Patient" ~ 
-                               paste("pt", Trial_no, sep = ""),
-                             Status == "Healthy" ~ paste("DonB"),
-                             TRUE ~ as.character(Status))) %>%
-   mutate(TimeTreat = paste(Treatment, Fate, Timepoint, sep = "_")) %>%
-  mutate(TimeTreat = gsub("MT_", "", TimeTreat)) %>%
-  mutate(TimeTreat = gsub("lacebo_", "", TimeTreat)) %>%
-  mutate(TimeTreat = gsub("_WK", "", TimeTreat)) %>%
-  mutate(TimeTreat = gsub("Donor_NA_Donor", "DonB", TimeTreat)) %>%
-  mutate(donorB= case_when(Fig_lab == "DonB" ~ paste(Fig_lab),
-                          Fig_lab != "DonB" ~ paste("Other"))) %>%
-  mutate(Timepoint_Treatment = paste(Treatment, Timepoint, sep = "_")) %>%
-  mutate(Timepoint_Treatment = gsub("MT_WK", "", Timepoint_Treatment)) %>%
-  mutate(Timepoint_Treatment = gsub("lacebo_WK", "", 
-                                    Timepoint_Treatment)) %>%
-  mutate(Timepoint_Treatment = gsub("Donor_Donor", "DonB", Timepoint_Treatment))-> mapfile
-# add rowname to mapfile so phyloseq can read
-rownames(mapfile) <- mapfile$SampleName
-
-write.table(
-mapfile %>%
-select(SampleName, Fig_lab, Initial, Timepoint, Remission),
-"~/Drive2/UC_FMT/UCFMT1_16S_ALL/map_of_metagenomics.txt",
-sep = "\t", row.names = F, quote = F
-)
 ```
 
-
-Visualizing the composition of samples via metaphlan and make a phyloseq object
-for metaphlan2. Remember that metaphlan calculate relative abundance at all levels
-by default. You should've selected from the command line what level you are 
-asking for. But here I collapse the output at the species level so that the 
-abundances are correct for visulaization and also diversity analysis.
 
 ```{r}
 # edit the sample names and proper variable for merging to mapfile
@@ -142,7 +89,6 @@ metaphlan2 %>%
   filter(grepl("s__", SampleID)) %>%
   filter(!grepl("t__", SampleID)) %>%
   gather(SampleName, Abundance, -SampleID) %>%
-  filter(!SampleName %in% c("s721_CCGTCC", "s797_GTGGCC")) %>%
   separate(SampleID, c("Kingdom", "Phylum", "Class", "Order", "Family", 
                          "Genus", "Species"),sep = "[|]") %>%
   #select(-Class) %>%
@@ -169,14 +115,6 @@ metaphlan_TAX = tax_table(as.matrix(metaphlan_taxa))
 metaphlan_OTU <- otu_table(as.matrix(metaphlan_otu), taxa_are_rows = TRUE)
 ps_metaphlan = phyloseq(metaphlan_OTU, metaphlan_TAX)
 sample_data(ps_metaphlan) <- mapfile
-
-#Remove the two samples that recently their depth increased:
-ps_metaphlan <- subset_samples(ps_metaphlan, !SampleName== "s721_CCGTCC" &
-                                             !SampleName== "s797_GTGGCC")
-
-#Removing the two slurries of DonorB collected from 2017 May and October
-#ps_metaphlan <- subset_samples(ps_metaphlan, !SampleName== "DonorB_D_May17" &
-#                                             !SampleName== "DonorB_D_Oct17")
 
 
 ###############################################################################
@@ -211,84 +149,6 @@ Phy_donorB
 dev.off()
 Phy_donorB
 
-ps_Species_df = make_phy_df(ps_prop,'Species', 0.01, TRUE, prop = FALSE)
-
-cols <- c("g__Dorea" = "#e5f5e0",
-          "g__Blautia" = "#a1d99b",
-          "s__Fprausnitzii" = "#31a354", 
-          "Other" = "#bdbdbd")
-
-ps_Species_df %>%
-  mutate(TaxaInfo = 
-           case_when(Genus == "g__Faecalibacterium" ~
-                       paste("s__Fprausnitzii"),
-                     Genus == "g__Dorea (f__Lachnospiraceae)" ~ 
-                       paste("g__Dorea"),
-                     Genus == "g__Blautia (f__Lachnospiraceae)" ~
-                       paste("g__Blautia"),
-                     TRUE ~ paste("Other"))) %>%
-  mutate(Fig_lab = case_when(Fig_lab == "DonB" ~ 
-                               paste(X.SampleID),
-                             TRUE ~ paste(Fig_lab)))-> ps_Species_df_clean
-
-
-ps_Species_df_clean$TaxaInfo <- factor(ps_Species_df_clean$TaxaInfo, 
-                           levels = rev(c("g__Dorea", "g__Blautia",
-                                      "s__Fprausnitzii",
-                                      "Other")))
-
-ps_Species_df_clean$Timepoint<- factor(ps_Species_df_clean$Timepoint, 
-                           levels = c("WK0", "WK6",
-                                      "Donor"))
-
-ps_Species_df_clean$Fig_lab <- factor(ps_Species_df_clean$Fig_lab,
-levels= rev(c(
-"pt60", "pt75", "pt80", "pt84",
-"pt25",
-"pt10", "pt4", "pt56", "pt74","pt79", "pt85",
-"DMG_13", "DMG_16")))
-
-strains_abund1 <- 
-  ggplot(ps_Species_df_clean, aes(Abundance, Fig_lab, fill= TaxaInfo)) +
-  geom_bar(stat = "identity") +
-  facet_wrap(Timepoint~., scales = "free") +
-  scale_fill_manual(values = cols) +
-  #geom_text(aes(label=Abundance), size=3,
-  #           position = position_stack(vjust = 0.5)) +
-  theme_bw() +
-  theme(legend.position = "none",
-        axis.title.y = element_blank(), 
-        axis.title.x = element_blank(),
-        axis.text.y = element_text(size = 10),
-        axis.text.x = element_text(size=10, angle = 0),
-        strip.text.x = element_text(size = 10, angle = 0),
-        strip.text.y = element_text(size = 10, angle = 0))
-pdf('figs/strains_abund1.pdf', 
-  heigh = 6, width = 12)
-strains_abund1 
-  dev.off()
-strains_abund1
-
-strains_abund2 <- 
-ggplot(ps_Species_df_clean, aes(Abundance, Timepoint, fill= TaxaInfo)) +
-  geom_bar(stat = "identity") +
-  facet_wrap(Timepoint~., scales = "free") +
-  scale_fill_manual(values = cols) +
-  #geom_text(aes(label=Abundance), size=3,
-  #           position = position_stack(vjust = 0.5)) +
-  theme_bw() +
-  theme(legend.position = "bottom",
-        axis.title.y = element_blank(), 
-        axis.title.x = element_blank(),
-        axis.text.y = element_text(size = 10),
-        axis.text.x = element_text(size=10, angle = 0),
-        strip.text.x = element_text(size = 10, angle = 0),
-        strip.text.y = element_text(size = 10, angle = 0))
-pdf('figs/strains_abund2.pdf', 
-  heigh = 2, width = 12)
-strains_abund2
-  dev.off()
-strains_abund2
 
 ```
 
@@ -750,14 +610,6 @@ perform similar functions. The normalized, merged genefamilies regrouped and
 then renamed all of these via humann2 code/pipes.
 
 
-So, here it's challenging to regroup the uniref genefamilies to other databases
-such as KEGG/COG because most of the data gonna be returned as ungrouped. This
-means that we have a known uniref genefamily for them but couldn't assign them
-to a proper KEGG/COG pathway. 
-
-So, I'll use Uniref90 genefamilies to calculate bray and UPGMA tree and in the
-stacked barplot, I'll use Unmapped/unclassified/Known function data.
-
 ```{r}
 #Importing the Uniref90(all humann2 marker) functions and their completename
 gene_uniref90 <- read.csv("Humann2/UCFMT1_ShotgunRead_genefamilies_norm_uniref90.txt", 
@@ -778,8 +630,6 @@ gene_uniref90 %>%
                          !Genefamily == "UNMAPPED" ~ paste("Uniref90_known"),
                          TRUE ~ as.character(Genefamily))) -> gene_uni_E_onlyfunc
 
-#samples that needs to be removed
-Not_nec <- c("s721_CCGTCC", "s797_GTGGCC")
 #make the data long just for the sake of visualization
 gene_uni_E_onlyfunc %>%
   gather(SampleName, Abundance, -Genefamily, -Taxonomy, -Type) %>%
@@ -787,7 +637,6 @@ gene_uni_E_onlyfunc %>%
   group_by(SampleName, Type) %>%
   summarize(NewAbundance= sum(Abundance)) %>%
   left_join(mapfile, by="SampleName") %>%
-  filter(!SampleName %in% Not_nec) %>%
   mutate(Timepoint = case_when(Fig_lab == "DonB" ~ paste(X.SampleID),
                              TRUE ~ as.character(Timepoint))) %>%
   mutate(Timepoint = gsub("DMG_", "", Timepoint)) %>%
@@ -832,15 +681,10 @@ gene_OTU <- otu_table(as.matrix(gene_matrix),
                       taxa_are_rows = TRUE)
 ps_genefamily = phyloseq(gene_OTU, gene_INF)
 sample_data(ps_genefamily) <- mapfile
-#Remove the two samples that recently their depth increased:
-ps_genefamily <- subset_samples(ps_genefamily, 
-                                !SampleName== "s721_CCGTCC" &
-                                !SampleName== "s797_GTGGCC" )
                                                              
 # the orgiinal genefamily file is relAbund but after removing unmappd/uknonw
 ps_genefamily_rel <- ps_genefamily %>%
 transform_sample_counts(function(x) {x/sum(x) * 100} )# Transform to rel. abundance
-#just making sure the relative abundance of data looks good
 # here is sum of relative adbundace after removing unmapped and unknown uniref90
 sample_sums(ps_genefamily)[1:10]
 # and after re-cal relative abund
@@ -926,12 +770,6 @@ df_DonB_wide[rowSums(df_DonB_wide[,3:6] > cutoff) >= 4, ] %>%
 subset_taxa(ps_genefamily_rel, 
             rownames(tax_table(ps_genefamily_rel)) %in% core_DonB) -> core_DonB_ps
 
-###############################################################################
-# A function to get the commonly engrafted ASVs
-# using 0.00001 as min abundace to call engraftment. the mean of data at
-#  Min.       1st Qu.        Median          Mean       3rd Qu.          Max. 
-#"0.000000000" "0.000006744" "0.000024682" "0.000052561" "0.000064108" "0.003749325" 
-###############################################################################
 #removing DonB ASvs
 subset_samples(core_DonB_ps, Fig_lab != "DonB")  -> temp
 #subset_samples(!Treatment %in% c("Donor")) -> temp
@@ -1165,130 +1003,6 @@ ps_gene_f = file('ITOL/DonBPTs_taxa_bar_genefamily.txt', open = 'at')
 write.table(genefamily_itol, file = ps_gene_f, sep = '\t', 
 			row.names = FALSE, col.names = FALSE, qmethod = NULL, quote = FALSE)
 close(ps_gene_f)
-
-
-```
-
-
-#Genefamilies-for mike's grant
-```{r}
-
-mapfile %>% filter(!Fig_lab=="DonB") %>% pull(Fig_lab)-> meta_pts
-unique(meta_pts) -> meta_pts
-
-Metaps_gene <- subset_samples(ps_genefamily_rel, Fig_lab %in% meta_pts)
-
-bray_dis_ps = phyloseq::distance(Metaps_gene, method = 'bray')
-bray_ord_ps = ordinate(Metaps_gene, method = 'PCoA', 
-                       distance = bray_dis_ps)
-# save_plot
-UCFMT1_ordinate2(Metaps_gene, bray_ord_ps, "bray")
-ggsave('~/Drive2/UC_FMT/UCFMT1_ShotgunReads/temp/PcoA_bray_gene.png', 
-       heigh = 6, width = 18, units = "cm")
-
-
-
-#CLR transform
-Metaps_gene_clr <- microbiome::transform(Metaps_gene, "clr")
-
-psclr_dist= phyloseq::distance(Metaps_gene_clr, method = "euclidean")
-psclr_ord= ordinate(Metaps_gene_clr , method = "RDA", distance = psclr_dist)
-# save_plot
-UCFMT1_ordinate2(Metaps_gene_clr, psclr_ord, "euclidean") 
-ggsave('~/Drive2/UC_FMT/UCFMT1_ShotgunReads/temp/RDA_Ait_gene.png', 
-       heigh = 6, width = 18, units = "cm")
-
-```
-
-
-```{r}
-Metaps_taxa <- subset_samples(ps_metaphlan_rel, Fig_lab %in% meta_pts)
-bray_dis_ps = phyloseq::distance(Metaps_taxa, method = 'bray')
-bray_ord_ps = ordinate(Metaps_taxa, method = 'PCoA', distance = bray_dis_ps)
-# save_plot
-UCFMT1_ordinate2(Metaps_taxa, bray_ord_ps, "bray")
-ggsave('~/Drive2/UC_FMT/UCFMT1_ShotgunReads/temp/PcoA_bray_taxa.png', 
-       heigh = 6, width = 18, units = "cm")
-
-
-
-
-Metaps_taxa <- subset_samples(ps_metaphlan, Fig_lab %in% meta_pts)
-#CLR transform
-ps_metaphlan_clr <- microbiome::transform(Metaps_taxa, "clr")
-psclr_dist= phyloseq::distance(ps_metaphlan_clr, method = "euclidean")
-psclr_ord= ordinate(ps_metaphlan_clr, method = "RDA", distance = psclr_dist)
-# save_plot
-UCFMT1_ordinate2(ps_metaphlan_clr, psclr_ord, "euclidean")
-ggsave('~/Drive2/UC_FMT/UCFMT1_ShotgunReads/temp/RDA_Ait_taxa.png', 
-       heigh = 6, width = 18, units = "cm")
-
-```
-
-
-```{r}
-
-Metaps_taxa <- subset_samples(ps_metaphlan, Fig_lab %in% meta_pts)
-(rare <- phyloseq::rarefy_even_depth(Metaps_taxa, 
-                          sample.size = min(sample_sums(Metaps_taxa)),
-                                       rngseed = 123))
-
-adiv <- data.frame(
-  "Observed" = phyloseq::estimate_richness(rare, measures = "Observed"),
-  "Shannon" = phyloseq::estimate_richness(rare, measures = "Shannon"),
-  "TimeTreat" = phyloseq::sample_data(rare)$Timepoint)
-  adiv %>%
-  gather(key = metric, value = value, c("Observed", "Shannon")) %>%
-  mutate(metric = factor(metric, levels = c("Observed", "Shannon"))) %>%
-  ggplot(aes(x = TimeTreat, y = value)) +
-  geom_boxplot(outlier.color = NA) +
-  facet_wrap(~metric, scales = "free") +
-  geom_jitter(aes(color = TimeTreat), height = 0, width = .2) +
-   scale_color_manual(
-     values = c("#238b45", "#005824", "#99d8c9", "#66c2a4",
-                "#A6CEE3", "#1F78B4",
-                "#7570B3"),
-     breaks = c("FR0", "FR6", "FN0", "FN6", 
-                "PP0", "PP6",
-                "DonB")) +
-    ggplot2::theme_bw() +
-    theme(legend.title = element_blank(),
-        text = element_text(size = 20),
-        legend.position = "top", axis.title = element_blank())
-  ggsave('~/Drive2/UC_FMT/UCFMT1_ShotgunReads/temp/alpha_taxa.png', 
-       heigh = 6, width = 12, units = "cm")
-
-
-  ############################################################################
-  
-Metaps_gene <- subset_samples(ps_genefamily, Fig_lab %in% meta_pts)
-(rare <- phyloseq::rarefy_even_depth(Metaps_gene, 
-                          sample.size = min(sample_sums(Metaps_gene)),
-                                       rngseed = 123))
-adiv <- data.frame(
-  "Observed" = phyloseq::estimate_richness(Metaps_gene, measures = "Observed"),
-  "Shannon" = phyloseq::estimate_richness(Metaps_gene, measures = "Shannon"),
-  "TimeTreat" = phyloseq::sample_data(Metaps_gene)$Timepoint)
-  adiv %>%
-  gather(key = metric, value = value, c("Observed", "Shannon")) %>%
-  mutate(metric = factor(metric, levels = c("Observed", "Shannon"))) %>%
-  ggplot(aes(x = TimeTreat, y = value)) +
-  geom_boxplot(outlier.color = NA) +
-  facet_wrap(~metric, scales = "free") +
-  geom_jitter(aes(color = TimeTreat), height = 0, width = .2) +
-   scale_color_manual(
-     values = c("#238b45", "#005824", "#99d8c9", "#66c2a4",
-                "#A6CEE3", "#1F78B4",
-                "#7570B3"),
-     breaks = c("FR0", "FR6", "FN0", "FN6", 
-                "PP0", "PP6",
-                "DonB")) +
-    ggplot2::theme_bw() +
-    theme(legend.title = element_blank(),
-        text = element_text(size = 20),
-        legend.position = "top", axis.title = element_blank())
-  ggsave('~/Drive2/UC_FMT/UCFMT1_ShotgunReads/temp/alpha_taxa.png', 
-       heigh = 6, width = 12, units = "cm")
 
 
 ```

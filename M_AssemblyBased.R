@@ -5,10 +5,6 @@ date: "7/26/2019"
 output: html_document
 ---
 
-These are my analysis to detect MAG and MABs in CEMG and DMG data. Assign
-taxonomic assignment to them and produce map files for further visulaization
-in anvio platform.
-
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -40,12 +36,6 @@ Bin_species <- read.csv("Metabat_bracken_species.txt", sep = "\t",
                         stringsAsFactors = FALSE)
 Bin_genus <- read.csv("Metabat_bracken_genus.txt", sep = "\t",
                       stringsAsFactors = FALSE)
-
-##########################################################
-## A function to make nested strip in ggplot
-## https://github.com/teunbrand/ggnomics/blob/standalone-facet_nested/R/
-source('~/Drive2/software/ggplot_faceting/facet_nested.R')
-##########################################################
 
 ```
 
@@ -112,301 +102,6 @@ Source_color <- data.frame(Source = c("Common", "CEMG+", "DMG+",
 
 ```
 
-# Taxonomic annotation of bins
-Here are my work on Bracken and krakenHLL outputs. Bracken did the assignment
-only at genus level which means we've got "unknown" information for cases
-where we couldn't assign proper genus information. So I used krakenHll tool
-and parsed the output of all krakenHLL files together using my own script to 
-identify best hit by comparing multiple taxonomic level. It turns out we couldn't
-assign phylum level information to some of the bins even using krakenHLL. So I 
-used ChecKM lineage marker information for those bins that couldn't get any
-phylum information. In summary, I tried hard to assign at least phylum information
-to all of these bins by any mean but I'll generated another list of bins with
-roboust taxonomomic information as well that can be used for the purpose of 
-phylogeny. 
-
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-###############################################################################
-##################TAXONOMIC INFORMATION FROM KRAKENHLL#########################
-# this is the NCBI full lineage information
-full_lineage <- read.csv("~/Drive2/software/lineages-2019-02-20.csv",
-                         stringsAsFactors = FALSE)
-colnames(full_lineage)[1] <- "TaxID"
-full_lineage %>% 
-  select(TaxID, superkingdom, phylum, class, 
-         order, family, genus, species) -> full_lineage
-
-# Using BRACKEN Species and genus information:> Bracken output is fairly
-# accurate for speceis/genus level data but not lower so for each Bin the
-# Bracken output must be checken for species/genus level
-Bin_species_brac <- read.csv("Metabat_bracken_species.txt", sep = "\t",
-                        stringsAsFactors = FALSE)
-Bin_genus_brac <- read.csv("Metabat_bracken_genus.txt", sep = "\t",
-                      stringsAsFactors = FALSE)
-#select only those taxonomy that have more than 55 % of bin assigned to st:
-Bin_species_brac %>% filter(fraction_total_reads >= 0.55) %>%
-  mutate(Brac_species = name) %>%
-  select(BinName, Brac_species) -> Bin_species_brac
-Bin_genus_brac %>% filter(fraction_total_reads >= 0.55) %>%
-  mutate(Brac_genus = name) %>%
-  left_join(Bin_species_brac, by = "BinName") %>%
-  select(BinName, Brac_genus, Brac_species)-> Bin_bracken
-  
-
-# Importing krakenHll output using my own script to select best hit
-Bin_krakenHll <- read.csv("All_bins_krakenHLL", sep = "\t",
-                      stringsAsFactors = FALSE, header = FALSE,
-                      na.strings = c("","NA"))
-col <- c("BinName", "Percen", "Reads", "TaxRead", "kmers", 
-         "Dup", "Cov", "TaxID", "Rank", "TaxName")
-colnames(Bin_krakenHll) <- col
-
-
-Bin_krakenHll %>%
-  mutate(BinName = 
-gsub("/home/sharok/Drive2/DonorB_metagenomics/DonorB_DMG_CEMG_bin_assignment/krakenHLL//", 
-     "", BinName)) %>%
-  mutate(BinName = gsub(".fa.krakenHLL", "", BinName)) %>%
-  mutate(BinName = gsub("bin.", "bin_", BinName)) %>%
-  mutate(BinName = trimws(BinName)) %>%
-  replace_na(list(TaxName = "unknown",
-                  Rank = "unknown")) %>%
-  #removing the Uknown bins
-  filter(!TaxName == "unknown") %>%
-  select(BinName, Rank, TaxID, TaxName, Percen) %>%
-  #removing [] from taxa name
-  mutate(TaxName = gsub("[[]", "", TaxName)) %>%
-  mutate(TaxName = gsub("[]]", "", TaxName)) %>%
-  left_join(full_lineage, by = "TaxID") -> df_krakenHll
-
-
-BinsFine %>%
-  select(BinName, Marker.lineage) %>%
-  separate(Marker.lineage, c("Rank", "Name"), sep = "__") %>%
-  filter(!is.na(Name)) %>%
-  separate(Name, c("TaxName", "UID"), sep = " ") -> CheckM_taxa
-  CheckM_taxa %>%
-  distinct(TaxName) -> CheckM_UID 
-# Manually find the checkM taxIDs so that it can be merged with krakenHLL
-# and can be used in case of not finding proper taxa in krakenHll output
-c("2", "1224", "28221", "186802", "28890", "186826", "976", "909929",
-"186803", "171549", "1300", "31953", "201174", "80864", "186801", "543", 
-"1301", "712", "838", "29547") -> CheckM_UID$TaxID
-CheckM_UID %>% 
-  mutate(TaxID = as.numeric(TaxID)) %>%
-  right_join(CheckM_taxa, by = "TaxName") %>%
-  left_join(full_lineage, by = "TaxID") %>%
-  select(BinName, TaxName, superkingdom, phylum, class, order, 
-         family, genus) -> CheckM_complete
-colnames(CheckM_complete) <- c("BinName","checkm_TaxName",
-                               "checkm_superkingdom",
-                               "checkm_phylum","checkm_class",
-                               "checkm_order", "checkm_family", 
-                               "checkm_genus")
-
-#########################################
-### FINAL TAXONOMY FOR BIN: this script combine krakenHLL, checkM, and Bracken
-### taxa assignment and generate best consensous information from these sources
-#########################################
- #Merging the lineage info with Bin quality file
- BinsFine %>%
-  #ADD the checkm taxonomic information 372bins
-  left_join(CheckM_complete, by = "BinName") %>%
-  # ADD krakenHLL taxa info 370bins
-  left_join(df_krakenHll, by = "BinName") %>%
-  # ADD bracken taxa assignment 254bins 
-  left_join(Bin_bracken, by = "BinName") %>%
-  # for those with N
-  #A assignment add checkm marker lineage
-  mutate(phylum = case_when(is.na(phylum) ~ as.character(checkm_phylum),
-                            phylum == "" ~ as.character(checkm_phylum),
-                                TRUE ~ as.character(phylum))) %>%
-   # get the checkM superkingdom for those that don't even have phylum
-  mutate(phylum = case_when(is.na(phylum) ~ paste("k__", checkm_superkingdom,
-                                                  sep = ""),
-                            phylum == "" ~ paste("k__", checkm_superkingdom,
-                                                  sep = ""),
-                                TRUE ~ as.character(phylum))) %>%
-   # if order is empty get it from checkM order
-   mutate(order = case_when(is.na(order) ~ as.character(checkm_order),
-                            order == "" ~ as.character(checkm_order),
-                                TRUE ~ as.character(order))) %>%
-   #get the phylum information if it's NA or empty
-   mutate(order = case_when(is.na(order) ~ paste("p__", phylum,
-                                                  sep = ""),
-                            order == "" ~ paste("p__", phylum,
-                                                  sep = ""),
-                                TRUE ~ as.character(order))) %>%
-   mutate(order = gsub("p__k__", "k__", order)) %>%
-   # if family is empty get it from checkM family first
-   mutate(family = case_when(is.na(family) ~ as.character(checkm_family),
-                            family == "" ~ as.character(checkm_family),
-                                TRUE ~ as.character(family))) %>%
-   #get the order information if it's NA or empty
-   mutate(family = case_when(is.na(family) ~ paste("o__", order,
-                                                  sep = ""),
-                            family == "" ~ paste("o__", order,
-                                                  sep = ""),
-                                TRUE ~ as.character(family))) %>%
-   mutate(family = gsub("o__p__", "p__", family)) %>%
-   mutate(family = gsub("o__k__", "k__", family)) %>%
-   # if genus is empty get it from bracken genus level
-   mutate(genus = case_when(is.na(genus) ~ as.character(Brac_genus),
-                            genus == "" ~ as.character(Brac_genus),
-                                TRUE ~ as.character(genus))) %>%
-   # if genus is empty get it from family
-    mutate(genus = case_when(is.na(genus) ~ paste("f__", family, sep = ""),
-                           genus == "" ~  paste("f__", family, sep = ""),
-                           TRUE ~ as.character(genus))) %>%
-    mutate(genus = gsub("f__p__", "p__", genus)) %>%
-    mutate(genus = gsub("f__k__", "k__", genus)) %>%
-    mutate(genus = gsub("f__o__", "o__", genus)) %>%
-   
-  # if species is empty get it from bracken species level
-   mutate(species = case_when(is.na(species) ~ as.character(Brac_species),
-                            species == "" ~ as.character(Brac_species),
-                                TRUE ~ as.character(species))) %>% 
-  # if species is empty get it from genus column 
-    mutate(species = case_when(is.na(species) ~ paste("g__", genus, sep = ""),
-                             species == "" ~  paste("g__", genus, sep = ""),
-                           TRUE ~ as.character(species))) %>%
-    mutate(species = gsub("g__p__", "p__", species)) %>%
-    mutate(species = gsub("g__k__", "k__", species)) %>%
-    mutate(species = gsub("g__o__", "o__", species)) %>%
-    mutate(species = gsub("g__f__", "f__", species)) %>%
-   select(-c("checkm_TaxName", "checkm_superkingdom",
-              "checkm_phylum","checkm_class","checkm_order", 
-              "checkm_family", "checkm_genus", "class",
-              "Brac_genus", "Brac_species")) -> BinsFine_taxa
- 
-
- ####################################################
- # MAG_MAB_Complete
- ####################################################
- # This is a table contain complete information about MAG_MAB
- # in contains complete checkM and taxonomy, and length of MAGs etc
- 
- # importing anivo summary of bins here
-path1 <- paste("~/Drive2/UC_FMT/anvio_setup_DMG-CEMG-all/SAMPLES-MERGED",
-"_UCpatients_2500_SUMMARY_METABAT_BINS/bins_summary.txt",
-sep = "")
-BINS_length <- read.csv(path1, sep = "\t")
-colnames(BINS_length)[1] <- "BinName"
-
-BinsFine_taxa %>%
-   left_join(BINS_length, by = "BinName") -> BinsFine_complete
- write.table(BinsFine_complete, 
-            "METABAT_447BINS_complete_information.txt", 
-             sep = "\t", 
-             row.names = FALSE, col.names = FALSE, quote = FALSE)
-
-BinsFine_taxa %>%
-   filter(Quality %in% c("MAG", "MAB")) %>%
-   left_join(BINS_length, by = "BinName") -> MAG_MAB_complete
-
-
-#######################################################
-#### MAKING METABAT_MAG_MAB_phylum colours
-Phylum_color <- data.frame(phylum = BinsFine_taxa %>%
-                             filter(Quality %in% c("MAG", "MAB")) %>%
-                             distinct(phylum),
-                           Color = c("#FF0000", "#009900", "#004C99", 
-                                     "#4C0099", "#CC6600",
-                                     "#FF33FF", "#FFFF33"))
-# selecting only MAG_MABs
- BinsFine_taxa %>%
-   filter(Quality %in% c("MAG", "MAB")) %>%
-   left_join(Phylum_color, by = "phylum") %>%
-   select(BinName, phylum, Color) -> MAG_MAB_phylum_info
- write.table(MAG_MAB_phylum_info, 
-            "contigs_in_MAG_MAB_PhylumInfo.txt", 
-             sep = "\t", 
-             row.names = FALSE, col.names = FALSE, quote = FALSE)
-
- 
-#### MAKING METABAT_MAG_MAB_order colours
-Order_color <- data.frame(phylum = BinsFine_taxa %>%
-                             filter(Quality %in% c("MAG", "MAB")) %>%
-                             distinct(order),
-                           Color = colours1[1:21])
-
- # selecting only MAG_MABs 
- BinsFine_taxa %>%
-   filter(Quality %in% c("MAG", "MAB")) %>%
-   left_join(Order_color, by = "order") %>%
-   select(BinName, order, Color) -> MAG_MAB_order_info
-  write.table(MAG_MAB_order_info, 
-            "contigs_in_MAG_MAB_OrderInfo.txt", 
-             sep = "\t", 
-             row.names = FALSE, col.names = FALSE, quote = FALSE)
-
-
-#removing those that couldn't assign any taxa via krakenHLL OR checkM
-# I'm removing these because wanna make a clean phylogeny tree and it's gonna 
-# be weired if we wont be able to assign even a phylum to a bacteria.
- 
-############################################################################ 
-# selecting only clean MAG_MABs with proper taxa at phylum level
- BinsFine_taxa %>%
-   filter(Quality %in% c("MAG", "MAB")) %>%
-   left_join(Phylum_color, by = "phylum") %>%
-   select(BinName, phylum, Color) %>%
-   filter(!phylum == "k__Bacteria")-> MAG_MAB_clean_phylum_info
-  write.table(MAG_MAB_clean_phylum_info, 
-            "contigs_in_MAG_MAB_clean_PhylumInfo.txt",
-             sep = "\t", 
-             row.names = FALSE, col.names = FALSE, quote = FALSE)
-#new bin collection for clean bins (those assigned at least to a phylum)
-  ContigInBins %>% 
-  right_join(MAG_MAB_clean_phylum_info, by = "BinName") %>% 
-  select(Contig, BinName) -> ContigsIn_MAG_MAB_clean
-write.table(ContigsIn_MAG_MAB_clean, 
-            "contigs_in_MAG_MAB_clean.txt", sep = "\t", 
-            row.names = FALSE, col.names = FALSE, quote = FALSE)
-
-
- # selecting only clean MAG_MABs with proper taxa at order level
- BinsFine_taxa %>%
-   filter(Quality %in% c("MAG", "MAB")) %>%
-   left_join(Order_color, by = "order") %>%
-   select(BinName, order, Color) %>%
-   filter(!order %in% c("k__Bacteria"))-> MAG_MAB_clean_order_info
- write.table(MAG_MAB_clean_order_info, 
-            "contigs_in_MAG_MAB_clean_OrderInfo.txt",
-             sep = "\t", 
-             row.names = FALSE, col.names = FALSE, quote = FALSE)
- 
-##############################################################################
- # selecting only clean MAG_MABs with proper taxa at order level
- BinsFine_taxa %>%
-   filter(Quality %in% c("MAG", "MAB")) %>%
-   left_join(Order_color, by = "order") %>%
-   select(BinName, order, Color) %>%
-   filter(!order %in% c("k__Bacteria")) %>%
-   filter(!str_detect(order, "p__*"))-> MAG_MAB_Superclean_order_info
- write.table(MAG_MAB_Superclean_order_info, 
-            "contigs_in_MAG_MAB_Superclean_OrderInfo.txt",
-             sep = "\t", 
-             row.names = FALSE, col.names = FALSE, quote = FALSE)
- 
- #new bin collection for super clean bins (those assigned at least to an order)
-  ContigInBins %>% 
-  right_join(MAG_MAB_Superclean_order_info, by = "BinName") %>% 
-  select(Contig, BinName) -> ContigsIn_MAG_MAB_Superclean
-write.table(ContigsIn_MAG_MAB_Superclean, 
-            "contigs_in_MAG_MAB_Superclean.txt", sep = "\t", 
-            row.names = FALSE, col.names = FALSE, quote = FALSE)
-
-```
-
-
-OK, so to visualize tree of DonorB refined genomes I think the below anvio 
-profile using METABAT_MAG_MAB_clean at phylum level can be used:
-anvi-interactive -c contigs-fixed.db -p SAMPLES-MERGED_DonorB/PROFILE.db 
--C METABAT_MAG_MAB_clean 
--t METABAT_INFORMATION/Campbel_et_al_Ribosomalgenes_METABAT_MAG_MAB_clean_
-protein_tree.txt --server-only
-
 
 #Engraftment
 Here are my codes to combine the bin information with the Patient's mapfile
@@ -463,8 +158,6 @@ colnames(coverage) <- gsub("_MAP_SORTD", "", colnames(coverage))
 coverage %>%
   gather(SampleName, coverage_value, -bins) %>%
   left_join(mapfile, by = "SampleName") %>%
-  #removing duplicate samples (those that their depth increased)
-  filter(!SampleName %in% c("s721_CCGTCC", "s797_GTGGCC")) %>%
   select(c("bins", "coverage_value", "Timepoint", "Initial")) %>%
   #adding "Time" term so it wont become inteager
   mutate(Timepoint = paste("Time", Timepoint, sep = "")) -> long_coverage
@@ -481,27 +174,17 @@ colnames(variability) <- gsub("_MAP_SORTD", "", colnames(variability))
 variability %>%
   gather(SampleName, variability_value, -bins) %>%
   left_join(mapfile, by = "SampleName") %>%
-  #removing duplicate samples (those that their depth increased)
-  filter(!SampleName %in% c("s721_CCGTCC", "s797_GTGGCC")) %>%
   select(c("bins", "variability_value", "Timepoint", "Initial")) %>% 
   #adding "Time" term so it wont become inteager
   mutate(Timepoint = paste("Time", Timepoint, sep = "")) -> long_variability
 colnames(long_variability)[1] <- "BinName"
 
 
-
-Patient_fate <- data.frame(Initial = c("PM","AF","DAB","KG","WAF","BN",
-                                       "TJD","PT","MP","EB","ES"),
-                           Fate = c("R", "R", "P", "R", "N", "R", "N",
-                                    "R", "N", "N", "R"))
-
 # converting to long format so that can be merged with mapfile
 # clean up and convert back to wide for engraftment detection
  detection %>% 
   gather(SampleName, detect_value, -bins) %>%
   left_join(mapfile, by = "SampleName") %>%
-  #removing duplicate samples (those that their depth increased)
-  filter(!SampleName %in% c("s721_CCGTCC", "s797_GTGGCC")) %>%
   select(c("bins", "detect_value", "Timepoint", "Initial", "Fig_lab")) %>%
   #adding "Time" term so it wont become inteager
   mutate(Timepoint = paste("Time", Timepoint, sep = "")) %>%
@@ -1179,10 +862,6 @@ gene_cove %>%
 
 ################################################################################
 
-Patient_fate <- data.frame(Initial = c("PM","AF","DAB","KG","WAF","BN",
-                                       "TJD","PT","MP","EB","ES"),
-                           Fate = c("R", "R", "P", "R", "N", "R", "N",
-                                    "R", "N", "N", "R"))
 
 # converting to long format so that can be merged with mapfile
 # clean up and convert back to wide for engraftment detection
@@ -2325,20 +2004,6 @@ gene_engraft_all_visual %>%
         strip.text.y = element_text(size = 12, angle = 0),
          strip.placement = "none")
 
-  
-
-  
-
-
+ 
 ```
-
-
-
-
-
-
-
-
-
-
 

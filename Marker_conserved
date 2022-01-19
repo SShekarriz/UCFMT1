@@ -16,11 +16,11 @@ contig="/dataone/shekas3/Random_works/map_specificity/pangenome_markers/species_
 out="/dataone/shekas3/Random_works/map_specificity/pangenome_markers/perfect_align_freeMismatch/species_markers"
 mkdir -p $out
 
-./FastShotgun_perfect_align_freeMismatch.sh $D1 _R1.fastq.gz $contig ${out}/aligned_genomes_dir1
-./FastShotgun_perfect_align_freeMismatch.sh $D2 _R1.fastq.gz $contig ${out}/aligned_genomes_dir2
-./FastShotgun_perfect_align_freeMismatch.sh $D3 _R1.fastq.gz $contig ${out}/aligned_genomes_dir3
-./FastShotgun_perfect_align_freeMismatch.sh $D4 _R1.fastq.gz $contig ${out}/aligned_genomes_dir4
-./FastShotgun_perfect_align_freeMismatch.sh $D5 _R1.fastq.gz $contig ${out}/aligned_genomes_dir5
-./FastShotgun_perfect_align_freeMismatch.sh $D6 _R1.fastq.gz $contig ${out}/aligned_genomes_dir6
-./FastShotgun_perfect_align_freeMismatch.sh $D7 _R1.fastq.gz $contig ${out}/aligned_genomes_dir7
+./perfect_Mapper $D1 _R1.fastq.gz $contig ${out}/aligned_genomes_dir1
+./perfect_Mapper $D2 _R1.fastq.gz $contig ${out}/aligned_genomes_dir2
+./perfect_Mapper $D3 _R1.fastq.gz $contig ${out}/aligned_genomes_dir3
+./perfect_Mapper $D4 _R1.fastq.gz $contig ${out}/aligned_genomes_dir4
+./perfect_Mapper $D5 _R1.fastq.gz $contig ${out}/aligned_genomes_dir5
+./perfect_Mapper $D6 _R1.fastq.gz $contig ${out}/aligned_genomes_dir6
+./perfect_Mapper $D7 _R1.fastq.gz $contig ${out}/aligned_genomes_dir7
 

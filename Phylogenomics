@@ -39,7 +39,6 @@ rm *.fna
 cd ..
 
 
-:<<"END"
 echo "##################"
 echo "Running Panaroo"
 echo "##################"
@@ -47,9 +46,8 @@ panaroo -i $GFF/*.gff -o $PanCore --clean-mode strict -a core --aligner mafft -t
 fasttree -nt -gtr $PanCore/core_gene_alignment.aln > $PanCore/core_gene_alignment.newick
 
 #HERE IS PANGENOME ANLYSIIS, NOT for this pipe. just fyii
-#panaroo -i $GFF/*.gff -o $PanPan --clean-mode strict -a pan --aligner mafft -t 20
+panaroo -i $GFF/*.gff -o $PanPan --clean-mode strict -a pan --aligner mafft -t 20
 
-END
 
 echo "####"
 echo "Done"

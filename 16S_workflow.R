@@ -40,7 +40,6 @@ colours = c('grey69',"#4f8579","#783fcc","#69d24d","#cb4bbd","#c6dc46",
 					"#ceb854","#403d57","#b97839","#84a4cb","#588038","#c68ac4",
 					"#48472a","#c9c39c","#6e2b34","#c78889")
 
-# Loading JAke's package
 devtools::load_all('~/Drive2/software/aftersl1p/')
 
 ```
@@ -52,61 +51,16 @@ will not be present in the directory then mapFile_dada2out will be used to impor
 
 ```{r}
 #check the ASV table 
-#asd_table <- read.csv("mergtab_nochim_UCFMT1_16SJosie_transposed.csv")
+#asd_table <- read.csv("mergtab_nochim_UCFMT1_transposed.csv")
 
 #importing MapFile
-Mapfile <- read.csv("Map0vs6_Dec4_JL_editJuly17.txt", sep = "\t", stringsAsFactors = F)
-#remove all the white space from the MpFile
-Mapfile <- data.frame(lapply(Mapfile, trimws), stringsAsFactors = FALSE)
-#edit a colname for MapFile:
-colnames(Mapfile)[29] <- "MajorDonor"
-# Editing Timepoint_Treatment_PatientNo variable. it was not correct
-# also edit the donor variable; had to add initial + Patient No to make it 
-# Uniqu
-Mapfile %>%
-mutate(Donor = case_when(!PatientNo == "DNA" ~ 
-                             paste(Donor, PatientNo, sep = ""),
-                         TRUE ~ as.character(Donor)))  %>%
-mutate(Remission= case_when(Remission == "No" ~ paste("NoRes"),
-                            Remission == "Yes" ~ paste("Res"),
-                            TRUE ~ as.character(Remission))) %>%
-mutate(Timepoint= case_when(Timepoint == "0" ~ paste("WK0"),
-                            Timepoint == "6" ~ paste("WK6"),
-                            TRUE ~ as.character(Timepoint))) %>%
-mutate(Treatment= case_when(Treatment == "P" ~ paste("Placebo"),
-                            Treatment == "A" ~ paste("FMT"),
-                            TRUE ~ as.character(Treatment))) %>%
-mutate(Timepoint_Treatment= case_when(Timepoint_Treatment == "A0" ~ paste("F0"),
-                            Timepoint_Treatment == "A6"~ paste("F6"),
-                    TRUE ~ as.character(Timepoint_Treatment))) %>%
-mutate(Timepoint_Treatment_PatientNo = case_when(!Timepoint_Treatment == "DNA" ~ 
-                                        paste(Timepoint_Treatment, "_pt",
-                                        PatientNo, sep = ""),
-                    TRUE ~ as.character(Timepoint_Treatment))) %>%
-mutate(Fig_lab= case_when(!PatientNo == "DNA" ~ 
-                            paste("pt", PatientNo, sep = ""),
-                           PatientNo == "DNA" ~ 
-                            paste(gsub("Donor", "Don", Donor)))) %>%
-mutate(MajorDonor = case_when(Treatment == "Placebo" ~ paste("Placebo"),
-                              TRUE ~ as.character(MajorDonor))) %>%
-mutate(MajorDonor = case_when(MajorDonor == "" ~ paste("Uknown"),
-                              TRUE ~ as.character(MajorDonor))) %>%
-mutate_all(funs(stringr::str_replace(., "DNA", "Slurry"))) %>%
-  # new variable for ordination plot
-  mutate(Rem_TimeTreat= case_when(Remission == "Slurry" ~ paste("Donor"),
-                                  TRUE ~ paste(Remission, Timepoint_Treatment,
-                                               sep = "_"))) %>%
- mutate(TimeTreat= case_when(Fig_lab == "DonB" ~ paste(Fig_lab),
-            Timepoint_Treatment != "Slurry" ~ paste(Timepoint_Treatment),
-            TRUE ~ paste("Donor"))) %>%
- mutate(donorB= case_when(Fig_lab == "DonB" ~ paste(Fig_lab),
-                          Fig_lab != "DonB" ~ paste("Other")))-> Mapfile
+Mapfile <- read.csv("Mapfile", sep = "\t", stringsAsFactors = F)
 
 
 #Importing the Dada2 sequece variants file
-seqtab.nochim <- readRDS("mergetab_nochim_UCFMT1_16SJosie.rds")
+seqtab.nochim <- readRDS("mergetab_nochim_UCFMT1.rds")
 # Importing taxonomic assignment
-taxa <- readRDS("taxa_UCFMT1_16SJosie_gg2013.rds")
+taxa <- readRDS("taxa_UCFMT1_gg2013.rds")
 
 # add rowname to mapfile so phyloseq can read
 rownames(Mapfile) <- Mapfile$X.SampleID
@@ -125,30 +79,12 @@ ps
 # 3 X SAMPLES REMOVED HERE!
 sample_data(ps) <- subset_samples(ps, !Donor %in% c("AA64", "SW68", "NS73"))
 ############################################################
-# REMOVING SAMPLES THAT HAVE BELOW 5K READS
+# SAMPLES THAT HAVE BELOW 5K READS
 ############################################################
 # HERE IS THE READ PLOT
 depth_plt <- plot_read_depth(ps) +
 	theme_minimal()
 depth_plt
-# find the samples with low read numbers anything below 10,000
-#data.frame(sample_sums(ps)) %>%
-#   tibble::rownames_to_column("X.SampleID") %>%
-#    rename(read_length = sample_sums.ps.)) %>%
-#    right_join(data.frame(sample_data(ps)), by = "X.SampleID") %>% 
-#    filter(read_length <= 10000) -> low_read_numbers
-
-########## THERE ARE THREE SAMPLES BELOW 10,000 READS:#####################
-# PBH48: 212reads > A0, Non-responder, DonorB <<< REMOVED THIS FOR NOW >>>
-# KPM41: 2959reads> A0, Responders,    DonorD <<< REMOVED THIS FOR NOW >>>
-# CM44:  8883reads> A0, Non-responder, DonorB
-# ND1:  14728reads> A6, Non-responder, DonorC
-sample_data(ps) <- subset_samples(ps, !Donor %in% c("PBH48", "KPM41"))
-depth_plt_trim <- plot_read_depth(ps) +
-	theme_minimal() + ggtitle("Samples above 5k reads")
-depth_plt_trim
-# STILL SOUNDS LIKE WE HAVE TWO OUTLIER!? SHOULD I TAKE THEM OUT?
-# DB16: 357838reads> A6, Non-responder, Not clear donor
 ###########################################################################
 
 #asd_table <- data.frame(otu_table(ps))

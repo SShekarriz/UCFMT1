@@ -1,0 +1,110 @@
+#!/bin/bash
+
+if [ "$1" == "-help" ]; then
+  echo "       
+
+##SShekarriz May 21, 2019
+This is a mapper script that maps a list
+of raw-reads from a directory to assembled contigs
+and report the number of reads mapped
+
+HOW TO USE:
+./CEMG_step2 [raw-reads] [suffix] [contig file] [coverage output]
+
+ [raw-read directory]: a full path direcotry contains all the interleaved fasta raw-reads
+ [suffix] : the commen suffic accross all the reads: for example "_inter.fastq"
+ [contig file] : a fasta file with **"full path" contain contigs/long reads/gene/genome
+ [coverage output]: a full path direcotry where all the mapping output files will be saved
+ "
+  exit 0
+fi
+
+
+####################################################################################
+DATE=`date '+%Y-%m-%d-%H:%M'`
+exec > >(tee -i ${4}/FastShotgun_mapper_${DATE}.log)
+exec 2>&1
+####################################################################################
+echo "Here are the positional parameters"
+echo 'Directory contains raw-reads = ' $1
+echo 'raw-reads suffix = ' $2
+echo 'Fasta contig file = ' $3
+echo 'Output directory  = ' $4
+
+if [ $# -gt 0 ]; then
+    echo "Your command line contains $# arguments"
+else
+    echo "Your command line contains no arguments"
+fi
+######################################################
+if [ "$1" != "" ]; then
+    echo "Directory of raw-reads is not empty"
+else
+    echo "Positional parameter 1 is empty"
+fi
+
+echo "#########################################################"
+date -u
+echo "#########################################################"
+#####################################################################################
+#This is a forloop to map raw-reads from a directory to an assembled contig fasta file:
+######################################################################################
+Samtools="/dataone/common/software/samtools-1.11/samtools"
+
+# HERE IS THE folder where the raw-reads are:
+clean="$1"
+# Here is the contig fasta file:
+contig_file="$3"
+# HERE is the alignment outputs
+aligned="$4"
+mkdir -p $aligned
+
+
+#########################
+#Before the mapping:
+#########################
+
+if [ -f ${contig_file}.fai ]; then
+   echo "The file '${contig_file}.fai' exists."
+else
+   echo "The file '${contig_file}.fai' is not found."
+   echo "Indexing the contig file now"
+   bwa index $contig_file
+   samtools faidx $contig_file
+fi
+echo "#############################################################"
+echo "Short-reat mapping"
+echo "#############################################################"
+cd $clean
+
+for sample in *$2
+do
+	echo "${sample}"
+	sample_2=${sample%$2}_2.fastq.gz
+        echo "fasta files dir: $clean"
+        echo "alignment files dir: $aligned"
+        echo "Now mapping raw-reads of ${sample} to $contig_file contig"
+	echo "sort and remove unmapped reads:"
+	bwa mem -t 15 $contig_file ${sample} ${sample_2} -O 60 -E 10 -L 100 | $Samtools sort -@ 15 | $Samtools view -@ 15 -F 4 -o $aligned/${sample%$2}_map_sortd.bam
+        echo "index the sorted bam file"
+        $Samtools index $aligned/${sample%$2}_map_sortd.bam
+	echo "Calculating the number of mapped reads"
+	$Samtools idxstats $aligned/${sample%$2}_map_sortd.bam > $aligned/${sample%$2}_idxstats.txt
+	$Samtools flagstat $aligned/${sample%$2}_map_sortd.bam > $aligned/${sample%$2}_flagstat.txt
+	$Samtools coverage $aligned/${sample%$2}_map_sortd.bam > $aligned/${sample%$2}_coverage.txt
+	echo "#################"
+	echo "Per base coverage"
+	echo "#################"
+	# can either use samtools depth or bedtools genomecov: choose one of these:
+	$Samtools depth -aa $aligned/${sample%$2}_map_sortd.bam > $aligned/${sample%$2}_depth.txt
+	#bedtools genomecov -d -ibam $aligned/${sample%$2}_map_sortd.bam > $aligned/${sample%$2}_.genomecov
+	
+done
+
+
+echo "################### DONE ####################################"
+date -u
+echo "#############################################################"
+             
+
+
