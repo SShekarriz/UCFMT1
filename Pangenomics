@@ -1,0 +1,112 @@
+#!/bin/bash
+####################################################################################
+DATE=`date '+%Y-%m-%d-%H:%M'`
+exec > >(tee -i anvio_pangenomics_${DATE}.log)
+exec 2>&1
+####################################################################################
+#activate conda env:
+source /home/shekas3/anaconda3/bin/activate anvio-6.2
+
+main=$PWD
+out=$PWD/anvio_outputs
+f_input=$out/fixed_input_genomes
+contigDB=$out/contig_dbs_per_genome
+
+mkdir -p $out $contigDB $f_input
+
+
+cd $PWD/FNA
+for file in *.fna
+do	
+	genome=${file%.fna}
+	echo $genome
+	
+	echo "################################"
+        echo "#####Fixing input genomes ######"
+        echo "################################"
+
+	gRef=$f_input/${genome}.fa
+	if [ -f $gRef ]; then
+        echo "The file '$gRef' exists."
+        else
+        echo "The file '$gRef' is not found."
+        echo "Selecting contig >= 1kb, and rename the contig headers"
+        anvi-script-reformat-fasta $file -o $gRef -l 1000 \
+	--simplify-names --report-file ${gRef%.fa}.txt
+	fi
+
+	echo "################################"
+        echo "#####Building anvio contigdb####"
+        echo "################################"
+
+	gAnvi=$contigDB/${genome}.db
+        if [ -f $gAnvi ]; then
+        echo "The file '$gAnvi' exists."
+        else
+        echo "The file '$gAnvi' is not found."
+        echo "Building anvio contig database"
+	anvi-gen-contigs-database -f $gRef -o $gAnvi
+	echo "Building HMMs models"
+	anvi-run-hmms -c $gAnvi
+	fi
+
+done
+	
+echo "################################"
+echo "##### Generating genome file####"
+echo "################################"
+
+# TEMPORARY putaway the refseq and only use isolates
+temp=$out/temp
+mkdir -p $temp
+mv $contigDB/GCF*db $temp/
+
+cd $main
+externalG=$out/external-genomes.txt
+gList=$out/external-genomes.list
+if [ -f $externalG ]; then
+echo "The file '$externalG' exists."
+else
+echo "The file '$externalG' is not found."
+echo "Building a list of files of contig.db"
+find $contigDB -type f > $gList 
+echo "Building a correct mapfile for anvi-gen-genomes-storage"
+Rscript gList.R $gList $externalG
+fi
+
+echo "################################"
+echo "##### anvi’o genomes storage####"
+echo "################################"
+
+anviStore=$out/storage-GENOMES.db
+if [ -f $anviStore ]; then
+echo "The file '$anviStore' exists."
+else
+echo "The file '$anviStore' is not found."
+echo "Building a list of files of contig.db"
+anvi-gen-genomes-storage -e $externalG -o $anviStore
+fi
+
+# TEMPORARY putback the refseq
+mv $temp/* $contigDB/
+
+
+echo "################################"
+echo "##### anvi’o pangenomics   e####"
+echo "################################"
+
+anviPan=$out/pangenomics
+mkdir -p $anviPan
+anvi-pan-genome -g $anviStore \
+                --project-name "Dorea_Pan" \
+                --output-dir $anviPan \
+                --num-threads 6 \
+                --minbit 0.5 \
+                --mcl-inflation 10 \
+                --use-ncbi-blast \
+		--num-threads 20
+
+
+
+
+

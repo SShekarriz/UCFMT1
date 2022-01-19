@@ -1,0 +1,56 @@
+#!/bin/bash
+
+FNA=$PWD/FNA
+GFF=$PWD/GFF
+Pan=$PWD/Panoroo_output
+PanCore=$PWD/Panoroo_output/core
+PanPan=$PWD/Panoroo_output/pane
+blastn=$PWD/Blastn_output
+EngGenes="/dataone/shekas3/UCFMT1/Genomics_for_UCFMT1/paper_figs/gene_engraft_all_com_complete.fasta"
+mkdir -p $Pan $PanCore $PanPan $blastn
+
+
+echo "#############"
+echo "gtdbtk"
+echo "#############"
+
+gtdbtk classify_wf --genome_dir $FNA --cpus 25 --out_dir gtdbtk_output
+
+echo "#######################"
+echo "Finding CEGs in genomes"
+echo "#######################"
+cp $FNA/*fna $blastn/
+cd $blastn
+
+for fna in *fna
+do
+        echo $fna
+        fnaid=${fna%.fna}
+        echo $fnaid
+        sed "/^>/s/^>/>${fnaid};/g" $fna > ${fna%.fna}_edited.fna
+        rm $fna
+done
+
+cat *.fna > allfna.fasta
+makeblastdb -in allfna.fasta -dbtype nucl -out allfna_db
+
+blastn -db allfna_db -query $EngGenes -out allfna_Common-engraft.blastout -outfmt "6 std qcovhsp" -num_threads 20
+rm *.fna
+cd ..
+
+
+:<<"END"
+echo "##################"
+echo "Running Panaroo"
+echo "##################"
+panaroo -i $GFF/*.gff -o $PanCore --clean-mode strict -a core --aligner mafft -t 20
+fasttree -nt -gtr $PanCore/core_gene_alignment.aln > $PanCore/core_gene_alignment.newick
+
+#HERE IS PANGENOME ANLYSIIS, NOT for this pipe. just fyii
+#panaroo -i $GFF/*.gff -o $PanPan --clean-mode strict -a pan --aligner mafft -t 20
+
+END
+
+echo "####"
+echo "Done"
+echo "####"

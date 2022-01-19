@@ -1,0 +1,109 @@
+#!/bin/bash
+
+if [ "$1" == "-help" ]; then
+  echo "
+
+##SShekarriz Nov 19, 2020
+This is a wraper script that uses 'Shotgun_mapper' to map
+contig/genome/gene to all the surette metagenomics dataset
+These datasets include: SHCM1-6, DonorB, and UCpatients
+HOW TO USE:
+./Dataset_mapper [contig file] [coverage output]
+
+ [contig file] : a fasta file with **"full path" contain contigs/long reads/gene/genome
+ [coverage output]: a full path direcotry where point to a project. The codes will generates sub-dir
+		    for each dataset.
+ "
+  exit 0
+fi
+
+###################################################################################
+DATE=`date '+%Y-%m-%d-%H:%M'`
+exec > >(tee -i ${2}/Dataset_mapper_${DATE}.log)
+exec 2>&1
+####################################################################################
+echo "Here are the positional parameters"
+echo 'Fasta contig file = ' $1
+echo 'Output directory  = ' $2
+
+if [ $# -gt 0 ]; then
+    echo "Your command line contains $# arguments"
+else
+    echo "Your command line contains no arguments"
+fi
+
+echo "#########################################################"
+date -u
+echo "#########################################################"
+
+:<<"END"
+echo "#############################################################"
+echo "SHCM dataset"
+echo "#############################################################"
+
+for dataset in 'SHCM1' 'SHCM2' 'SHCM3' 'SHCM4' 'SHCM5' 'SHCM6'
+do
+	echo $dataset
+	input_dir="/dataone/shekas3/GC_project/"${dataset}"/Trim_interleaved"
+	echo $input_dir
+	output_dir=${2}/AlignmentResult_${dataset}
+	echo $1
+	echo $output_dir
+	mkdir -p $output_dir
+	/dataone/shekas3/Sharok_mapper/FastShotgun_mapper.sh $input_dir _inter.fastq $1 $output_dir  
+done
+END
+
+
+echo "#############################################################"
+echo "only DMG of SHCM15 dataset"
+echo "#############################################################"
+
+input_dir="/datafast2/shekas3/CEMG_SHCM15/assembled/SHCM15_temp/stool"
+echo $input_dir
+output_dir=${2}/AlignmentResult_SHCM-DMG
+echo $output_dir
+mkdir -p $output_dir
+./FastShotgun_perfect_align_freeMismatch_interleve.sh $input_dir _inter.fastq.gz $1 $output_dir
+
+
+
+:<<"END"
+
+echo "#############################################################"
+echo "only DMG of SHCM dataset"
+echo "#############################################################"
+
+input_dir="/dataone/shekas3/GC_project/SHCMall/SHCM_All_trim_interleaved"
+echo $input_dir
+output_dir=${2}/AlignmentResult_SHCM-DMG
+echo $output_dir
+mkdir -p $output_dir
+./FastShotgun_perfect_align_freeMismatch_interleve.sh $input_dir _001_inter.fastq $1 $output_dir
+
+echo "#############################################################"
+echo "DonorB dataset"
+echo "#############################################################"
+
+input_dir="/dataone/shekas3/UCFMT1/DonorB_metagenomics/Trim_interleaved"
+echo $input_dir
+output_dir=${2}/AlignmentResult_DonorB
+echo $output_dir
+mkdir -p $output_dir
+./FastShotgun_perfect_align_freeMismatch_interleve.sh $input_dir _001_inter.fastq $1 $output_dir
+
+echo "#############################################################"
+echo "UCpatients dataset"
+echo "#############################################################"
+
+input_dir="/dataone/shekas3/UCFMT1/Trim_interleaved"
+echo $input_dir
+output_dir=${2}/AlignmentResult_UCpatients
+echo $output_dir
+mkdir -p $output_dir
+./FastShotgun_perfect_align_freeMismatch_interleve.sh $input_dir _001_inter.fastq $1 $output_dir
+
+echo "################### DONE ####################################"
+date -u
+echo "#############################################################"
+END

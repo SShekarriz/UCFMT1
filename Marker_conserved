@@ -1,0 +1,26 @@
+#/bin/bash
+
+# Here is to map all the GC genomes raw-reads to the conserved regions
+
+D1="/dataone/common/Raw_sequencing/190627_Surette-Hooman-6/190627_Surette-Hooman-6/Combined_reads"
+D2="/dataone/common/Raw_sequencing/190903_Surette-Hooman-7/190903_Surette-Hooman-7/Combined_reads"
+D3="/dataone/common/Raw_sequencing/191028_Surette_Hooman-8/191023_Surette_Hooman-8/Combined_reads"
+D4="/dataone/common/Raw_sequencing/191213_Surette-Hooman-9/191213_Hooman-9/Combined_reads"
+D5="/dataone/common/Raw_sequencing/Hooman/HiSeq/Run1/Combined_reads"
+D6="/dataone/common/Raw_sequencing/200226_Surette-Hooman-10/Hooman-10/Combined_reads"
+D7="/dataone/derakhsh/assembled_genomes/Sharok_missing_genomes"
+
+#contig="/dataone/shekas3/Random_works/map_specificity/Ref/gene_engraft_all_com_complete.fasta"
+contig="/dataone/shekas3/Random_works/map_specificity/pangenome_markers/species_markers.fa"
+
+out="/dataone/shekas3/Random_works/map_specificity/pangenome_markers/perfect_align_freeMismatch/species_markers"
+mkdir -p $out
+
+./FastShotgun_perfect_align_freeMismatch.sh $D1 _R1.fastq.gz $contig ${out}/aligned_genomes_dir1
+./FastShotgun_perfect_align_freeMismatch.sh $D2 _R1.fastq.gz $contig ${out}/aligned_genomes_dir2
+./FastShotgun_perfect_align_freeMismatch.sh $D3 _R1.fastq.gz $contig ${out}/aligned_genomes_dir3
+./FastShotgun_perfect_align_freeMismatch.sh $D4 _R1.fastq.gz $contig ${out}/aligned_genomes_dir4
+./FastShotgun_perfect_align_freeMismatch.sh $D5 _R1.fastq.gz $contig ${out}/aligned_genomes_dir5
+./FastShotgun_perfect_align_freeMismatch.sh $D6 _R1.fastq.gz $contig ${out}/aligned_genomes_dir6
+./FastShotgun_perfect_align_freeMismatch.sh $D7 _R1.fastq.gz $contig ${out}/aligned_genomes_dir7
+
