@@ -6,6 +6,15 @@ output: html_document
 ---
 
 ```{r}
+
 library(tidyverse)
+library(tidytext)
+
+```
+
+```{r}
+mapfile <- read.csv("~/Drive2/UC_FMT1/UC_FMT1_github/data/UCFMT1_METAmap.txt",
+                    sep = "\t")
+
 ```
 
