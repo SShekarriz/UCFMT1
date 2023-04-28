@@ -175,6 +175,7 @@ ggsave(paste(proj, "figs/CESt.png", sep = ""),
 ```
 
 Reading metaphlan4 default output (merged)
+relative abundance
 ```{r}
 
 org <- read.csv(paste(proj, "data/Metaphlan4/merged_metaphlan4.txt", 
@@ -186,7 +187,6 @@ org %>%
   # selecting only at strain level- contains all lineage- avoid duplicates
   filter(grepl("t__S", V1)) -> metaphlan
 colnames(metaphlan) <- gsub(".mp.profile_sp", "", org[1,])
-
 
 metaphlan %>%
   mutate(temp=clade_name) %>%
@@ -334,3 +334,75 @@ ggsave(paste(proj, "figs/CESp.png", sep = ""),
        width = 10, height = 8, units = "cm")
 
 ```
+
+## profile microbial taxa
+
+```{r}
+
+mapfile %>%
+  mutate(sample= gsub(".R1.fastq.gz", "", File)) %>%
+  mutate(Timepoint= case_when(grepl("DonorB_D_", sample) ~ paste("DMG"),
+                              grepl("DonorB_P", sample) ~ paste("CEMG"),
+                              TRUE ~ paste(Timepoint))) %>%
+  mutate(Treatment= case_when(grepl("DonorB_D_", sample) ~ paste("DMG"),
+                              grepl("DonorB_P", sample) ~ paste("CEMG"),
+                              TRUE ~ paste(Treatment)))-> metaphlan_map
+metaphlan %>%
+  gather(sample, abundance, -clade_name) %>%
+  left_join(metaphlan_map) %>%
+  separate(clade_name, c("Kingdom", "Phylum", "Class", "Order", "Family", 
+                         "Genus", "Species", "Strain"), sep = "[|]") %>%
+  mutate(abundance= as.numeric(abundance))-> tbl
+
+
+################################
+#select top 20 families
+tbl %>%
+  count(Family, wt = abundance) %>%
+  filter(!is.na(Family)) %>%
+  arrange(desc(n)) %>%
+  pull(Family) -> tfam
+  tfam20 <- tfam[1:20]
+  
+################################
+# edit a new family column
+tbl %>%
+  mutate(Family_lab= case_when(Family %in% tfam20 ~ paste(Family),
+                               TRUE ~ paste("Other"))) -> tbl
+# sum the abundance for each class, across all IDs, & sort the result
+  tbl%>%
+  count(Family_lab, wt = abundance) %>%
+  arrange(desc(n)) %>%
+  pull(Family_lab) -> sort.family
+# get ID order, sorted by each ID's abundance in the most abundant class
+  tbl %>%
+  filter(Family_lab == sort.family[1]) %>%
+  arrange(desc(abundance)) %>% distinct(Study_ID) %>%
+  pull(Study_ID) -> ID.order
+
+tbl$Timepoint <- factor(tbl$Timepoint, levels = c("WK0", "WK6", "DMG", "CEMG"))
+tbl$Treatment <- factor(tbl$Treatment, levels = c("Placebo", "FMT", "DMG", "CEMG"))
+
+tbl %>%
+  filter(Treatment %in% c("Placebo", "FMT")) %>%
+ggplot(aes(abundance, Fig_lab, fill=Family_lab)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment~Timepoint, scales = "free", space = "free") +
+  theme_classic() +
+  theme(legend.position = "none", 
+        axis.title = element_blank())
+
+tbl %>%
+  filter(Treatment %in% c("CEMG", "DMG")) %>%
+ggplot(aes(abundance, sample, fill=Family_lab)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Timepoint~., scales = "free", space = "free") +
+  theme_classic() +
+  theme(legend.position = "right", 
+        axis.title = element_blank())
+
+
+
+```
+
+
