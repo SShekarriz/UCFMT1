@@ -1,0 +1,11 @@
+---
+title: "Metagenomic_reads"
+author: "Sharok"
+date: "4/28/2023"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
