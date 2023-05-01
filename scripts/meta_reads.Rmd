@@ -339,6 +339,37 @@ ggsave(paste(proj, "figs/CESp.png", sep = ""),
 
 ```{r}
 
+family_col= c(
+"f__Lachnospiraceae" = "#6a3d9a",
+"f__Ruminococcaceae" = "#33a02c",
+"f__Bacteroidaceae" = "#1f78b4",
+"f__Bacteroidales_unclassified" = "#ff7f00",
+"f__Prevotellaceae" = "#b2df8a",
+"f__Veillonellaceae" = "#fdbf6f",
+"f__Bifidobacteriaceae" = "#ffff99",
+"f__Clostridia_unclassified" =  "#a6cee3",
+"f__Enterobacteriaceae" = "#e31a1c",
+"f__Erysipelotrichaceae" = "#f781bf",
+"f__Streptococcaceae" = "#cab2d6",
+"f__Clostridiaceae" = "#fb9a99",
+"f__Rikenellaceae" = "#b15928",
+"f__Coriobacteriaceae" = "#8dd3c7",
+"f__Bacilli_unclassified" = "#fb8072",
+"f__Enterococcaceae" = "#fccde5",
+"f__Desulfovibrionaceae" = "#80b1d3",
+"f__Comamonadaceae" = "#b3de69",
+"f__Peptostreptococcaceae" = "#ccebc5",
+"f__Lactobacillaceae" = "#dfc27d",
+"other" = "#808080"
+)
+
+
+```
+
+
+
+```{r}
+
 mapfile %>%
   mutate(sample= gsub(".R1.fastq.gz", "", File)) %>%
   mutate(Timepoint= case_when(grepl("DonorB_D_", sample) ~ paste("DMG"),
@@ -352,7 +383,9 @@ metaphlan %>%
   left_join(metaphlan_map) %>%
   separate(clade_name, c("Kingdom", "Phylum", "Class", "Order", "Family", 
                          "Genus", "Species", "Strain"), sep = "[|]") %>%
-  mutate(abundance= as.numeric(abundance))-> tbl
+  mutate(abundance= as.numeric(abundance)) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) -> tbl
 
 
 ################################
@@ -368,7 +401,7 @@ tbl %>%
 # edit a new family column
 tbl %>%
   mutate(Family_lab= case_when(Family %in% tfam20 ~ paste(Family),
-                               TRUE ~ paste("Other"))) -> tbl
+                               TRUE ~ paste("other"))) -> tbl
 # sum the abundance for each class, across all IDs, & sort the result
   tbl%>%
   count(Family_lab, wt = abundance) %>%
@@ -376,32 +409,45 @@ tbl %>%
   pull(Family_lab) -> sort.family
 # get ID order, sorted by each ID's abundance in the most abundant class
   tbl %>%
+  mutate(Fig_lab= case_when(is.na(Fig_lab) ~ paste(Study_ID),
+                            TRUE ~ paste(Fig_lab))) %>%
   filter(Family_lab == sort.family[1]) %>%
-  arrange(desc(abundance)) %>% distinct(Study_ID) %>%
-  pull(Study_ID) -> ID.order
+  arrange(desc(abundance)) %>% distinct(Fig_lab) %>%
+  pull(Fig_lab) -> ID.order
 
+tbl$Fig_lab <- factor(tbl$Fig_lab, levels = ID.order)
+tbl$Family_lab <- factor(tbl$Family_lab, levels = rev(sort.family))
 tbl$Timepoint <- factor(tbl$Timepoint, levels = c("WK0", "WK6", "DMG", "CEMG"))
 tbl$Treatment <- factor(tbl$Treatment, levels = c("Placebo", "FMT", "DMG", "CEMG"))
 
-tbl %>%
+
+p1 <- tbl %>%
   filter(Treatment %in% c("Placebo", "FMT")) %>%
-ggplot(aes(abundance, Fig_lab, fill=Family_lab)) +
+ggplot(aes(abundance, Fig_lab, fill=Family_lab, color=Family_lab)) +
   geom_bar(stat = "identity") +
+  scale_fill_manual(values = family_col) +
+  scale_color_manual(values = family_col) +
   facet_grid(Treatment~Timepoint, scales = "free", space = "free") +
   theme_classic() +
   theme(legend.position = "none", 
         axis.title = element_blank())
 
-tbl %>%
+p2 <- tbl %>%
   filter(Treatment %in% c("CEMG", "DMG")) %>%
-ggplot(aes(abundance, sample, fill=Family_lab)) +
+ggplot(aes(abundance, sample, fill=Family_lab, color=Family_lab)) +
   geom_bar(stat = "identity") +
   facet_grid(Timepoint~., scales = "free", space = "free") +
+  scale_fill_manual(values = family_col) +
+  scale_color_manual(values = family_col) +
   theme_classic() +
-  theme(legend.position = "right", 
-        axis.title = element_blank())
+  theme(legend.position = "left", 
+        legend.title = element_blank(),
+        axis.title = element_blank()) +
+  guides(fill=guide_legend(ncol =1))
 
-
+cowplot::plot_grid(p1, p2, ncol = 2)
+ggsave(paste(proj, "figs/RA_profile.png", sep = ""),
+       width = 30, height = 15, units = "cm")
 
 ```
 
