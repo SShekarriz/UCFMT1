@@ -9,20 +9,19 @@ output: html_document
 
 library(tidyverse)
 library(tidytext)
-proj="~/Drive2/UC_FMT1/UC_FMT1_github/"
 
 ```
 
 ```{r}
-mapfile <- read.csv(paste(proj, "data/UCFMT1_METAmap.txt", sep = ""),
-                    sep = "\t")
+
+mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
 
 ```
 
 ## Marker-level analysis
 Reading marker abundance files, parse them into one
 ```{r}
-path=paste(proj, "data/Metaphlan4/marker_abund", sep = "")
+path="../data/Metaphlan4/marker_abund"
 #outpath="metaphlan4"
 data.frame(sample.id = paste(dir(path,
                                  pattern = "*_abund_norm.txt"))) %>%
@@ -38,7 +37,7 @@ mutate(sample.id= gsub(".marker_abund_norm.txt", "", sample.id)) %>%
   separate(temp, c("sp_marker", "temp1", "temp2"), sep = "__") %>%
   mutate(st_marker= case_when(!is.na(temp2) ~ paste(temp1, temp2, sep = "__"),
                               TRUE ~ paste(temp1))) %>%
-  select(sp_marker, st_marker, Marker, DonorB_D_2013:PMCL883)-> marker_lvl
+  select(sp_marker, st_marker, Marker, DonorB_D_2013:PMCL883) -> marker_lvl
 
 
 ```
@@ -169,7 +168,7 @@ ggplot(tbl, aes(as.numeric(Npts), E.strains, color=Type)) +
         legend.position = c("0.8", "0.8")) +
   xlab("Increasing # of patients") +
   ylab("# of engrafted Strains")
-ggsave(paste(proj, "figs/CESt.png", sep = ""),
+ggsave("../figs/CESt.png",
        width = 10, height = 8, units = "cm")
 
 ```
@@ -178,8 +177,7 @@ Reading metaphlan4 default output (merged)
 relative abundance
 ```{r}
 
-org <- read.csv(paste(proj, "data/Metaphlan4/merged_metaphlan4.txt", 
-                      sep = ""),
+org <- read.csv("../data/Metaphlan4/merged_metaphlan4.txt", 
                 sep = "\t", header = F, 
                 comment.char = "#")
 org %>%
@@ -330,7 +328,7 @@ ggplot(tbl, aes(as.numeric(Npts), E.species, color=Type)) +
         legend.position = c("0.8", "0.8")) +
   xlab("Increasing # of patients") +
   ylab("# of engrafted Species")
-ggsave(paste(proj, "figs/CESp.png", sep = ""),
+ggsave("../figs/CESp.png",
        width = 10, height = 8, units = "cm")
 
 ```
@@ -365,7 +363,6 @@ family_col= c(
 
 
 ```
-
 
 
 ```{r}
@@ -446,9 +443,179 @@ ggplot(aes(abundance, sample, fill=Family_lab, color=Family_lab)) +
   guides(fill=guide_legend(ncol =1))
 
 cowplot::plot_grid(p1, p2, ncol = 2)
-ggsave(paste(proj, "figs/RA_profile.png", sep = ""),
+ggsave("../figs/RA_profile.png",
        width = 30, height = 15, units = "cm")
 
 ```
+
+## Shannon diversity
+
+```{r}
+
+shannon <- read.csv(paste("../data/Metaphlan4/diversity_analysis/",
+                                "merged_metaphlan4_shannon.tsv", 
+                      sep = ""), sep = "\t")
+
+shannon %>%
+  rownames_to_column("ID") %>%
+  mutate(sample= gsub(".mp.profile_sp", "", ID)) %>%
+  left_join(metaphlan_map) %>%
+  # remove plate pools
+  filter(!Timepoint %in% c("DMG","CEMG")) -> tbl
+
+ggplot(tbl, aes(x = Timepoint, y = diversity_shannon)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_line(aes(group=Fig_lab), position = position_dodge(0.2), alpha = 0.2) +
+  #geom_jitter(aes(color = Timepoint), height = 0, width = .2) +
+  geom_point(aes(fill=Remission,
+                 group=Fig_lab),size=2,shape=21, 
+             position = position_dodge(0.2)) + 
+   facet_grid(~Treatment, scales = "free") +
+   scale_fill_manual(values = c("#0571b0", "#ca0020"),
+                       breaks = c("Res", "NoRes")) +
+    ggplot2::theme_classic() +
+    theme(legend.title = element_blank(),
+        text = element_text(size = 10),
+        legend.position = "none", axis.title.x = element_blank()) +
+  ylab("Shannon")
+ggsave("../figs/Shannon_div.png",
+       width = 6, height = 6, units = "cm")
+
+# We happen to have lower diversity in patients on placebo; this observed both
+# in baseline and post-FMT
+# other than treatment group, the difference between timepoint is not sig diff
+# in FMT compared to placebo
+mod = lm(data=tbl, diversity_shannon  ~ Timepoint * Treatment)
+anova(mod)
+em = emmeans::emmeans(mod, "Timepoint", by = "Treatment")
+as.data.frame(summary(em))
+
+```
+
+## Bray-curtis
+
+```{r}
+
+braycurtis <- read.csv(paste("../data/Metaphlan4/diversity_analysis/",
+                       "merged_metaphlan4_bray-curtis.tsv", 
+                      sep = ""), sep = "\t")
+colnames(braycurtis) <- gsub(".mp.profile_sp", "", colnames(braycurtis))
+rownames(braycurtis) <- gsub(".mp.profile_sp", "", rownames(braycurtis))
+
+braycurtis %>%
+rownames_to_column("sample_1") %>%
+  gather(sample_2, value, -sample_1) %>%
+  filter(as.character(sample_1) != as.character(sample_2)) %>%
+  mutate_if(is.factor, as.character) -> dis.tbl
+
+# two mapfile for each variable in matrix
+metaphlan_map -> V1.tbl
+colnames(V1.tbl) <- paste(colnames(V1.tbl), "1", sep = "_")
+metaphlan_map-> V2.tbl
+colnames(V2.tbl) <- paste(colnames(V2.tbl), "2", sep = "_")
+
+#merging all info together
+dis.tbl %>%
+  left_join(V1.tbl) %>%
+  left_join(V2.tbl) %>%
+  # remove plate pools
+  filter(Treatment_1 != "CEMG" & Treatment_2 != "CEMG") %>%
+  # compare samples within individuals
+  filter(Fig_lab_1 == Fig_lab_2 | sample_1 == "DonorB_D_2013") %>%
+  select(sample_1, sample_2, value, Fig_lab_1, Fig_lab_2,
+         Timepoint_1, Timepoint_2, Treatment_1, Treatment_2,
+         Remission_2) %>%
+  mutate(Time_dis= case_when(Timepoint_1 == "DMG" & 
+                               Timepoint_2 == "DMG" ~ paste("Donor"),
+                             Timepoint_1 == "DMG" ~ paste("Donor", Timepoint_2,
+                                                          sep = "-"),
+                             TRUE ~ paste(Timepoint_1, Timepoint_2, 
+                                          sep = "-"))) %>%
+  # WE ARE SHOWING WK0<>WK6 which is same as below, so remove:
+  filter(Time_dis != "WK6-WK0") %>%
+  mutate(Remission_2= case_when(is.na(Remission_2) ~ paste("Donor"),
+                                TRUE ~ paste(Remission_2)))-> tbl
+
+
+ggplot(tbl, aes(Treatment_2, value)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_point(aes(fill=Remission_2,
+                 group=Fig_lab_1),size=2,shape=21, 
+             position = position_dodge(0.2)) +
+  facet_grid(~Time_dis, space = "free", scales = "free") +
+  scale_fill_manual(values = c("#0571b0", "#ca0020", "#008837"),
+                       breaks = c("Res", "NoRes", "Donor")) +
+  ggplot2::theme_classic() +
+    theme(legend.title = element_blank(),
+        text = element_text(size = 10),
+        legend.position = "none", axis.title.x = element_blank()) +
+  ylab("Bray-Curtis")
+ggsave("../figs/Bray-Curtis_div.png",
+       width = 10, height = 6, units = "cm")
+
+```
+
+## Aitchison
+
+```{r}
+
+aitchison <- read.csv(paste("../data/Metaphlan4/diversity_analysis/",
+                       "merged_metaphlan4_aitchison.tsv", 
+                      sep = ""), sep = "\t")
+colnames(aitchison) <- gsub(".mp.profile_sp", "", colnames(aitchison))
+rownames(aitchison) <- gsub(".mp.profile_sp", "", rownames(aitchison))
+
+aitchison %>%
+rownames_to_column("sample_1") %>%
+  gather(sample_2, value, -sample_1) %>%
+  filter(as.character(sample_1) != as.character(sample_2)) %>%
+  mutate_if(is.factor, as.character) -> dis.tbl
+
+# two mapfile for each variable in matrix
+metaphlan_map -> V1.tbl
+colnames(V1.tbl) <- paste(colnames(V1.tbl), "1", sep = "_")
+metaphlan_map-> V2.tbl
+colnames(V2.tbl) <- paste(colnames(V2.tbl), "2", sep = "_")
+
+#merging all info together
+dis.tbl %>%
+  left_join(V1.tbl) %>%
+  left_join(V2.tbl) %>%
+  # remove plate pools
+  filter(Treatment_1 != "CEMG" & Treatment_2 != "CEMG") %>%
+  # compare samples within individuals
+  filter(Fig_lab_1 == Fig_lab_2 | sample_1 == "DonorB_D_2013") %>%
+  select(sample_1, sample_2, value, Fig_lab_1, Fig_lab_2,
+         Timepoint_1, Timepoint_2, Treatment_1, Treatment_2,
+         Remission_2) %>%
+  mutate(Time_dis= case_when(Timepoint_1 == "DMG" & 
+                               Timepoint_2 == "DMG" ~ paste("Donor"),
+                             Timepoint_1 == "DMG" ~ paste("Donor", Timepoint_2,
+                                                          sep = "-"),
+                             TRUE ~ paste(Timepoint_1, Timepoint_2, 
+                                          sep = "-"))) %>%
+  # WE ARE SHOWING WK0<>WK6 which is same as below, so remove:
+  filter(Time_dis != "WK6-WK0") %>%
+  mutate(Remission_2= case_when(is.na(Remission_2) ~ paste("Donor"),
+                                TRUE ~ paste(Remission_2)))-> tbl
+
+ggplot(tbl, aes(Treatment_2, value)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_point(aes(fill=Remission_2,
+                 group=Fig_lab_1),size=2,shape=21, 
+             position = position_dodge(0.2)) +
+  facet_grid(~Time_dis, space = "free", scales = "free") +
+  scale_fill_manual(values = c("#0571b0", "#ca0020", "#008837"),
+                       breaks = c("Res", "NoRes", "Donor")) +
+  ggplot2::theme_classic() +
+    theme(legend.title = element_blank(),
+        text = element_text(size = 10),
+        legend.position = "none", axis.title.x = element_blank()) +
+  ylab("Aitchison")
+ggsave("../figs/Aitchison_div.png",
+       width = 10, height = 6, units = "cm")
+
+```
+
 
 
