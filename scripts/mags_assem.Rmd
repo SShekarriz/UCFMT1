@@ -1,0 +1,157 @@
+---
+title: "MAGs analysis"
+author: "Sharok"
+date: "5/4/2023"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+
+```{r}
+mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
+
+```
+
+## contigs in bins
+```{r}
+
+# map information for contigs and bins
+c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", header = F)
+c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", header = F)
+colnames(c_inBin) <- c("contig", "bin_id")
+colnames(c_inMAG) <- c("contig", "bin_id")
+
+c_inMAG %>% select(bin_id) %>% distinct() %>% pull() -> MAGs
+
+```
+
+## bins taxonomy
+```{r}
+
+# gtdb taxonomy output for all the bins
+
+gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
+gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
+
+gtdb.bac %>% mutate(bin_id=user_genome) %>%
+  select(bin_id, classification) %>%
+  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
+              select(bin_id, classification)) %>%
+  mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
+  
+```
+
+## Perfect alignment 
+Mapping patients and donor B reads to  mapped to donB and UHGG databases using
+bwa-mem (see cutoff)
+
+```{r}
+
+# changing names so that it works with visualizing functions below:
+tmp.names <- c("sample.id", "bin_id", "bin_len", "bin_covbases",
+               "bin_numreads", "bin_coverage")
+
+UHGG_perfect_1x <- read.csv("perfect_mapping/UHGG/UHGG_1x_cover_perfect.csv")
+colnames(UHGG_perfect_1x) <- tmp.names
+
+# ONLY patiens:
+UHGG_perfect_1x %>%
+  mutate(sample.id= gsub("_perfect_UHGG.cover", "", sample.id)) %>%
+  filter(str_detect(sample.id, "PMCL")) %>%
+  dplyr::rename(sample=sample.id) -> UHGG_perfect_1x_P
+
+# ONLY donor
+UHGG_perfect_1x %>%
+  mutate(sample.id= gsub("_perfect_UHGG.cover", "", sample.id)) %>%
+  filter(str_detect(sample.id, "DonorB")) %>%
+  mutate(sample.id= gsub("DonorB_D_", "", sample.id)) %>%
+  dplyr::rename(sample=sample.id) -> UHGG_perfect_1x_D
+
+############################################################################
+# Perfect alignment of Donor Breads to donB database via bwa-mem (see cutoff)
+############################################################################
+
+heads_cover <- c("sample.id",
+                 "contig", "startpos", "endpos", 
+                 "numreads", "covbases", "coverage", "meandepth",
+                 "meanbaseq", "meanmapq",
+                 "ReadSampling", "Quality")
+
+path="perfect_mapping/DBD"
+patt="_perfect_.*.cover"
+data.frame(sample.id = paste(dir(path,
+                                 pattern = patt))) %>%
+# read each file from the directory (current path) and then unnest
+mutate(file_contents = map(sample.id, ~ read.csv(file.path(path, .),
+                                                 sep = "\t", header = F,
+                                                 comment.char = "#"))) %>%
+unnest() %>% 
+mutate(sample.id = gsub("_perfect_BDB.cover", "", sample.id)) -> BDB_perfect
+colnames(BDB_perfect) <- heads_cover
+
+BDB_perfect %>%
+  left_join(c_inBin) %>%
+  mutate(bin_q= case_when(bin_id %in% MAGs ~ paste("MAG"),
+                          TRUE ~ paste("Bin"))) %>%
+  filter(bin_q == "MAG")  %>% select(-bin_q) %>%
+  dplyr::rename(sample=sample.id) %>%
+  group_by(sample, bin_id) %>%
+  summarise(bin_len= sum(endpos),
+            bin_covbases=sum(covbases),
+            bin_numreads=sum(numreads),
+            bin_coverage=bin_covbases/bin_len*100) -> BDB_perfect_1x
+
+BDB_perfect_1x %>%
+  filter(str_detect(sample, "PMCL")) -> BDB_perfect_1x_P
+
+BDB_perfect_1x %>%
+  filter(str_detect(sample, "DonorB")) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample))  -> BDB_perfect_1x_D
+
+##############################################################################
+
+# UHGG + BDB together for donor sample:
+UHGG_perfect_1x_D %>%
+  bind_rows(BDB_perfect_1x_D) %>%
+  mutate(DB= case_when(str_detect(bin_id, "UHGG") ~ paste("UHGG"),
+                       str_detect(bin_id, "bin") ~ paste("BDB"),
+                       TRUE ~ paste("Other"))) -> table_D
+# UHGG + BDB together for patient sample:
+UHGG_perfect_1x_P %>%
+  bind_rows(BDB_perfect_1x_P) %>%
+  mutate(DB= case_when(str_detect(bin_id, "UHGG") ~ paste("UHGG"),
+                       str_detect(bin_id, "bin") ~ paste("BDB"),
+                       TRUE ~ paste("Other"))) -> table_P
+
+ 
+# calculate percentage of positive bins per sample
+Fpos <- function(table, cutoff){
+  
+  table %>%
+  mutate(detect= case_when(bin_coverage >= cutoff ~ paste("Yes"),
+                           TRUE ~ paste("No"))) %>%
+  filter(detect == "Yes") %>%
+  group_by(sample, DB) %>%
+  summarise(pos_n=n(),
+            total=length(unique(table$bin_id)),
+            pos_p=pos_n/length(unique(table$bin_id))*100) %>%
+  mutate(cutoff=paste(cutoff))
+}
+
+# comparison of detection cut-offs
+Fpos_var <- function(table) {
+  
+vector <- seq(10, 100, by=10)
+res <- list()
+for (i in vector) {
+   res[[i]] <- Fpos(table = table, i)
+}
+do.call(rbind.data.frame, res)
+}
+
+
+```

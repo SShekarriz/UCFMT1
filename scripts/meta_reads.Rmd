@@ -615,6 +615,7 @@ ggplot(tbl, aes(Treatment_2, value)) +
 ggsave("../figs/Aitchison_div.png",
        width = 10, height = 6, units = "cm")
 
+
 ```
 
 
