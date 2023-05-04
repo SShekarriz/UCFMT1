@@ -1,0 +1,48 @@
+---
+title: "genes analysis"
+author: "Sharok"
+date: "5/4/2023"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(tidytext)
+```
+
+
+```{r}
+mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
+
+```
+
+## contigs in bins
+```{r}
+
+# map information for contigs and bins
+c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", header = F)
+c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", header = F)
+colnames(c_inBin) <- c("contig", "bin_id")
+colnames(c_inMAG) <- c("contig", "bin_id")
+
+c_inMAG %>% select(bin_id) %>% distinct() %>% pull() -> MAGs
+
+```
+
+## bins taxonomy
+
+```{r}
+
+# gtdb taxonomy output for all the bins
+
+gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
+gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
+
+gtdb.bac %>% mutate(bin_id=user_genome) %>%
+  select(bin_id, classification) %>%
+  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
+              select(bin_id, classification)) %>%
+  mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
+  
+```

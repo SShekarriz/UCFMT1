@@ -1,0 +1,16 @@
+INFO [2023-05-04 17:02:44] $x
+INFO [2023-05-04 17:02:44] list(tbl3_fmtR$bin_id, tbl3_placeboR$bin_id, tbl3_fmtN$bin_id, 
+INFO [2023-05-04 17:02:44]     tbl3_placeboN$bin_id)
+INFO [2023-05-04 17:02:44] 
+INFO [2023-05-04 17:02:44] $category.names
+INFO [2023-05-04 17:02:44] c("FMT-Res", "Placebo-Res", "FMT-NoRes", "Placebo-NoRes")
+INFO [2023-05-04 17:02:44] 
+INFO [2023-05-04 17:02:44] $filename
+INFO [2023-05-04 17:02:44] NULL
+INFO [2023-05-04 17:02:44] 
+INFO [2023-05-04 17:02:44] $fill
+INFO [2023-05-04 17:02:44] c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072")
+INFO [2023-05-04 17:02:44] 
+INFO [2023-05-04 17:02:44] $margin
+INFO [2023-05-04 17:02:44] [1] 0.1
+INFO [2023-05-04 17:02:44] 

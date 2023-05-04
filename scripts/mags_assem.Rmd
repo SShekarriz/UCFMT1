@@ -55,7 +55,9 @@ bwa-mem (see cutoff)
 tmp.names <- c("sample.id", "bin_id", "bin_len", "bin_covbases",
                "bin_numreads", "bin_coverage")
 
-UHGG_perfect_1x <- read.csv("perfect_mapping/UHGG/UHGG_1x_cover_perfect.csv")
+UHGG_perfect_1x <- read.csv(paste("../data/perfect_mapping/",
+                                  "UHGG/UHGG_1x_cover_perfect.csv",
+                                  sep = ""))
 colnames(UHGG_perfect_1x) <- tmp.names
 
 # ONLY patiens:
@@ -81,7 +83,7 @@ heads_cover <- c("sample.id",
                  "meanbaseq", "meanmapq",
                  "ReadSampling", "Quality")
 
-path="perfect_mapping/DBD"
+path="../data/perfect_mapping/DBD"
 patt="_perfect_.*.cover"
 data.frame(sample.id = paste(dir(path,
                                  pattern = patt))) %>%
@@ -152,6 +154,439 @@ for (i in vector) {
 }
 do.call(rbind.data.frame, res)
 }
+
+```
+
+## benchmarking- donor
+visualizing only donor samples, comparing detectin cutoffs
+
+```{r}
+
+Fpos_var(table_D) -> tbl
+
+tbl %>%
+ungroup() %>%
+mutate(sample= gsub("sub_", "", sample))-> tbl
+
+cols <- c("2013" = "#bae4b3",
+          "2016" = "#74c476", 
+          "May17" = "#31a354",
+          "Oct17" = "#006d2c")
+
+vector <- seq(10, 100, by=10)
+tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+ggplot(tbl, aes(as.numeric(as.character(cutoff)), pos_n, color=sample)) +
+  facet_grid(~DB) +
+  geom_line(aes(group=sample), size = 1) +
+  geom_vline(xintercept = 20, linetype="dotted", 
+                color = "black", size=0.5, alpha=0.3) +
+  annotate("text", x=16, y=200, label="20%", angle=90, alpha=0.3) +
+  geom_vline(xintercept = 90, linetype="dashed", 
+                color = "black", size=0.5, alpha = 0.3) +
+  annotate("text", x=86, y=200, label="90%", angle=90, alpha=0.3) +
+  scale_color_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = c(x=0.2, y=0.8),
+        legend.title = element_blank()) +
+  xlab("Detection cutoff") +
+  ylab("# of detected bins")
+ggsave("../figs/Benchmark_perfect_BDB_UHGG.png",
+       width = 16, height = 10, units = "cm")
+
+
+```
+
+## benchmarking- pts
+visualizing only patients samples, comparing detectin cutoffs
+
+```{r}
+
+Fpos_var(table_P) -> tbl
+
+tbl %>%
+  ungroup() %>%
+  mutate(sample= gsub("sub_", "", sample)) %>%
+  mutate(Study_ID= gsub("_.*", "", sample)) %>%
+  left_join(mapfile %>% select(Study_ID, Treatment, Timepoint, Remission))-> tbl
+
+cols <- c("NoRes" = "#d7191c",
+          "Res" = "#2b83ba")
+
+tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+ggplot(tbl, aes(as.numeric(as.character(cutoff)), pos_n, color=Remission)) +
+  facet_grid(DB~Treatment+Timepoint) +
+  geom_line(aes(group=sample), size = 1) +
+  geom_vline(xintercept = 20, linetype="dotted", 
+                color = "black", size=0.5, alpha=0.3) +
+  annotate("text", x=16, y=200, label="20%", angle=90, alpha=0.3) +
+  geom_vline(xintercept = 90, linetype="dashed", 
+                color = "black", size=0.5, alpha = 0.3) +
+  annotate("text", x=86, y=200, label="90%", angle=90, alpha=0.3) +
+  scale_color_manual(values = cols) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.title = element_blank()) +
+  xlab("Detection cutoff") +
+  ylab("# of detected bins")
+ggsave("../figs/Benchmark_perfect_BDB_UHGG_patient.png",
+       width = 16, height = 10, units = "cm")
+
+
+```
+
+## Engrafted MAGs
+
+```{r}
+
+C=90
+table_P %>%
+  ungroup() %>%
+  mutate(sample= gsub("sub_", "", sample)) %>%
+  mutate(Study_ID= gsub("_.*", "", sample)) %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Timepoint)) %>%
+  select(Fig_lab, bin_id, bin_coverage, DB, Timepoint) %>%
+  spread(Timepoint, bin_coverage) %>%
+  mutate(detection= case_when(WK0 >= C & WK6 >= C ~ paste("Both"),
+                              WK0 >= C & WK6 < C ~ paste("Pre"),
+                              WK0 < C & WK6 >= C ~ paste("Post"),
+                              WK0 < C & WK6 < C ~ paste("none"),
+                              TRUE ~ paste("Other"))) -> tbl
+
+tbl %>%
+  group_by(Fig_lab, DB, detection) %>%
+  summarise(n=n()) %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct())-> tbl0
+
+cols <- c("none" = "#cccccc",
+          "Pre" = "#fdc086",
+          "Both" = "#beaed4",
+          "Post" = "#7fc97f")
+
+tbl0 %>%
+  filter(DB=="BDB") %>%
+  mutate(detection= factor(detection, 
+                           levels = c("none", "Pre", "Both", "Post"))) %>%
+  ggplot(aes(n, Fig_lab, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment+Remission~., space = "free", scales = "free") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  ylab("Patients") + xlab("# of donorB MAGs")
+ggsave("../figs/MAGs_perfect_BDB_patient.png",
+       width = 12, height = 10, units = "cm")
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment) %>%
+            distinct()) %>%
+  group_by(DB, Treatment) %>%
+  tally(name = "total") -> total_treat
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  group_by(DB, detection, Treatment) %>%
+  summarise(n=n()) %>%
+  left_join(total_treat) %>%
+  mutate(percent=n/total*100) -> tbl1
+
+tbl1 %>%
+mutate(detection= factor(detection, 
+                        levels = c("none", "Pre", "Both", "Post"))) %>%
+# don't show percent valus less than 1
+mutate(percent=ifelse(percent < 1, NA, percent)) %>%
+ggplot(aes(percent, Treatment, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(DB~., space = "free", scales = "free") +
+  geom_text(aes(label = round(percent, 1)),
+            position = position_stack(vjust = .5), angle=90) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        axis.title.y = element_blank()) +
+  xlab("# of donorB MAGs")
+ggsave("../figs/MAGs_perfect_treatment.png",
+       width = 16, height = 10, units = "cm")
+  
+tbl1 %>%
+  filter(DB=="BDB" & Treatment == "FMT") -> tBF
+tbl1 %>%
+  filter(DB=="BDB" & Treatment == "Placebo") -> tBP
+
+# Pie Chart from data frame with Appended Sample Sizes
+mytable <- round(tBF$percent, 1)
+mycol <- c("#beaed4", "#7fc97f", "#fdc086", "#cccccc")
+lbls <- paste(mytable, "%", sep="")
+pie(mytable, labels = lbls, col = mycol,
+   main="FMT\n(BDB)")
+
+
+# Pie Chart from data frame with Appended Sample Sizes
+mytable <- round(tBP$percent, 1)
+mycol <- c("#beaed4", "#7fc97f", "#fdc086", "#cccccc")
+lbls <- paste(mytable, "%", sep="")
+pie(mytable, labels = lbls, col = mycol,
+   main="Placebo\n(BDB)")
+
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  group_by(DB, Treatment, Remission) %>%
+  tally(name = "total") -> total_treat
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  group_by(DB, detection, Treatment, Remission) %>%
+  summarise(n=n()) %>%
+  left_join(total_treat) %>%
+  mutate(percent=n/total*100) -> tbl2
+
+tbl2 %>%
+mutate(detection= factor(detection, 
+                           levels = c("none", "Pre", "Both", "Post"))) %>%
+# don't show percent valus less than 1
+mutate(percent=ifelse(percent < 1, NA, percent)) %>%
+ggplot(aes(percent, Treatment, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(DB~Remission, space = "free", scales = "free") +
+  geom_text(aes(label = round(percent, 1)),
+            position = position_stack(vjust = .5), angle=90) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("# of donorB MAGs")
+ggsave("../figs/MAGs_perfect_treatment_remission.png",
+       width = 25, height = 10, units = "cm")
+
+```
+
+## Comm engrafted MAGs
+
+```{r}
+
+C=90
+table_P %>%
+  ungroup() %>%
+  mutate(sample= gsub("sub_", "", sample)) %>%
+  mutate(Study_ID= gsub("_.*", "", sample)) %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Timepoint)) %>%
+  select(Fig_lab, bin_id, bin_coverage, DB, Timepoint) %>%
+  spread(Timepoint, bin_coverage) %>%
+  mutate(detection= case_when(WK0 >= C & WK6 >= C ~ paste("Both"),
+                              WK0 >= C & WK6 < C ~ paste("Pre"),
+                              WK0 < C & WK6 >= C ~ paste("Post"),
+                              WK0 < C & WK6 < C ~ paste("none"),
+                              TRUE ~ paste("Other"))) -> tbl
+
+###############################################################################
+
+common_Emagers <- function(tbl){
+tbl %>%
+  filter(detection == "Post") %>%
+  select(Fig_lab, bin_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> engraft
+
+# number of samples in input table
+  tbl %>%
+    pull(Fig_lab) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i),
+                             E.mags = length(Emark.1[[i]]$bin_id))
+  }
+  do.call(rbind.data.frame, Emark.2)
+}
+
+###############################################################################
+
+############################################
+# common engraftment for Placebo
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment) %>%
+            distinct()) %>%
+  filter(DB=="BDB") %>%
+  filter(Treatment == "Placebo") -> tbl_pla
+common_Emagers(tbl_pla) -> tbl_pla
+
+############################################
+# common engraftment for FMT
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment) %>%
+            distinct()) %>%
+  filter(DB=="BDB") %>%
+  filter(Treatment == "FMT") -> tbl_fmt
+common_Emagers(tbl_fmt) -> tbl_fmt
+############################################
+# common engraftment for FMT-NoRes
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(DB=="BDB") %>%
+  filter(Treatment == "FMT" & Remission == "NoRes") -> tbl_fmt_n
+common_Emagers(tbl_fmt_n) -> tbl_fmt_n
+############################################
+# common engraftment for FMT-Res
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(DB=="BDB") %>%
+  filter(Treatment == "FMT" & Remission == "Res") -> tbl_fmt_r
+common_Emagers(tbl_fmt_r) -> tbl_fmt_r
+
+######################################################
+########### visualizing
+######################################################
+
+cols1 <- c("FMT(n=12)" = "#008837",
+           "Placebo(n=12)" = "#bdbdbd",
+           "Responder(n=6)" = "#0571b0",
+           "Non-Responder(n=6)" = "#ca0020")
+
+tbl_fmt %>% 
+  mutate(Type=paste("FMT(n=12)"),
+          Samples= "All") %>%
+  bind_rows(tbl_pla %>% 
+             mutate(Type=paste("Placebo(n=12)"),
+                    Samples="All")) %>%
+  bind_rows(tbl_fmt_r %>%
+              mutate(Type="Responder(n=6)",
+                     Samples="onlyFMT")) %>%
+  bind_rows(tbl_fmt_n %>%
+              mutate(Type="Non-Responder(n=6)",
+                     Samples="onlyFMT")) -> tbl2
+tbl2$Type <- factor(tbl2$Type, levels = c("FMT(n=12)", "Placebo(n=12)", 
+                                        "Responder(n=6)", "Non-Responder(n=6)"))
+ggplot(tbl2, aes(as.numeric(Npts), E.mags, color=Type)) +
+  geom_line(aes(group=Type))+
+  #facet_grid(~Samples, space = "free") +
+  scale_y_sqrt() +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7,8,9,10)) +
+  scale_color_manual(values = cols1) +
+  theme_classic() +
+  theme(legend.title = element_blank(),
+        legend.position = c("0.8", "0.8")) +
+  xlab("Increasing # of patients") +
+  ylab("# of engrafted MAGs")
+ggsave("../figs/MAG_CEG_curve.png", width = 10, height = 8, units = "cm")
+
+
+######################################################
+########### Genes commonly engrafted in >= 3 pts
+######################################################
+
+tbl %>%
+  filter(detection == "Post") %>%
+  select(Fig_lab, bin_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> engraft
+
+ engraft_3pts <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= 3, ]
+ engraft_3pts %>%
+   gather(Fig_lab, detection, -bin_id) %>%
+   filter(detection >= 90) -> tbl3
+ 
+
+tbl3 %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  group_by(Treatment, Remission) %>%
+  summarise(cegs=n()) %>%
+  ggplot(aes(cegs, Treatment)) +
+  geom_bar(stat = "identity") +
+  facet_grid(~Remission, space = "free", scales = "free_y") +
+  theme_classic() 
+
+
+########################################################
+
+tbl3 %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  filter(Treatment == "FMT" & Remission == "Res") -> tbl3_fmtR
+
+tbl3 %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  filter(Treatment == "Placebo" & Remission == "Res") -> tbl3_placeboR
+
+tbl3 %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  filter(Treatment == "FMT" & Remission == "NoRes") -> tbl3_fmtN
+
+tbl3 %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  filter(Treatment == "Placebo" & Remission == "NoRes") -> tbl3_placeboN
+
+
+da_venn <- VennDiagram::venn.diagram(
+  x = list(tbl3_fmtR$bin_id, tbl3_placeboR$bin_id,
+                tbl3_fmtN$bin_id, tbl3_placeboN$bin_id),
+  category.names = c("FMT-Res", "Placebo-Res", "FMT-NoRes", 
+                     "Placebo-NoRes"),
+  filename = NULL,
+  fill = c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072"),
+  margin = 0.1)
+
+grid::grid.newpage()
+grid::grid.draw(da_venn) 
+
+
+############################################################################
+
+tbl3_fmtR %>%
+  select(bin_id) %>%
+  mutate(FMT_R= paste(1)) -> t1
+
+tbl3_fmtN %>%
+  select(bin_id) %>%
+  mutate(FMT_N= paste(1)) -> t2
+
+tbl3_placeboR %>%
+  select(bin_id) %>%
+  mutate(Placebo_R= paste(1)) -> t3
+
+tbl3_placeboN %>%
+  select(bin_id) %>%
+  mutate(Placebo_N= paste(1)) -> t4
+
+t1 %>%
+  left_join(t2) %>%
+  left_join(t3) %>%
+  left_join(t4) %>%
+  filter(FMT_R == 1 & FMT_N == 1 &
+           is.na(Placebo_R) & is.na(Placebo_N)) %>%
+  distinct() %>% pull(bin_id) -> bin_of_interest
+
+tbl3 %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  filter(bin_id %in% bin_of_interest) %>%
+  group_by(Fig_lab, Treatment, Remission) %>%
+  summarise(n=n()) %>%
+  ggplot(aes(n, Fig_lab)) +
+  geom_bar(stat = "identity") +
+  theme_classic()
 
 
 ```
