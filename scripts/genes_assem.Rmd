@@ -46,3 +46,198 @@ gtdb.bac %>% mutate(bin_id=user_genome) %>%
   mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
   
 ```
+
+```{r}
+
+heads_cover <- c("sample.id",
+                 "gene_id", "startpos", "endpos", 
+                 "numreads", "covbases", "coverage", "meandepth",
+                 "meanbaseq", "meanmapq",
+                 "ReadSampling", "Quality")
+
+path="../data/perfect_mapping/B_db_bakta_cover_subreads"
+patt="_perfect*.cover"
+data.frame(sample.id = paste(dir(path,
+                                 pattern = patt))) %>%
+# read each file from the directory (current path) and then unnest
+mutate(file_contents = map(sample.id, ~ read.csv(file.path(path, .),
+                                                 sep = "\t", header = F,
+                                                 comment.char = "#"))) %>%
+unnest() %>% 
+mutate(sample.id = gsub("_perfect_BDB.cover", "", sample.id)) %>%
+mutate(sample.id = gsub("sub_", "", sample.id))-> GBD_perfect
+colnames(GBD_perfect) <- heads_cover
+
+################################################################################
+
+gene_coverage=100
+gene_depth=1
+
+GBD_perfect %>%
+  mutate(detection= case_when(coverage >= gene_coverage & 
+                                meandepth >= gene_depth ~ paste(1),
+                              TRUE ~ paste(0))) %>%
+  mutate(sample.id=gsub("_perfect.cover", "", sample.id)) %>%
+  select(sample.id, gene_id, detection) %>%
+  filter(str_detect(sample.id, "PMCL")) %>%
+  mutate(Study_ID= gsub("_.*", "", sample.id)) %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Timepoint)) %>%
+  select(Fig_lab, gene_id, Timepoint, detection) %>%
+  spread(Timepoint, detection, fill = 0) %>%
+  mutate(detection= case_when(WK0 == 1 & WK6 == 1 ~ paste("Both"),
+                              WK0 == 0 & WK6 == 0 ~ paste("none"),
+                              WK0 == 1 & WK6 == 0 ~ paste("Pre"),
+                              WK0 == 0 & WK6 == 1 ~ paste("Post"),
+                              TRUE ~ paste("Other")))-> tbl
+
+####################### or below method? 
+
+#GBD_perfect %>%
+#  mutate(sample.id=gsub("_perfect.cover", "", sample.id)) %>%
+#  select(sample.id, gene_id, coverage) %>%
+#  filter(str_detect(sample.id, "PMCL")) %>%
+#  mutate(Study_ID= gsub("_.*", "", sample.id)) %>%
+#  left_join(mapfile %>% select(Study_ID, Fig_lab, Timepoint)) %>%
+#  select(Fig_lab, gene_id, Timepoint, coverage) %>%
+#  spread(Timepoint, coverage, fill = 0) %>%
+#  mutate(detection= case_when(WK0 >= 90 & WK6 >= 90 ~ paste("Both"),
+#                              WK0 <= 20 & WK6 <= 20 ~ paste("none"),
+#                              WK0 >= 90 & WK6 <= 20 ~ paste("Pre"),
+#                              WK0 <= 20 & WK6 >= 90 ~ paste("Post"),
+#                              TRUE ~ paste("Other")))-> tbl
+  
+
+###############################################################################
+
+tbl %>%
+  group_by(Fig_lab, detection) %>%
+  summarise(n=n()) %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct())-> tbl0
+
+
+cols <- c("none" = "#cccccc",
+          "Pre" = "#fdc086",
+          "Both" = "#beaed4",
+          "Post" = "#7fc97f",
+          "Other" = "black")
+
+tbl0 %>%
+  mutate(detection= factor(detection, 
+                           levels = c("none","Pre", "Both", "Post"))) %>%
+  ggplot(aes(n, Fig_lab, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment+Remission~., space = "free", scales = "free") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "bottom") +
+  ylab("Patients") + xlab("# of donorB Genes")
+ggsave("../figs/Genes_perfect_BDB_patient.png",
+       width = 12, height = 10, units = "cm")
+
+###############################################################################
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment) %>%
+            distinct()) %>%
+  group_by(Treatment) %>%
+  tally(name = "total") -> total_treat
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  group_by(detection, Treatment) %>%
+  summarise(n=n()) %>%
+  left_join(total_treat) %>%
+  mutate(percent=n/total*100) -> tbl1
+
+tbl1 %>%
+mutate(detection= factor(detection, 
+                        levels = c("none", "Pre", "Both", "Post"))) %>%
+ggplot(aes(percent, Treatment, fill=detection)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = round(percent, 1)),
+            position = position_stack(vjust = .5), angle=90) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("# of donorB MAGs")
+ggsave("../figs/Genes_perfect_treatment.png",
+       width = 16, height = 10, units = "cm")
+
+################################################################################
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  group_by(Treatment, Remission) %>%
+  tally(name = "total") -> total_treat
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  group_by(detection, Treatment, Remission) %>%
+  summarise(n=n()) %>%
+  left_join(total_treat) %>%
+  mutate(percent=n/total*100) -> tbl2
+
+tbl2 %>%
+mutate(detection= factor(detection, 
+                           levels = c("none", "Pre", "Both", "Post"))) %>%
+# don't show percent valus less than 1
+mutate(percent=ifelse(percent < 1, NA, percent)) %>%
+ggplot(aes(percent, Treatment, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(~Remission, space = "free", scales = "free") +
+  geom_text(aes(label = round(percent, 1)),
+            position = position_stack(vjust = .5), angle=90) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("# of donorB Genes")
+ggsave("../figs/Genes_perfect_treatment_remission.png",
+       width = 25, height = 12, units = "cm")
+
+############################################################################
+# Extract engrafted genes in FMT vs Placebo and FMT response vs non-response
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(Treatment == "FMT" & detection == "Post") %>%
+  select(gene_id) %>% distinct() %>% pull() -> eng_genes_FMT
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(Treatment == "Placebo" & detection == "Post") %>%
+  select(gene_id) %>% distinct() %>% pull() -> eng_genes_Placebo
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(Treatment == "FMT" & detection == "Post" & Remission == "Res") %>%
+  select(gene_id) %>% distinct() %>% pull() -> eng_genes_FMTRes
+
+tbl %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(Treatment == "FMT" & detection == "Post" & Remission == "NoRes") %>%
+  select(gene_id) %>% distinct() %>% pull() -> eng_genes_FMTNoRes
+
+
+```
