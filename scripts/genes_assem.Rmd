@@ -7,13 +7,20 @@ output: html_document
 
 
 ```{r}
+
+
 library(tidyverse)
 library(tidytext)
+
+
 ```
 
 
 ```{r}
+
+
 mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
+
 
 ```
 
@@ -27,6 +34,7 @@ colnames(c_inBin) <- c("contig", "bin_id")
 colnames(c_inMAG) <- c("contig", "bin_id")
 
 c_inMAG %>% select(bin_id) %>% distinct() %>% pull() -> MAGs
+
 
 ```
 
