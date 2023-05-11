@@ -82,6 +82,7 @@ stCE <- function(marker_lvl, mapfile, strains, cutoff=cutoff, ...){
   }
   do.call(rbind.data.frame, Emark.2)
 }
+
 ################################################################################
 ################################################################################
 
@@ -107,7 +108,7 @@ donorB_markers %>%
   slice(which.min(abundance)) -> min_B_markers
   # average of minimum detections-> test
 cutoff= mean(min_B_markers$abundance)
-######
+####################################################################
 
 # selecting only those donor B markers that meet below cutoff:
 # > average of minimum detections

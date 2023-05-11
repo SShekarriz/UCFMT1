@@ -258,28 +258,18 @@ tbl %>%
   summarise(n=n()) %>%
   left_join(mapfile %>% 
             select(Fig_lab, Treatment, Remission) %>%
-            distinct())-> tbl0
+            distinct()) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) -> tbl0
 
-cols <- c("none" = "#cccccc",
-          "Pre" = "#fdc086",
-          "Both" = "#beaed4",
-          "Post" = "#7fc97f")
 
-tbl0 %>%
-  filter(DB=="BDB") %>%
-  mutate(detection= factor(detection, 
-                           levels = c("none", "Pre", "Both", "Post"))) %>%
-  ggplot(aes(n, Fig_lab, fill=detection)) +
-  geom_bar(stat = "identity") +
-  facet_grid(Treatment+Remission~., space = "free", scales = "free") +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_fill_manual(values = cols) +
-  theme_classic() +
-  theme(legend.position = "none") +
-  ylab("Patients") + xlab("# of donorB MAGs")
-ggsave("../figs/MAGs_perfect_BDB_patient.png",
-       width = 12, height = 10, units = "cm")
+cols <- c("none" = "#bababa",
+          "Pre" = "#7b3294",
+          "Both" = "#a6dba0",
+          "Post" = "#008837")
 
+###############################################################################
+#1. summary per treatment:
 tbl %>%
   left_join(mapfile %>% 
             select(Fig_lab, Treatment) %>%
@@ -298,78 +288,220 @@ tbl %>%
 
 tbl1 %>%
 mutate(detection= factor(detection, 
-                        levels = c("none", "Pre", "Both", "Post"))) %>%
+                        levels = c("Post","Both","Pre", "none"))) %>%
+# only BDB database
+filter(DB=="BDB") %>%
 # don't show percent valus less than 1
-mutate(percent=ifelse(percent < 1, NA, percent)) %>%
-ggplot(aes(percent, Treatment, fill=detection)) +
+ggplot(aes(Treatment, percent,fill=detection)) +
   geom_bar(stat = "identity") +
-  facet_grid(DB~., space = "free", scales = "free") +
   geom_text(aes(label = round(percent, 1)),
-            position = position_stack(vjust = .5), angle=90) +
+            position = position_stack(vjust = .5), angle=0,
+            size=2) +
+  scale_y_continuous(expand = c(0, 0)) +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "right", legend.title = element_blank(),
+        axis.title = element_blank())
+ggsave("../figs/MAGs_perfect_treatment.png",
+       width = 6, height = 8, units = "cm")
+################################################################################
+###############################################################################
+#2. summary per patients:
+tbl0 %>%
+  filter(DB=="BDB") %>%
+  mutate(detection= factor(detection, 
+                           levels = c("none", "Pre", "Both", "Post"))) %>%
+  ggplot(aes(n, Fig_lab, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment~., space = "free", scales = "free") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_fill_manual(values = cols) +
   theme_classic() +
-  theme(legend.position = "bottom",
-        axis.title.y = element_blank()) +
-  xlab("# of donorB MAGs")
-ggsave("../figs/MAGs_perfect_treatment.png",
-       width = 16, height = 10, units = "cm")
-  
-tbl1 %>%
-  filter(DB=="BDB" & Treatment == "FMT") -> tBF
-tbl1 %>%
-  filter(DB=="BDB" & Treatment == "Placebo") -> tBP
+  theme(legend.position = "none", axis.title = element_blank())
+ggsave("../figs/MAGs_perfect_BDB_patient.png",
+       width = 8, height = 8, units = "cm")
+################################################################################
+###############################################################################
+#3. engraftment stats:
+# some of pts dont have any engrafted mags, those should have
+# 0 engraftment to properly give weight to them 
+tbl0 %>%
+  select(DB, Fig_lab, Treatment, Remission) %>%
+  distinct() %>%
+  left_join(tbl0 %>% filter(detection == "Post")) %>%
+  mutate(n= case_when(is.na(n) ~ paste(0),
+                      TRUE ~ paste(n))) %>%
+  mutate(detection= case_when(is.na(detection) ~ paste("Post"),
+                      TRUE ~ paste(detection))) %>%
+  #only BDB database
+  filter(DB=="BDB")-> eng_mags
 
-# Pie Chart from data frame with Appended Sample Sizes
-mytable <- round(tBF$percent, 1)
-mycol <- c("#beaed4", "#7fc97f", "#fdc086", "#cccccc")
-lbls <- paste(mytable, "%", sep="")
-pie(mytable, labels = lbls, col = mycol,
-   main="FMT\n(BDB)")
+ ggplot(eng_mags, aes(Remission, as.numeric(n), color= detection)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_jitter() +
+  facet_grid(~Treatment, scales = "free") +
+  scale_color_manual(values = cols) +
+  scale_y_sqrt() +
+  theme_classic() +
+  theme(legend.position = "none", axis.title = element_blank())
+ggsave("../figs/MAGs_perfect_engraftment.png",
+       width = 6, height = 8, units = "cm")
+```
+
+## Taxonomy of engrafted MAGs
+
+```{r}
 
 
-# Pie Chart from data frame with Appended Sample Sizes
-mytable <- round(tBP$percent, 1)
-mycol <- c("#beaed4", "#7fc97f", "#fdc086", "#cccccc")
-lbls <- paste(mytable, "%", sep="")
-pie(mytable, labels = lbls, col = mycol,
-   main="Placebo\n(BDB)")
+C=90
+table_P %>%
+  ungroup() %>%
+  mutate(sample= gsub("sub_", "", sample)) %>%
+  mutate(Study_ID= gsub("_.*", "", sample)) %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Timepoint)) %>%
+  select(Fig_lab, bin_id, bin_coverage, DB, Timepoint) %>%
+  spread(Timepoint, bin_coverage) %>%
+  mutate(detection= case_when(WK0 >= C & WK6 >= C ~ paste("Both"),
+                              WK0 >= C & WK6 < C ~ paste("Pre"),
+                              WK0 < C & WK6 >= C ~ paste("Post"),
+                              WK0 < C & WK6 < C ~ paste("none"),
+                              TRUE ~ paste("Other"))) -> tbl
 
 
-tbl %>%
-  left_join(mapfile %>% 
-            select(Fig_lab, Treatment, Remission) %>%
-            distinct()) %>%
-  group_by(DB, Treatment, Remission) %>%
-  tally(name = "total") -> total_treat
+gtdb %>%
+  separate(classification, c("Kingdom", "Phylum", "Class",
+                                   "Order", "Family", "Genus",
+                                   "Species"), ";.__") -> gtdb_viz
+#select top 10 families
+gtdb_viz %>%
+  filter(bin_id %in% MAGs) %>%
+  group_by(Family) %>%
+  summarise(n= n()) %>%
+  arrange(-n) %>% pull(Family) -> tfam
+tfam10 <- tfam[1:10]
 
-tbl %>%
-  left_join(mapfile %>% 
-            select(Fig_lab, Treatment, Remission) %>%
-            distinct()) %>%
-  group_by(DB, detection, Treatment, Remission) %>%
-  summarise(n=n()) %>%
-  left_join(total_treat) %>%
-  mutate(percent=n/total*100) -> tbl2
+##############################################################################
+## 1. summary of taxonomy of donor B MAGs
+##############################################################################
+family_col= c(
+"Lachnospiraceae" = "#6a3d9a",
+"Ruminococcaceae" = "#33a02c",
+"Bacteroidaceae" = "#1f78b4",
+"Oscillospiraceae" = "#ff7f00",
+"CAG-508" = "#b2df8a",
+"Acutalibacteraceae" = "#fdbf6f",
+"Streptococcaceae" = "#ffff99",
+"CAG-822" =  "#a6cee3",
+"Lactobacillaceae" = "#fb9a99",
+"Butyricicoccaceae" = "#f781bf",
+"Other" = "#808080"
+)
 
-tbl2 %>%
-mutate(detection= factor(detection, 
-                           levels = c("none", "Pre", "Both", "Post"))) %>%
-# don't show percent valus less than 1
-mutate(percent=ifelse(percent < 1, NA, percent)) %>%
-ggplot(aes(percent, Treatment, fill=detection)) +
-  geom_bar(stat = "identity") +
-  facet_grid(DB~Remission, space = "free", scales = "free") +
-  geom_text(aes(label = round(percent, 1)),
-            position = position_stack(vjust = .5), angle=90) +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_fill_manual(values = cols) +
+family_order <- c("Lachnospiraceae", "Oscillospiraceae",
+                  "Ruminococcaceae", "Bacteroidaceae", "CAG-508",
+                  "Acutalibacteraceae", "Streptococcaceae",
+                  "Lactobacillaceae", "Butyricicoccaceae",
+                  "CAG-822", "Other")
+
+gtdb_viz %>%
+  filter(bin_id %in% MAGs) %>%
+  mutate(Family_lab= case_when(Family %in% tfam10 ~ paste(Family),
+                               TRUE ~ paste("Other"))) %>%
+  group_by(Family_lab) %>%
+  summarise(abundance= n()) %>%
+  mutate(database=paste("DonorB")) %>%
+  mutate(Family_lab= factor(Family_lab, family_order)) %>%
+ggplot(aes(database, abundance, fill=Family_lab)) +
+  geom_bar(stat="identity") +
+  scale_fill_manual(values = family_col) +
   theme_classic() +
   theme(legend.position = "none",
-        axis.title.y = element_blank()) +
-  xlab("# of donorB MAGs")
-ggsave("../figs/MAGs_perfect_treatment_remission.png",
-       width = 25, height = 10, units = "cm")
+        axis.title = element_blank())
+ggsave("../figs/MAGs_donorB.png",
+       width = 3, height = 8, units = "cm")
+
+##############################################################################
+## 2. number of engrafted MAGs per patient
+tbl %>%
+  group_by(Fig_lab, DB, detection) %>%
+  summarise(n=n()) %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  filter(DB == "BDB" & detection == "Post") -> tbl0
+
+# adding all patients (even those with no engraftment)
+mapfile %>%
+  filter(Treatment %in% c("FMT", "Placebo")) %>%
+  select(Fig_lab, Treatment, Remission) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  distinct() %>% 
+  left_join(tbl0) %>%
+  mutate(n= case_when(is.na(n) ~ paste(0),
+                      TRUE ~ paste(n))) %>%
+  mutate(detection= case_when(is.na(detection) ~ paste("Post"),
+                      TRUE ~ paste(detection)))-> tbl1
+tbl1$n <- as.numeric(tbl1$n)
+
+tbl1 %>%
+  arrange(-n) %>% pull(Fig_lab) -> pt_order
+
+tbl1$Fig_lab <- factor(tbl1$Fig_lab, levels = pt_order)
+
+ggplot(tbl1, aes(n, Fig_lab, fill=detection)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment~., space = "free", scales = "free") +
+  scale_y_reordered() +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(axis.title = element_blank(),
+        legend.position = "none",
+        strip.text = element_blank())
+ggsave("../figs/MAGs_perfect_engrafted_counts.png",
+       width = 4, height = 8, units = "cm")
+
+##############################################################################
+## 3. heatmap of engrafted MAGs per patients group by taxonomic families
+tbl %>%
+  filter(detection == "Post") %>%
+  filter(DB== "BDB") %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  left_join(gtdb_viz) %>%
+  mutate(Family_lab= case_when(Family %in% tfam10 ~ paste(Family),
+                               TRUE ~ paste("Other"))) %>%
+  select(Fig_lab, bin_id, detection:Remission, Kingdom:Family_lab)-> tbl0
+
+# adding all patients (even those with no engraftment)
+mapfile %>%
+  filter(Treatment %in% c("FMT", "Placebo")) %>%
+  select(Fig_lab, Treatment, Remission) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  distinct() %>% 
+  left_join(tbl0) %>%
+  mutate(Family_lab = case_when(is.na(Family_lab) ~ paste("Other"),
+                                TRUE ~ paste(Family_lab)))-> tbl1
+
+tbl1$Fig_lab <- factor(tbl1$Fig_lab, levels = pt_order)
+tbl1$Family_lab <- factor(tbl1$Family_lab, levels = family_order)
+
+ggplot(tbl1, aes(bin_id, Fig_lab, fill=detection)) +
+  geom_tile() +
+  facet_grid(Treatment~Family_lab, space = "free", scales= "free") +
+  theme_classic() +
+  scale_fill_manual(values = c("Post" = "#008837"), na.value = "white") +
+  theme(axis.title = element_blank(), legend.position = "none",
+        axis.text = element_blank(),
+        strip.text.x = element_blank())
+ggsave("../figs/MAGs_perfect_engrafted_heatmap.png",
+       width = 12, height = 8, units = "cm")
 
 ```
 
@@ -434,6 +566,7 @@ tbl %>%
   filter(DB=="BDB") %>%
   filter(Treatment == "FMT") -> tbl_fmt
 common_Emagers(tbl_fmt) -> tbl_fmt
+
 ############################################
 # common engraftment for FMT-NoRes
 tbl %>%
@@ -443,6 +576,7 @@ tbl %>%
   filter(DB=="BDB") %>%
   filter(Treatment == "FMT" & Remission == "NoRes") -> tbl_fmt_n
 common_Emagers(tbl_fmt_n) -> tbl_fmt_n
+
 ############################################
 # common engraftment for FMT-Res
 tbl %>%
@@ -487,106 +621,77 @@ ggplot(tbl2, aes(as.numeric(Npts), E.mags, color=Type)) +
         legend.position = c("0.8", "0.8")) +
   xlab("Increasing # of patients") +
   ylab("# of engrafted MAGs")
-ggsave("../figs/MAG_CEG_curve.png", width = 10, height = 8, units = "cm")
+ggsave("../figs/MAG_CEG_curve.png", width = 8, height = 8, units = "cm")
 
 
-######################################################
-########### Genes commonly engrafted in >= 3 pts
-######################################################
+#######################################################################
+########### MAGs commonly engrafted in >= 3 pts within FMT and Placebo
+#######################################################################
 
 tbl %>%
-  filter(detection == "Post") %>%
+  #only donor B MAGs (removinf UHGG)
+  filter(!grepl("UHGG", bin_id)) %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment) %>%
+              distinct()) %>%
+  filter(detection == "Post" & Treatment == "FMT") %>%
   select(Fig_lab, bin_id, WK6) %>%
-  spread(Fig_lab, WK6, fill=0) -> engraft
+  spread(Fig_lab, WK6, fill=0) -> eng_fmt
+engraft_3fmt <- eng_fmt[rowSums(eng_fmt[,2:ncol(eng_fmt)] > 0) >= 3, ]
+engraft_3fmt %>%
+  gather(Fig_lab, detection, -bin_id) %>%
+  filter(detection >= 90) -> engraft_3fmt
 
- engraft_3pts <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= 3, ]
- engraft_3pts %>%
-   gather(Fig_lab, detection, -bin_id) %>%
-   filter(detection >= 90) -> tbl3
- 
+tbl %>%
+  #only donor B MAGs (removinf UHGG)
+  filter(!grepl("UHGG", bin_id)) %>%
+  left_join(mapfile %>% select(Fig_lab, Treatment) %>%
+              distinct()) %>%
+  filter(detection == "Post" & Treatment == "Placebo") %>%
+  select(Fig_lab, bin_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> eng_placebo
+engraft_3placebo <- eng_placebo[rowSums(eng_placebo[,2:ncol(eng_placebo)] > 0) >= 3, ]
+engraft_3placebo %>%
+  gather(Fig_lab, detection, -bin_id) %>%
+  filter(detection >= 90) -> engraft_3placebo
 
-tbl3 %>%
+engraft_3fmt %>%
+  bind_rows(engraft_3placebo) %>%
   left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
               distinct()) %>%
-  group_by(Treatment, Remission) %>%
-  summarise(cegs=n()) %>%
-  ggplot(aes(cegs, Treatment)) +
-  geom_bar(stat = "identity") +
-  facet_grid(~Remission, space = "free", scales = "free_y") +
-  theme_classic() 
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) -> engraft_3pts
+
+# adding all patients (even those with no engraftment)
+mapfile %>%
+  filter(Treatment %in% c("FMT", "Placebo")) %>%
+  select(Fig_lab, Treatment, Remission) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  distinct() %>%
+  left_join(engraft_3pts) %>%
+  left_join(gtdb_viz) %>%
+  # SINCE i ADDED ALL THE PATIENTS HERE (INCLUDING THOSE PLACEBO WITH NO 
+  # ENGRAFTMETN) BECAUSE OF VISUALIZING. Here I'll manually change those
+  # NA values so it looks alright visually.
+  mutate(detection= case_when(is.na(detection) ~ paste("empty"),
+                              TRUE ~ paste("Post"))) %>%
+  # add the empty values to a bin just to look alright visually
+  mutate(bin_id= case_when(detection == "empty" ~ paste("bin_219"),
+                           TRUE ~ paste(bin_id))) %>%
+  mutate(Genus= case_when(detection == "empty" ~ paste("UBA11774"),
+                          TRUE ~ paste(Genus)))-> tbl3
 
 
-########################################################
-
-tbl3 %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
-              distinct()) %>%
-  filter(Treatment == "FMT" & Remission == "Res") -> tbl3_fmtR
-
-tbl3 %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
-              distinct()) %>%
-  filter(Treatment == "Placebo" & Remission == "Res") -> tbl3_placeboR
-
-tbl3 %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
-              distinct()) %>%
-  filter(Treatment == "FMT" & Remission == "NoRes") -> tbl3_fmtN
-
-tbl3 %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
-              distinct()) %>%
-  filter(Treatment == "Placebo" & Remission == "NoRes") -> tbl3_placeboN
-
-
-da_venn <- VennDiagram::venn.diagram(
-  x = list(tbl3_fmtR$bin_id, tbl3_placeboR$bin_id,
-                tbl3_fmtN$bin_id, tbl3_placeboN$bin_id),
-  category.names = c("FMT-Res", "Placebo-Res", "FMT-NoRes", 
-                     "Placebo-NoRes"),
-  filename = NULL,
-  fill = c("#8DD3C7", "#FFFFB3", "#BEBADA", "#FB8072"),
-  margin = 0.1)
-
-grid::grid.newpage()
-grid::grid.draw(da_venn) 
-
-
-############################################################################
-
-tbl3_fmtR %>%
-  select(bin_id) %>%
-  mutate(FMT_R= paste(1)) -> t1
-
-tbl3_fmtN %>%
-  select(bin_id) %>%
-  mutate(FMT_N= paste(1)) -> t2
-
-tbl3_placeboR %>%
-  select(bin_id) %>%
-  mutate(Placebo_R= paste(1)) -> t3
-
-tbl3_placeboN %>%
-  select(bin_id) %>%
-  mutate(Placebo_N= paste(1)) -> t4
-
-t1 %>%
-  left_join(t2) %>%
-  left_join(t3) %>%
-  left_join(t4) %>%
-  filter(FMT_R == 1 & FMT_N == 1 &
-           is.na(Placebo_R) & is.na(Placebo_N)) %>%
-  distinct() %>% pull(bin_id) -> bin_of_interest
-
-tbl3 %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
-              distinct()) %>%
-  filter(bin_id %in% bin_of_interest) %>%
-  group_by(Fig_lab, Treatment, Remission) %>%
-  summarise(n=n()) %>%
-  ggplot(aes(n, Fig_lab)) +
-  geom_bar(stat = "identity") +
-  theme_classic()
-
+ggplot(tbl3, aes(bin_id, Fig_lab, fill=detection)) +
+  geom_tile() +
+  facet_grid(Treatment~Genus, space = "free", scales = "free") +
+  scale_fill_manual(values = c("Post" = "#008837", "empty" = "white")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.text.y = element_text(size=5),
+        strip.text.x = element_text(angle = 90, size = 5),
+        legend.position = "none",
+        axis.title = element_blank())
+ggsave("../figs/MAG_CEG_heatmap.png", width = 12, height = 8, units = "cm")
 
 ```
