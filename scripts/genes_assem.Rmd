@@ -16,7 +16,6 @@ library(tidytext)
 
 ```{r}
 
-
 mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
 
 ```
@@ -72,8 +71,6 @@ gff %>%
 
 ```
 
-
-
 ## reading gene coverage
 
 ```{r}
@@ -103,7 +100,7 @@ colnames(GBD_perfect) <- heads_cover
 
 ```{r}
 
-gene_coverage=100
+gene_coverage=90
 gene_depth=1
 
 GBD_perfect %>%
@@ -121,11 +118,9 @@ GBD_perfect %>%
                               WK0 == 0 & WK6 == 0 ~ paste("none"),
                               WK0 == 1 & WK6 == 0 ~ paste("Pre"),
                               WK0 == 0 & WK6 == 1 ~ paste("Post"),
-                              TRUE ~ paste("Other")))-> tbl
-
-
+                              TRUE ~ paste("Other")))-> engraft_tbl
 ###############################################################################
-
+###############################################################################
 common_Egeners <- function(tbl){
 tbl %>%
   filter(detection == "Post") %>%
@@ -141,146 +136,332 @@ tbl %>%
   for (i in 1:number_of_samples) {
   Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
   Emark.2[[i]] <- data_frame(Npts = paste(i),
-                             E.genes = length(Emark.1[[i]]$gene_id))
+                             n = length(Emark.1[[i]]$gene_id))
   }
   do.call(rbind.data.frame, Emark.2)
 }
 
+###############################################################################
+common_Egeners_2 <- function(tbl){
+tbl %>%
+  filter(detection == "Post") %>%
+  select(Fig_lab, gene_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> engraft
 
+# number of samples in input table
+  tbl %>%
+    pull(Fig_lab) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i), Emark.1[[i]])
+  }
+  common_engraft <- do.call(rbind.data.frame, Emark.2)
+  common_engraft %>%
+    gather(Fig_lab, detect, -gene_id, -Npts) %>%
+    filter(detect >= 1) %>%
+    left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+    group_by(Npts, gene_id, Treatment, Remission) %>%
+    tally() %>%
+    mutate(cat= paste(Treatment, Remission, sep = "")) %>%
+    ungroup() %>%
+    select(Npts, gene_id, n, cat) %>%
+    spread(cat, n) %>%
+    mutate(M_cat= case_when(is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTNoRes) &
+                               FMTRes > 0 ~ paste("FMT-Res"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTRes) &
+                               FMTNoRes > 0 ~ paste("FMT-NoRes"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) ~ paste("FMT"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboRes) &
+                               PlaceboNoRes > 0 ~ paste("Placebo-NoRes"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboNoRes) &
+                               PlaceboRes > 0 ~ paste("Placebo-Res"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) ~ paste("Placebo"),
+                             TRUE ~ paste("Both"))) %>%
+  mutate(across(everything(), ~replace_na(., 0)))
+}
+###############################################################################
+################################################################################
+common_Egeners_3 <- function(tbl){
+tbl %>%
+  filter(detection == "Post") %>%
+  select(Fig_lab, gene_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> engraft
 
+# number of samples in input table
+  tbl %>%
+    pull(Fig_lab) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i), Emark.1[[i]])
+  }
+  common_engraft <- do.call(rbind.data.frame, Emark.2)
+  common_engraft %>%
+    gather(Fig_lab, detect, -gene_id, -Npts) %>%
+    filter(detect >= 1) %>%
+    left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct())
+}
+################################################################################
+################################################################################
 ```
+
+
 
 ```{r}
 
-##common engraftment for Placebo
-tbl %>%
+#1. total 
+common_Egeners(engraft_tbl) %>%
+  mutate(Type=paste("Total(n=24)"))-> C1
+#2. withinFMT
+engraft_tbl %>%
   left_join(mapfile %>% 
             select(Fig_lab, Treatment) %>%
             distinct()) %>%
-  filter(Treatment == "Placebo") -> tbl_pla
-common_Egeners(tbl_pla) -> tbl_pla
-############################################
-# common engraftment for FMT
-tbl %>%
+  filter(Treatment == "FMT") -> C2
+common_Egeners(C2) %>%
+  mutate(Type=paste("withinFMT(n=12)"))-> C2
+#3. withinPlacebo
+engraft_tbl %>%
   left_join(mapfile %>% 
             select(Fig_lab, Treatment) %>%
             distinct()) %>%
-  filter(Treatment == "FMT") -> tbl_fmt
-common_Egeners(tbl_fmt) -> tbl_fmt
-############################################
-# common engraftment for FMT-NoRes
-tbl %>%
+  filter(Treatment == "Placebo") -> C3
+common_Egeners(C3) %>%
+  mutate(Type=paste("withinPlacebo(n=12)"))-> C3
+#4. WithinFMTresponder
+engraft_tbl %>%
   left_join(mapfile %>% 
             select(Fig_lab, Treatment, Remission) %>%
             distinct()) %>%
-  filter(Treatment == "FMT" & Remission == "NoRes") -> tbl_fmt_n
-common_Egeners(tbl_fmt_n) -> tbl_fmt_n
-############################################
-# common engraftment for FMT-Res
-tbl %>%
+  filter(Treatment == "FMT" & Remission == "Res") -> C4
+common_Egeners(C4) %>%
+  mutate(Type=paste("withinFMT-Res(n=6)"))-> C4
+#5. WithinFMTnonresponder
+engraft_tbl %>%
   left_join(mapfile %>% 
             select(Fig_lab, Treatment, Remission) %>%
             distinct()) %>%
-  filter(Treatment == "FMT" & Remission == "Res") -> tbl_fmt_r
-common_Egeners(tbl_fmt_r) -> tbl_fmt_r
+  filter(Treatment == "FMT" & Remission == "NoRes") -> C5
+common_Egeners(C5) %>%
+  mutate(Type=paste("withinFMT-NoRes(n=6)"))-> C5
 
 
-######################################################
-########### visualizing
-######################################################
+#1. Unique to FMT or Placebo and FMT responder vs non-
+common_Egeners_2(engraft_tbl) -> U
 
-cols1 <- c("FMT(n=12)" = "#008837",
-           "Placebo(n=12)" = "#bdbdbd",
-           "Responder(n=6)" = "#0571b0",
-           "Non-Responder(n=6)" = "#ca0020")
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT") ~ paste("uniquetoFMT"),
+                           str_detect(M_cat, "Placebo") ~ paste("uniquetoPlacebo"),
+                           TRUE ~ paste("Overlap"))) %>%
+  ungroup() %>% group_by(Npts, Type) %>%
+  summarise(n=sum(n)) -> U1
 
-tbl_fmt %>% 
-  mutate(Type=paste("FMT(n=12)"),
-          Samples= "All") %>%
-  bind_rows(tbl_pla %>% 
-             mutate(Type=paste("Placebo(n=12)"),
-                    Samples="All")) %>%
-  bind_rows(tbl_fmt_r %>%
-              mutate(Type="Responder(n=6)",
-                     Samples="onlyFMT")) %>%
-  bind_rows(tbl_fmt_n %>%
-              mutate(Type="Non-Responder(n=6)",
-                     Samples="onlyFMT")) -> tbl2
-tbl2$Type <- factor(tbl2$Type, levels = c("FMT(n=12)", "Placebo(n=12)", 
-                                        "Responder(n=6)", "Non-Responder(n=6)"))
-ggplot(tbl2, aes(as.numeric(Npts), E.genes, color=Type)) +
-  geom_line(aes(group=Type))+
-  #facet_grid(~Samples, space = "free") +
-  scale_y_sqrt() +
-  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7,8,9,10)) +
-  scale_color_manual(values = cols1) +
-  theme_classic() +
-  theme(legend.title = element_blank(),
-        legend.position = c("0.8", "0.8")) +
-  xlab("Increasing # of patients") +
-  ylab("# of engrafted Genes")
-ggsave("figs/Genes_CEG_curve.png", width = 8, height = 8, units = "cm")
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  filter(str_detect(M_cat, "FMT")) %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT-Res") ~ paste("uniquetoFMT-Res"),
+                           str_detect(M_cat, "FMT-NoRes") ~ paste("uniquetoFMT-NoRes"),
+                           TRUE ~ paste("uniquetoFMT-Overlap"))) %>%
+  select(Npts, Type, n)-> U2
+
+
+# merging the results together:
+rbind(C1, C2, C3) -> tbl1
+rbind(U1, U2) -> tbl2
+
+cols <- c("Total(n=24)" = "black",
+          "withinFMT(n=12)" = "#1b7837",
+          "withinPlacebo(n=12)" = "#999999",
+          "withinFMT-Res(n=6)" = "#2166ac",
+          "withinFMT-NoRes(n=6)" = "#b2182b",
+          "Overlap" = "#fc8d59",
+          "uniquetoFMT" = "#1b7837",
+          "uniquetoPlacebo" = "#999999",
+          "uniquetoFMT-Res" = "#2166ac",
+          "uniquetoFMT-NoRes" = "#b2182b",
+          "uniquetoFMT-Overlap" = "#6A3F6C")
+
+
+f1 <- ggplot(tbl1, aes(as.numeric(Npts), n, color=Type)) +
+  geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+  #xlab("Increasting # of patients") + ylab("Engrafted strains")
+
+f2 <- ggplot(U1, aes(as.numeric(Npts), n, fill=Type)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) +
+   xlab("Increasting # of patients") + ylab("Engrafted strains")
+
+f3 <- ggplot(U2, aes(as.numeric(Npts), n, color=Type)) +
+  geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+   #xlab("Increasting # of patients") + ylab("Engrafted strains")
+cowplot::plot_grid(f1, f2, f3, ncol = 1, hjust = T, vjust = T)
+ggsave("../figs/genes_CEG_curve.png", width = 6, height = 12, units = "cm")
+write.table(tbl1, "../figs/genes_CEGs_1.txt", 
+            sep = "\t", row.names = F, quote = F)
+write.table(U1, "../figs/genes_CEGs_2.txt", 
+            sep = "\t", row.names = F, quote = F)
+write.table(U2, "../figs/genes_CEGs_3.txt",
+            sep = "\t", row.names = F, quote = F)
+
+#total # of donor B genes with gene coverage > 90 and over 1x in at least one sample
+length(unique(engraft_tbl$gene_id))
 
 ```
 
+
+## commonly engrafted genes
+
+
 ```{r}
 
-#######################################################################
-########### Genes commonly engrafted in >= 3 pts within FMT or Placebo 
-######################################################################
+# DEFINING CATEGORIES:
+common_Egeners_2(engraft_tbl) -> U
+U %>%
+# CHANGE NAMES OF CATEGORIES
+mutate(Type= case_when(str_detect(M_cat, "FMT") ~ paste("uniquetoFMT"),
+                       str_detect(M_cat, "Placebo") ~ paste("uniquetoPlacebo"),
+                      TRUE ~ paste("Overlap"))) %>%
+# CHANGE THE ORDER OF GENES FOR VISUALIZATION
+mutate(Type_order= case_when(M_cat == "FMT" ~ paste(as.numeric(FMTNoRes+FMTRes)),
+                                 M_cat == "FMT-Res" ~ paste(as.numeric(FMTRes)),
+                                 M_cat == "FMT-NoRes" ~ paste(as.numeric(FMTNoRes)),
+                                 M_cat == "Placebo" ~ paste(as.numeric(PlaceboRes,PlaceboNoRes)),
+                                 M_cat == "Placebo-Res" ~ paste(as.numeric(PlaceboRes)),
+                                 M_cat == "Placebo-NoRes" ~ paste(as.numeric(PlaceboNoRes)),
+                                 M_cat == "Both" ~ paste(
+                                as.numeric(FMTRes+FMTNoRes+PlaceboNoRes+PlaceboRes)),
+                                   TRUE ~ paste(0))) -> U_complete
+U_complete %>%
+  select(Npts, gene_id, Type, Type_order, M_cat) %>%
+  filter(Npts %in% c("3", "6"))-> engraft_cat
 
-# >= 3 in FMT
-tbl %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment) %>%
-              distinct()) %>%
-  filter(detection == "Post" & Treatment == "FMT") %>%
-  select(Fig_lab, gene_id, WK6) %>%
-  spread(Fig_lab, WK6, fill=0) -> eng_fmt
-engraft_3fmt <- eng_fmt[rowSums(eng_fmt[,2:ncol(eng_fmt)] > 0) >= 3, ]
-engraft_3fmt %>%
-  gather(Fig_lab, detection, -gene_id) %>%
-  filter(detection == 1) -> engraft_3fmt
-length(unique(engraft_3fmt$gene_id))
 
-# >= 3 in Placebo
-tbl %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment) %>%
-              distinct()) %>%
-  filter(detection == "Post" & Treatment == "Placebo") %>%
-  select(Fig_lab, gene_id, WK6) %>%
-  spread(Fig_lab, WK6, fill=0) -> eng_placebo
-engraft_3placebo <- eng_placebo[rowSums(eng_placebo[,2:ncol(eng_placebo)] > 0) >= 3, ]
-engraft_3placebo %>%
-  gather(Fig_lab, detection, -gene_id) %>%
-  filter(detection == 1) -> engraft_3placebo
-length(unique(engraft_3placebo$gene_id))
- 
-
-engraft_3fmt %>%
-  bind_rows(engraft_3placebo) %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
-              distinct()) %>%
+# TOTAL COMMON ENGRAFT IN 6 AND 3 pts
+common_Egeners_3(engraft_tbl) %>%
+  filter(Npts %in% c("3", "6")) %>%
+  left_join(engraft_cat) %>%
   mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
-                            TRUE ~ paste(Fig_lab))) -> engraft_3pts
+                            TRUE ~ paste(Fig_lab))) -> common_engraft_cat
 
 
-ggplot(engraft_3pts, aes(gene_id, Fig_lab, fill=detection)) +
+###############################
+common_engraft_cat %>%
+  filter(Npts == "6") %>%
+ggplot(aes(reorder_within(gene_id, -as.numeric(Type_order), Type),
+                               Fig_lab, fill=Treatment)) +
   geom_tile() +
-  facet_grid(Treatment~., space = "free", scales = "free") +
-  scale_fill_manual(values = c("1" = "#008837")) +
+  facet_grid(Treatment~Type, space = "free", scales = "free") +
+  scale_fill_manual(values = c("FMT" = "#008837",
+                               "Placebo" = "#bdbdbd")) +
   theme_classic() +
   theme(axis.text.x = element_blank(),
-        axis.text.y = element_text(size=5),
-        strip.text.x = element_text(angle = 90, size = 5),
+        axis.title.x = element_text(size=7),
+        strip.text.x = element_blank(),
         legend.position = "none",
-        axis.title = element_blank())
+        axis.title.y = element_blank()) +
+  xlab("Donor assembled genes commonly engrafted in >=6 pts")
+ggsave("../figs/genes_CEGs_6pts.png",
+       width = 12, height = 8, units = "cm")
+
+common_engraft_cat %>%
+  filter(Npts == "6") %>%
+  filter(Type== "uniquetoFMT") %>%
+  group_by(Fig_lab, Remission) %>%
+  summarise(n=n()) %>%
+  ggplot(aes(Remission, n, color= "FMT")) +
+  geom_boxplot() +
+  geom_point() +
+  scale_color_manual(values = c("FMT" = "#008837",
+                               "Placebo" = "#bdbdbd")) +
+  theme_classic()+
+  theme(legend.position = "none")
+
+###############################
+
+common_engraft_cat %>%
+  filter(Npts == "3") %>%
+ggplot(aes(reorder_within(gene_id, -as.numeric(Type_order), Type),
+                               Fig_lab, fill=Treatment)) +
+  geom_tile() +
+  facet_grid(Treatment~M_cat, space = "free", scales = "free") +
+  scale_fill_manual(values = c("FMT" = "#008837",
+                               "Placebo" = "#bdbdbd")) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_text(size=7),
+        strip.text.x = element_blank(),
+        legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("Donor assembled genes commonly engrafted in >=3 pts")
+ggsave("../figs/genes_CEGs_3pts.png",
+       width = 12, height = 8, units = "cm")
+
+################################################################################
+## saving the commonly engrafted genes >= 6pts- unique to FMT:
+common_engraft_cat %>%
+  filter(Npts == "6") %>%
+  filter(Type == "uniquetoFMT") %>%
+  select(gene_id) %>% distinct() %>%
+  write.table("../data/genes_of_interest/CEGs_6pts_uniquetoFMT.txt",
+              row.names = F, quote = F, sep = "\t", col.names = F)
+################################################################################
+## saving the commonly engrafted genes >= 3pts- unique to FMT-Responder:
+common_engraft_cat %>%
+  filter(Npts == "3") %>%
+  filter(M_cat == "FMT-Res") %>%
+  select(gene_id) %>% distinct() %>%
+  write.table("../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res.txt",
+              row.names = F, quote = F, sep = "\t", col.names = F)
+
 
 ```
 
 
+## commonly engrafted genes within MAGs:
+
 ```{r}
 
-engraft_3pts %>%
+# common engraft of genes across 3 or 6 pts observed within or outside bins
+common_engraft_cat %>%
   left_join(gff %>% rename(gene_id= ID)) %>%
   left_join(c_inBin %>% mutate(seqname=contig)) %>%
   mutate(Type=case_when(bin_id %in% MAGs ~ paste("MAG"),
@@ -291,40 +472,675 @@ engraft_3pts %>%
                                    "Order", "Family", "Genus",
                                    "Species"), ";.__") %>%
   mutate(bin_id= case_when(is.na(bin_id) ~ paste("NoBin"),
-                           TRUE ~ paste(bin_id))) -> tbl
+                           TRUE ~ paste(bin_id))) -> common_engraft_cat_bin
 
- ggplot(tbl, aes(gene_id, Fig_lab, fill=detection)) +
-  geom_tile() +
-  facet_grid(Treatment~., space = "free", scales = "free") +
-  scale_fill_manual(values = c("1" = "#008837")) +
-  theme_classic() +
-  theme(axis.text.x = element_blank(),
-        axis.text.y = element_text(size=5),
-        strip.text.x = element_text(angle = 90, size = 5),
-        legend.position = "none",
-        axis.title = element_blank())
-  
-tbl %>%
-  group_by(Fig_lab, Treatment, bin_id, Family) %>%
+# define categories based on their uniqueness to FMT or Placebo
+common_engraft_cat_bin %>%
+  group_by(Npts, Fig_lab, bin_id, Treatment) %>%
   tally() %>%
   mutate(Type= case_when(bin_id %in% MAGs ~ paste("MAG"),
                          bin_id == "NoBin" ~ paste("NoBin"),
                          TRUE ~ paste("Bin"))) %>%
-  filter(Type == "MAG" & n >= 10) -> test
+  # only >=10 genes in MAGs:
+  filter(n >= 10) %>%
+  ungroup() %>%
+  group_by(Npts, bin_id, Treatment) %>%
+  tally() %>%
+  spread(Treatment, n) %>%
+  mutate(MAG_cat= case_when(is.na(Placebo) & FMT > 0 ~ paste("uniqueto-FMT"),
+                            is.na(FMT) & Placebo > 0 ~ paste("uniqueto-Placebo"),
+                            TRUE ~ paste("overlap"))) %>%
+  mutate(MAG_cat_order= case_when(MAG_cat == "uniqueto-FMT" ~ paste(FMT),
+                             MAG_cat == "uniqueto-Placebo" ~ paste(Placebo),
+                             MAG_cat == "overlap" ~ paste(sum(FMT+Placebo)))) %>%
+  select(Npts, bin_id, MAG_cat, MAG_cat_order)-> MAG_categories
 
-length(unique(test$bin_id))
 
-  ggplot(aes(bin_id, Fig_lab, fill=n)) +
+# Visualizing commonly engrafted genes from MAGs:
+# only >= 10 genes in MAGs:
+common_engraft_cat_bin %>%
+  group_by(Npts, Fig_lab, Treatment, bin_id) %>%
+  tally() %>%
+  mutate(Type= case_when(bin_id %in% MAGs ~ paste("MAG"),
+                         bin_id == "NoBin" ~ paste("NoBin"),
+                         TRUE ~ paste("Bin"))) %>%
+  filter(n >= 10) %>%
+  left_join(MAG_categories) -> common_engraft_cat_gene
+
+# all pts:
+mapfile %>%
+  filter(Treatment %in% c("FMT", "Placebo")) %>%
+  select(Fig_lab, Treatment, Remission) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  distinct() -> all_pts
+
+
+common_engraft_cat_gene %>%
+  mutate(gene_num= case_when(n <= 20 ~ paste("<=20"),
+                             between(n, 20, 200) ~ paste("20-200"),
+                             between(n, 200, 1000) ~ paste("200-1k"),
+                             n > 1000 ~ paste(">1k"))) %>%
+  left_join(common_engraft_cat_bin %>% 
+              select(bin_id:Species, -Type) %>%
+              distinct()) %>%
+  mutate(Genus_lab= paste(Genus, gsub("bin_", "", bin_id), sep = "_")) -> viz1
+
+
+ggplot(viz1 %>%
+       filter(Npts == "3"), 
+       aes(reorder_within(Genus_lab, -as.numeric(MAG_cat_order), MAG_cat), 
+             Fig_lab, fill=gene_num)) +
   geom_tile() +
-  facet_grid(Treatment~Family, space = "free", scales = "free") +
-  #scale_fill_manual(values = c("1" = "#008837")) +
+  facet_grid(Npts+Treatment~Type, space = "free", scales = "free") +
+  scale_x_reordered() +
+  scale_fill_manual(values = c("<=20" = "#bae4bc",
+                               "20-200" = "#7bccc4",
+                               "200-1k" = "#43a2ca",
+                               ">1k" = "#0868ac"), na.value = "white") +
   theme_classic() +
   theme(axis.text.x = element_blank(),
-        axis.text.y = element_text(size=5),
-        strip.text.x = element_text(angle = 90, size = 5),
+        #axis.text.y = element_text(size=5),
+        strip.text.y = element_blank(),
+        strip.text.x = element_text(angle = 90),
+        axis.title.x  = element_text(size = 7),
         legend.position = "bottom",
+        legend.title = element_text(size=7),
+        legend.text = element_text(size=7),
+        axis.title.y = element_blank()) +
+    labs(fill='# of commonly engrafted \n genes in MAGs') +
+    xlab("Donor assembled Bins and MAGs")
+ggsave("../figs/genesInMAG_3pts_heatmap.png",
+       width = 16, height = 10, units = "cm")
+
+
+ggplot(viz1 %>%
+       filter(Npts == "6") %>%
+       right_join(all_pts), 
+       aes(reorder_within(Genus_lab, -as.numeric(MAG_cat_order), MAG_cat), 
+             Fig_lab, fill=gene_num)) +
+  geom_tile() +
+  facet_grid(Npts+Treatment~Type, space = "free", scales = "free") +
+  scale_x_reordered() +
+  scale_fill_manual(values = c("<=20" = "#bae4bc",
+                               "20-200" = "#7bccc4",
+                               "200-1k" = "#43a2ca",
+                               ">1k" = "#0868ac"), na.value = "white") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust=0.95,vjust=0.2, size=7),
+        strip.text.x = element_text(angle = 90),
+        strip.text.y = element_blank(),
+        axis.title.x  = element_text(size = 7),
+        legend.position = "bottom",
+        legend.title = element_text(size=7),
+        legend.text = element_text(size=7),
+        axis.title.y = element_blank()) +
+    labs(fill='# of commonly engrafted \n genes in MAGs') +
+    xlab("Donor assembled Bins and MAGs")
+ggsave("../figs/genesInMAG_6pts_heatmap.png",
+       width = 14, height = 10, units = "cm")
+```
+
+## commonly engrafted genes in RefSeq:
+this is the result of blastn. a local refseq db was built on May 23rd, 2023
+
+```{r}
+
+blastn_parser <- function(table1, table2, identity, coverage) {
+  # table1: .fna.fai file of genes, showing genes length, start and stop
+  # table2: .blastout standard blastout of genes.fna against refseq
+  # identity: pident cutoff
+  # coverage: query coverage cutoff
+
+gene_length <- read.csv(table1, sep = "\t", header = F)
+gene_length %>%
+  select(V1, V2) %>%
+  rename(qseqid=V1,
+         gene_length=V2) -> gene_length
+
+blastout <- read.csv(table2, sep = "\t", header = F)
+col_names <- c("qseqid", "sseqid", "pident", "length",
+              "mismatch", "gapopen", "qstart", 
+              "qend", "sstart", "send",
+              "evalue", "bitscore")
+
+colnames(blastout) <- col_names
+blastout %>%
+  left_join(gene_length) %>%
+  # gene length must be over 100bp
+  # pident must be over 95
+  filter(gene_length >= 100 & pident >= identity) %>%
+  group_by(qseqid, sseqid, gene_length) %>%
+  summarise(total_length= sum(length),
+            hit_count=n()) %>%
+  ungroup() %>%
+  mutate(query_coverage= total_length/gene_length*100) %>%
+  # over 95% of gene of interest must be covered
+  filter(query_coverage >= coverage)
+
+}
+
+```
+
+
+
+```{r}
+
+refseq_name <- read.csv("../data/genes_of_interest/references_headers.txt",
+                        sep = "\t", header = F)
+refseq_name %>%
+  mutate(sseqid= gsub(" .*", "", V1)) %>%
+  mutate(sseqid= gsub(">", "", sseqid)) %>%
+  mutate(filename=gsub(".*__", "", V1)) %>%
+  rename(refseq_header=V1)-> refseq_name
+gtdb_refseq <- read.csv("../data/genes_of_interest/gtdb.bac120.summary.tsv",
+                        sep = "\t") 
+gtdb_refseq %>%
+  select(user_genome, classification) %>%
+  separate(classification, c("Kingdom", "Phylum", "Class",
+                                   "Order", "Family", "Genus",
+                                   "Species"), ";.__") %>%
+  mutate(filename= paste(user_genome, ".fna.gz", sep = "")) %>%
+  left_join(refseq_name) -> refseq_taxonomy
+
+################################################################################
+
+table1 <- "../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res.fna.fai"
+table2 <- "../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res_inRefSeq.blastout"
+blastn_parser(table1, table2, identity = 95, coverage = 95) %>%
+  group_by(sseqid) %>%
+  summarise(genes=n()) %>%
+  left_join(refseq_taxonomy) %>%
+  ungroup() %>%
+  group_by(Species) %>%
+  mutate(spID= paste(Species, row_number(), sep = "_")) -> refseq_in3pts
+# genomes with >= 5 genes:
+refseq_in3pts %>%
+  filter(genes >= 5) %>%
+ggplot(aes(genes, reorder_within(spID, genes, Family), fill="CEGs")) +
+  geom_bar(stat = "identity") +
+  facet_grid(Family~., space = "free", scales = "free") +
+  scale_x_log10() +
+  scale_fill_manual(values = c("CEGs" = "#008837")) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none",
+        axis.title.y = element_blank())
+ggsave("../figs/genesInRefSeq_3pts_bar.png",
+       width = 14, height = 26, units = "cm")
+
+################################################################################
+
+table1 <- "../data/genes_of_interest/CEGs_6pts_uniquetoFMT.fna.fai"
+table2 <- "../data/genes_of_interest/CEGs_6pts_uniquetoFMT_inRefSeq.blastout"
+blastn_parser(table1, table2, identity = 85, coverage = 85) %>%
+  group_by(sseqid) %>%
+  summarise(genes=n()) %>%
+  left_join(refseq_taxonomy) %>%
+  ungroup() %>%
+  group_by(Species) %>%
+  mutate(spID= paste(Species, row_number(), sep = "_"))-> refseq_in6pts
+# genomes with >= 5 genes:
+refseq_in6pts %>%
+  filter(genes >= 3) %>%
+ggplot(aes(genes, reorder_within(spID, genes, Family), fill="CEGs")) +
+  geom_bar(stat = "identity") +
+  facet_grid(Family~., space = "free", scales = "free") +
+  scale_fill_manual(values = c("CEGs" = "#008837")) +
+  scale_x_log10() +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none",
+        axis.title.y = element_blank())
+ggsave("../figs/genesInRefSeq_6pts_bar.png",
+       width = 14, height = 26, units = "cm")
+
+```
+## comparison of genes across genomes
+
+```{r}
+
+refseq_in3pts %>%
+  ungroup %>%
+  filter(genes >= 5) %>%
+  select(sseqid) %>% distinct() %>% pull() -> top_genome_in3pts
+table1 <- "../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res.fna.fai"
+table2 <- "../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res_inRefSeq.blastout"
+blastn_parser(table1, table2, identity = 95, coverage = 95) %>%
+  filter(sseqid %in% top_genome_in3pts) %>%
+  group_by(sseqid, qseqid) %>%
+  summarise(genes=n()) %>%
+  left_join(refseq_taxonomy) %>%
+  ungroup() %>%
+  group_by(Species) %>%
+  mutate(spID= paste(Species, row_number(), sep = "_")) %>%
+# visualize
+ggplot(aes(qseqid, reorder_within(sseqid, genes, Species), fill="CEGs")) +
+  geom_tile() +
+  facet_grid(Family~Genus, space = "free", scales = "free") +
+  scale_fill_manual(values = c("CEGs" = "#008837")) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0),
+        strip.text.x = element_text(angle = 90),
+        legend.position = "none",
+        axis.text = element_blank()) +
+  xlab("Genes") + ylab("Genomes")
+ggsave("../figs/genesInRefSeq_3pts_heatmap.png",
+       width = 14, height = 12, units = "cm")
+
+################################################################################
+
+refseq_in6pts %>%
+  ungroup %>%
+  filter(genes >= 3) %>%
+  select(sseqid) %>% distinct() %>% pull() -> top_genome_in6pts
+table1 <- "../data/genes_of_interest/CEGs_6pts_uniquetoFMT.fna.fai"
+table2 <- "../data/genes_of_interest/CEGs_6pts_uniquetoFMT_inRefSeq.blastout"
+blastn_parser(table1, table2, identity = 85, coverage = 85) %>%
+  filter(sseqid %in% top_genome_in3pts) %>%
+  group_by(sseqid, qseqid) %>%
+  summarise(genes=n()) %>%
+  left_join(refseq_taxonomy) %>%
+  ungroup() %>%
+  group_by(Species) %>%
+  mutate(spID= paste(Species, row_number(), sep = "_")) %>%
+# visualize
+ggplot(aes(qseqid, reorder_within(sseqid, genes, Species), fill="CEGs")) +
+  geom_tile() +
+  facet_grid(Family~Genus, space = "free", scales = "free") +
+  scale_fill_manual(values = c("CEGs" = "#008837")) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0),
+        strip.text.x = element_text(angle = 90),
+        legend.position = "none",
+        axis.text = element_blank()) +
+  xlab("Genes") + ylab("Genomes")
+ggsave("../figs/genesInRefSeq_6pts_heatmap.png",
+       width = 14, height = 12, units = "cm")
+
+```
+
+
+```{r}
+
+refseq_in3pts %>%
+  ungroup %>%
+  filter(genes >= 5) -> top_refseq_in3pts
+top_refseq_in3pts %>%
+  select(Genus) %>% distinct() %>% pull() -> refseq_in3pts_genus
+
+refseq_taxonomy %>%
+  filter(Genus %in% refseq_in3pts_genus) %>%
+  left_join(top_refseq_in3pts) %>%
+  mutate(genes = case_when(is.na(genes) ~ paste(0),
+                           TRUE ~ paste(genes))) %>%
+  group_by(Species) %>%
+  mutate(spID2= paste(Species, row_number(), sep = "_")) %>%
+  ggplot(aes(as.numeric(genes), reorder_within(spID2, as.numeric(genes), 
+                                               Genus), fill="CEGs")) +
+  geom_bar(stat = "identity") +
+  facet_grid(Genus~.,space = "free", scales = "free") +
+  scale_fill_manual(values = c("CEGs" = "#008837")) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none",
+        axis.text.y = element_blank(),
         axis.title = element_blank())
+
+###############################################################################
+
+refseq_in6pts %>%
+  ungroup %>%
+  filter(genes >= 6) -> top_refseq_in6pts
+top_refseq_in6pts %>%
+  select(Genus) %>% distinct() %>% pull() -> refseq_in6pts_genus
+
+refseq_taxonomy %>%
+  filter(Genus %in% refseq_in6pts_genus) %>%
+  left_join(top_refseq_in6pts) %>%
+  mutate(genes = case_when(is.na(genes) ~ paste(0),
+                           TRUE ~ paste(genes))) %>%
+  group_by(Species) %>%
+  mutate(spID2= paste(Species, row_number(), sep = "_")) %>%
+  ggplot(aes(as.numeric(genes), reorder_within(spID2, as.numeric(genes), 
+                                               Genus), fill="CEGs")) +
+  geom_bar(stat = "identity") +
+  facet_grid(Genus~.,space = "free", scales = "free") +
+  scale_fill_manual(values = c("CEGs" = "#008837")) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(strip.text.y = element_text(angle = 0),
+        legend.position = "none",
+        axis.text.y = element_blank(),
+        axis.title = element_blank())
+
+```
+
+
+
+## Functions of commonly engrafted genes in respoders
+proteins were clusterd at 90% using mmseq and eggnog was used for functional
+annotations of the proteins
+
+
+## KEGG parser
+a list of function to parse KEGGs from eggnot outputs
+```{r}
+
+library(KEGGREST)
+
+###################################################
+# function to parse eggnog output fot KEGG pathway:
+egg_KEGGpathway <- function(file.path) {
   
+  # get all the list of all pathways:
+  data.frame(keggList(database = "PATHWAY")) -> KEGG.PATHWAY
+  colnames(KEGG.PATHWAY) <- c("name")
+  KEGG.PATHWAY %>%
+  rownames_to_column("KEGG_Pathway") -> KEGG.PATHWAY
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_Pathway) %>% filter(!grepl("-", KEGG_Pathway)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_Pathway) %>% tally() %>%
+  # only pathways
+  filter(grepl("map", KEGG_Pathway)) %>%
+  left_join(KEGG.PATHWAY) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG ko:
+egg_KEGGko <- function(file.path) {
+  
+  # get the list of all ko:
+  data.frame(keggList(database = "KO")) -> KEGG.KO
+  colnames(KEGG.KO) <- c("name")
+  KEGG.KO %>%
+  rownames_to_column("KEGG_ko") -> KEGG.KO
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_ko) %>%
+  filter(!grepl("-", KEGG_ko)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_ko) %>% tally() %>%
+  mutate(KEGG_ko= gsub("ko:", "", KEGG_ko)) %>%
+  left_join(KEGG.KO) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG Module:
+egg_KEGGmodule <- function(file.path) {
+  
+  # get the list of all MODULE:
+  data.frame(keggList(database = "MODULE")) -> KEGG.MODULE
+  colnames(KEGG.MODULE) <- c("name")
+  KEGG.MODULE %>%
+  rownames_to_column("KEGG_Module") -> KEGG.MODULE
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_Module) %>%
+  filter(!grepl("-", KEGG_Module)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_Module) %>% tally() %>%
+  left_join(KEGG.MODULE) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG BRITE:
+egg_KEGGbrite <- function(file.path) {
+  
+  # get the list of all BRITE:
+  data.frame(keggList(database = "BRITE")) -> KEGG.BRITE
+  colnames(KEGG.BRITE) <- c("name")
+  KEGG.BRITE %>%
+  rownames_to_column("BRITE") -> KEGG.BRITE
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(BRITE) %>%
+  filter(!grepl("-", BRITE)) %>%
+  separate_rows(1,sep = ",") %>% group_by(BRITE) %>% tally() %>%
+  left_join(KEGG.BRITE) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG Reaction:
+egg_KEGGreaction <- function(file.path) {
+  
+  # get the list of all REACTION:
+  data.frame(keggList(database = "REACTION")) -> KEGG.REACTION
+  colnames(KEGG.REACTION) <- c("name")
+  KEGG.REACTION %>%
+  rownames_to_column("KEGG_Reaction") -> KEGG.REACTION
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_Reaction) %>%
+  filter(!grepl("-", KEGG_Reaction)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_Reaction) %>% tally() %>%
+  left_join(KEGG.REACTION) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+##################################################
+# A function to parse all KEGG categories together
+egg_KEGGwraper <- function(file.path) {
+  
+  egg_KEGGbrite(file.path) %>%
+    mutate(Category=paste("BRITE")) -> tb1
+  egg_KEGGpathway(file.path) %>%
+    mutate(Category=paste("PATHWAY")) -> tb2
+  egg_KEGGmodule(file.path) %>%
+    mutate(Category=paste("MODULE")) -> tb3
+  egg_KEGGko(file.path) %>%
+    mutate(Category=paste("KO")) -> tb4
+  egg_KEGGreaction(file.path) %>%
+    mutate(Category=paste("REACTION")) -> tb5
+  rbind(tb1, tb2, tb3, tb4, tb5) %>%
+    arrange(Category, -n)
+}
+
+
+```
+
+## KEGG pathway 
+using eggnog data: reading eggnog outputs
+```{r}
+
+# Commonly engrafted genes in >= 3 pts only responder patients:
+input <- "../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res_90c.emapper.annotations"
+input <- "../data/genes_of_interest/CEGs_6pts_uniquetoFMT_90c.emapper.annotations"
+#output <- "../data/genes_of_interest/CEGs_FMTresponders_90c.emapper.annotations.KEGG.txt"
+egg_KEGGwraper(input) -> tbl
+#write.table(tbl, output, sep = "\t", row.names = F, quote = F)
+
+tbl %>%
+  filter(Category == "PATHWAY") %>%
+  mutate(total_n= sum(n)) %>%
+  mutate(percent= n/sum(n) * 100) %>%
+  mutate(class= case_when(is.na(name) ~ paste("Unknown"),
+                          percent >= 2 ~ paste("top2%"),
+                          TRUE ~ paste("Other")
+                          )) -> tbl2
+
+color1 <- c("Other"= "#b2df8a",
+            "top2%" = "#33a02c",
+            "Unknown"= "#bababa")
+tbl2 %>%
+  group_by(class) %>%
+  summarise(n= sum(n)) %>%
+  mutate(percent= n/sum(n)* 100) %>%
+  mutate(Category= paste("PATHWAY")) %>%
+  mutate(class= factor(class, levels = c("top2%","Other", "Unknown"))) %>%
+ggplot(aes(Category, percent, fill=class)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = round(percent, 1)),
+            position = position_stack(vjust = .5), angle=0) +
+  scale_fill_manual(values = color1) +
+  theme_classic() +
+  theme(axis.title = element_blank(),
+        legend.position = "right",
+        legend.title = element_blank())
+ggsave("../figs/CEGs_Func1.png",
+       width = 6, height = 5, units = "cm")
+
+tbl2 %>%
+  filter(class== "top2%") %>%
+  ggplot(aes(percent, reorder_within(name, percent, class), fill=class)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = color1) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(axis.title = element_blank(),
+        legend.position = "none")
+ggsave("../figs/CEGs_Func2.png",
+       width = 10, height = 5, units = "cm")
+
+```
+
+
+
+## Metagenomic survey for CEGs in responders
+Reading mapfiles for SRA studies:
+
+```{r, echo=FALSE, message=FALSE}
+
+mpath="../data/genes_of_interest/CEGs_3pts_uniquetoFMT-Res_public_metagenomic_analysis/"
+Run <- read.csv(paste(mpath, "PRJNA400072_SRA.txt", sep = ""))
+Diag <- read.csv(paste(mpath, "PRJNA400072_Diagnosis.txt", sep = ""))
+Diag %>%
+  mutate(Sample.Name= case_when(grepl("^[0-9]", 
+                                      local_sample_id) ~ paste("PRISM",
+                                                               local_sample_id,
+                                                               sep = "_"),
+                                TRUE ~ as.character(local_sample_id))) %>%
+  select(Sample.Name, Diagnosis) %>%
+  left_join(Run, by = "Sample.Name") -> PRJNA400072
+
+############################################################################
+
+#total seqeuncing depth for each sample:
+SRAreads <- read.csv(paste(mpath, "sequencing_depth.txt", sep = ""),
+                     sep = "\t")
+PRJNA400072 %>%
+  select(Run, Sample.Name, Diagnosis) %>%
+  rename(SampleName=Sample.Name) %>%
+  mutate(Dataset= paste("PRJNA400072")) %>%
+  mutate(sample.id=Run) %>%
+  left_join(SRAreads)-> SRAmapfile
+
+table(SRAmapfile$Diagnosis)
+
+```
+
+```{r}
+cols <- c("sample.id", "rname", "startpos", "endpos", 
+          "numreads","covbases",
+          "coverage", "meandepth", "meanbaseq", "meanmapq")
+
+path=paste(mpath, "PRJNA400072", sep = "")
+patt=".cover"
+data.frame(sample.id = paste(dir(path, 
+                                 pattern = patt))) %>%
+# read each file from the directory (current path) and then unnest
+mutate(file_contents = map(sample.id, ~ read_tsv(
+  file.path(path, .), 
+            col_names = F))) %>%
+         unnest() %>%
+  mutate(sample.id = gsub(patt, "", sample.id)) %>%
+  filter(X2 != "startpos") -> SRAcoverage
+colnames(SRAcoverage) <- cols
+
+
+SRAcoverage %>%
+  mutate(cover_type= case_when(as.numeric(coverage) >= 100 ~ paste("Pos"),
+                               TRUE ~ paste("Neg"))) %>%
+  group_by(sample.id, cover_type) %>% tally() -> SRA_cegs_counts
+
+
+
+SRAcoverage %>%
+  mutate(cover_type= case_when(as.numeric(coverage) >= 100 ~ paste("Pos"),
+                               TRUE ~ paste("Neg"))) %>%
+  group_by(sample.id, cover_type) %>%
+  summarise(reads= sum(as.numeric(numreads))) %>%
+  left_join(SRAreads) %>%
+  mutate(relativeAbund= 
+           as.numeric(reads) / as.numeric(Total_reads) * 100)-> SRA_cegs_abund
+
+```
+
+
+```{r}
+
+SRAmapfile %>%
+  left_join(SRA_cegs_counts) %>%
+  filter(cover_type== "Pos") %>%
+  mutate(Diagnosis= factor(Diagnosis, 
+                           levels = c("Control", "UC", "CD"))) -> tbl1
+
+model=lm( tbl1$n ~ tbl1$Diagnosis )
+ANOVA=aov(model)
+TUKEY <- TukeyHSD(x=ANOVA, 'tbl1$Diagnosis', conf.level=0.95)
+TUKEY
+plot(TUKEY , las=1 , col="brown")
+
+ggplot(tbl1, aes(Diagnosis, n)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_point(aes(fill=Diagnosis),size=2,shape=21, 
+             position = position_dodge(0.2)) + 
+  scale_fill_manual(values = c("Control" = "#1a9641",
+                                "UC" = "#d7191c",
+                                "CD" = "#d7191c")) +
+  theme_classic() +
+  theme(axis.title.x = element_blank(), text = element_text(size = 10),
+        legend.position = "none") +
+  ylab("# of unique CEGs / sample")
+ggsave("../figs/CEGs_inPublicMeta_unique.png",
+       width = 6, height = 6, units = "cm")
+
+############################################################################
+
+SRAmapfile %>%
+  left_join(SRA_cegs_abund) %>%
+  filter(cover_type== "Pos") %>%
+  mutate(Diagnosis= factor(Diagnosis, 
+                           levels = c("Control", "UC", "CD"))) -> tbl2
+
+model=lm( tbl2$relativeAbund ~ tbl2$Diagnosis )
+ANOVA=aov(model)
+TUKEY <- TukeyHSD(x=ANOVA, 'tbl2$Diagnosis', conf.level=0.95)
+TUKEY
+plot(TUKEY , las=1 , col="brown")
+
+ggplot(tbl2, aes(Diagnosis, relativeAbund)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_point(aes(fill=Diagnosis),size=2,shape=21, 
+             position = position_dodge(0.2)) + 
+  scale_fill_manual(values = c("Control" = "#1a9641",
+                                "UC" = "#d7191c",
+                                "CD" = "#d7191c")) +
+  theme_classic() +
+  theme(axis.title.x = element_blank(), text = element_text(size = 10),
+        legend.position = "none") +
+  ylab("% of CEGs reads / sample")
+ggsave("../figs/CEGs_inPublicMeta_abundance.png",
+       width = 6, height = 6, units = "cm")
+
 
 ```
 

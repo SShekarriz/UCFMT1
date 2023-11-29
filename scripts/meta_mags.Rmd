@@ -1,0 +1,635 @@
+---
+title: "metagenomics_mags"
+author: "Sharok"
+date: "2023-09-15"
+output: html_document
+---
+
+
+```{r}
+
+library(tidyverse)
+library(tidytext)
+
+```
+
+
+```{r}
+
+mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
+# map information for contigs and bins
+c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", header = F)
+c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", header = F)
+colnames(c_inBin) <- c("contig", "bin_id")
+colnames(c_inMAG) <- c("contig", "bin_id")
+
+c_inMAG %>% select(bin_id) %>% distinct() %>% pull() -> MAGs
+
+```
+
+## bins taxonomy
+```{r}
+
+# gtdb taxonomy output for all the bins
+gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
+gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
+
+gtdb.bac %>% mutate(bin_id=user_genome) %>%
+  select(bin_id, classification) %>%
+  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
+              select(bin_id, classification)) %>%
+  mutate(Marker=gsub("bin.", "bin_", bin_id)) -> gtdb
+
+  
+```
+
+## reading MAG coverage
+
+```{r}
+
+heads_cover <- c("sample.id",
+                 "contig", "startpos", "endpos", 
+                 "numreads", "covbases", "coverage", "meandepth",
+                 "meanbaseq", "meanmapq",
+                 "ReadSampling", "Quality")
+
+path="../data/perfect_mapping/DBD"
+patt="_perfect_.*.cover"
+data.frame(sample.id = paste(dir(path,
+                                 pattern = patt))) %>%
+# read each file from the directory (current path) and then unnest
+mutate(file_contents = map(sample.id, ~ read.csv(file.path(path, .),
+                                                 sep = "\t", header = F,
+                                                 comment.char = "#"))) %>%
+unnest() %>% 
+mutate(sample.id = gsub("_perfect_BDB.cover", "", sample.id)) -> marker_lvl_RA
+colnames(marker_lvl_RA) <- heads_cover
+
+marker_lvl_RA %>%
+  left_join(c_inBin) %>%
+  mutate(bin_q= case_when(bin_id %in% MAGs ~ paste("MAG"),
+                          TRUE ~ paste("Bin"))) %>%
+  filter(bin_q == "MAG")  %>% select(-bin_q) %>%
+  dplyr::rename(sample=sample.id) %>%
+  group_by(sample, bin_id) %>%
+  summarise(bin_len= sum(endpos),
+            bin_covbases=sum(covbases),
+            bin_numreads=sum(numreads),
+            bin_coverage=bin_covbases/bin_len*100) -> marker_lvl_RA
+
+marker_lvl_RA %>%
+  filter(str_detect(sample, "PMCL")) %>%
+  select(sample, bin_id, bin_coverage) %>%
+  spread(sample, bin_coverage) %>%
+  rename(Marker= bin_id)-> marker_lvl_RA
+
+cutoff = 90
+
+```
+
+## Functions
+
+```{r}
+# Make the marker data frame long
+mark_to_long = function(marker_lvl) {
+  # This can be done once. It doesn't need to be repeated each time
+  # convert marker-lvl to long format and make StudyID variable to match mapfile
+  # and select only donor's strains
+  marker_lvl %>%
+    gather(sample, abundance, -Marker) %>%
+    mutate(Study_ID = case_when(
+      str_detect(sample,"PMCL") ~ paste(gsub("_.*", "",sample)),
+      TRUE ~ paste(sample))) -> long_markerlvl
+  return(long_markerlvl)
+}
+
+################################################################################
+# a function to detect common engraftment based on strains (metaphlan markers)
+################################################################################
+get_engraft <- function(long_markerlvl, mapfile, cutoff=cutoff, ...){
+  # complete list of engrafted
+  engraft <- (long_markerlvl 
+              %>% left_join(mapfile) 
+              %>% filter(...)
+              %>% spread(Timepoint, abundance, fill = 0) 
+              %>% filter(WK0 < 25 & WK6 >= cutoff) 
+              %>% select(Marker, Study_ID, WK6) 
+              %>% spread(Study_ID, WK6, fill = 0) 
+              %>% gather(Study_ID, WK6, -Marker)
+              %>% left_join(mapfile))
+  return(engraft)
+}
+
+count_engraft <- function(engraft, group_cols){
+  # Count how many markers engrafted in how many patients
+  g1 = group_cols
+  g2 = c('Marker', group_cols)
+  ct_df = (engraft
+           %>% group_by(.[,g2])
+           %>% summarize(n = sum(WK6 > 0))
+           %>% pivot_wider(names_from = {{ g1 }},
+                           values_from = n)
+           %>% ungroup()
+           %>% mutate(Total = rowSums(across(2:ncol(.)))))
+  # Uncomment the next bit if you want the cumulative sums, but it adds 0.8s
+  # to the run time!
+  # ct_df = (ct_df
+  #          %>% mutate(n = rev(cumsum(rev(n))))) 
+  return(ct_df)
+  
+}
+
+################################################################################
+
+
+```
+
+### Observed AUC: FMT vs Placebo
+
+```{r}
+
+# Remove unnecessary columns from the mapfile to speed up the loop (saves 10s per 
+# loop)
+map_mod = (mapfile
+           %>% select(Study_ID, Timepoint, Treatment, Fig_lab))
+
+# Converting the markers to long format only needs to be done once, saves 5s per
+# loop
+markers_long = mark_to_long(marker_lvl_RA)
+
+cts = (markers_long
+       %>% get_engraft(map_mod, cutoff, 
+                       Treatment %in% c('FMT', 'Placebo'))
+       %>% count_engraft(group_cols = 'Treatment')
+       %>% mutate(Uniqueness = 
+                    case_when(FMT == 0 & Placebo == 0 ~ 'zero',
+                              FMT == 0 ~ 'Placebo',
+                              Placebo == 0 ~ 'FMT',
+                              TRUE ~ 'Both'),
+                  it = 'observed'))
+npts_tx = rbind(
+  (cts
+   %>% count(FMT)
+   %>% rename(Npts = FMT)
+   %>% mutate(Treatment = 'FMT')),
+  (cts
+   %>% count(Placebo)
+   %>% rename(Npts = Placebo)
+   %>% mutate(Treatment = 'Placebo')))
+
+fmt_fn = with(filter(npts_tx, Treatment == 'FMT'),
+              approxfun(Npts, n))
+plc_fn = with(filter(npts_tx, Treatment == 'Placebo'),
+               approxfun(Npts, n))
+fmt_auc = with(filter(npts_tx, Treatment == 'FMT'),
+                   integrate(fmt_fn, 1, max(Npts))$value)
+plc_auc = with(filter(npts_tx, Treatment == 'Placebo'),
+                   integrate(plc_fn, 1, max(Npts))$value)
+obs_d_auc = fmt_auc - plc_auc
+
+obs_d_auc
+
+```
+
+### Get observed AUC p-value: FMT vs Placebo
+loading permuated data "auc_null"
+
+
+```{r}
+
+# load data:
+auc_null<- read.csv("../permut_data/mags_auc_null.txt",
+                    sep = "\t")
+
+# Get the observed FMT values
+ggplot(data.frame(auc_null), aes(x = deltaAUC)) +
+    geom_density() +
+    geom_vline(xintercept = obs_d_auc) +
+  theme_classic()
+
+# Place that difference on the null distribution of differences and get its p-value
+quant_fun = ecdf(auc_null[,1])
+auc_pval = 1 - quant_fun(obs_d_auc)
+auc_pval
+round(auc_pval, 3)
+
+# merging the results together:
+plt_df = filter(npts_tx, Npts > 0)
+ribdat = plt_df %>% spread(Treatment, n, fill = 0)
+  
+cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999")
+
+f1 <- ggplot(plt_df, aes(Npts, n, color=Treatment)) +
+  geom_point() + geom_line() +
+  geom_ribbon(data = ribdat, aes(ymin=Placebo,ymax=FMT, x = Npts),
+              linetype=2, alpha=0.1, inherit.aes = FALSE)+
+  annotate("text", x=6, y=20, size=2,
+          label= paste("Permutation test,\n p=", round(auc_pval, 3), sep = " ")) +
+  scale_x_continuous(breaks = seq(0, max(plt_df$Npts), 1)) +
+  scale_color_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        legend.title = element_blank(),
+        axis.title = element_blank())
+```
+
+## Uniqueness
+test whether the engrafted markers within FMT and Placebo are shared between
+these groups or unique to each treatment
+
+```{r}
+
+plt2_df = (cts
+           %>% count(Total, Uniqueness)
+           %>% group_by(Total))
+
+
+cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999",
+          "Both" = "#fc8d59")
+
+f2 <- ggplot(plt2_df, aes(x = Total, y = n, fill = Uniqueness)) +
+  geom_bar(stat = 'identity') +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) 
+
+```
+
+### Observed AUC: Res vs No-Res
+
+```{r}
+
+# Remove unnecessary columns from the mapfile to speed up the loop (saves 10s per 
+# loop)
+map_mod = (mapfile
+           %>% filter(Treatment == 'FMT')
+           %>% select(Study_ID, Timepoint, Remission, Fig_lab))
+
+fmt_cts = (markers_long
+       %>% get_engraft(map_mod, cutoff, 
+                       Remission %in% c('Res', 'NoRes'))
+       %>% count_engraft(group_cols = 'Remission')
+       %>% mutate(Uniqueness = 
+                    case_when(Res == 0 & NoRes == 0 ~ 'zero',
+                              Res == 0 ~ 'NoRes',
+                              NoRes == 0 ~ 'Res',
+                              TRUE ~ 'Both'),
+                  it = 'observed'))
+npts_fmt = rbind(
+  (fmt_cts
+   %>% count(Res)
+   %>% rename(Npts = Res)
+   %>% mutate(Remission = 'Res')),
+  (fmt_cts
+   %>% count(NoRes)
+   %>% rename(Npts = NoRes)
+   %>% mutate(Remission = 'NoRes')))
+
+res_fn = with(filter(npts_fmt, Remission == 'Res'),
+              approxfun(Npts, n))
+nrs_fn = with(filter(npts_fmt, Remission == 'NoRes'),
+               approxfun(Npts, n))
+res_auc = with(filter(npts_fmt, Remission == 'Res'),
+               sum(integrate(res_fn, 0, 1)$value,
+                   integrate(res_fn, 1, max(Npts))$value))
+nrs_auc = with(filter(npts_fmt, Remission == 'NoRes'),
+               sum(integrate(nrs_fn, 0, 1)$value,
+                   integrate(nrs_fn, 1, max(Npts))$value))
+rm_d_auc = res_auc - nrs_auc
+
+```
+
+### Get observed AUC p-value: Res vs No-Res
+loading permutated data "rm_auc_null"
+
+```{r}
+
+# load data:
+rm_auc_null <- read.csv("../permut_data/mags_remission_auc_null.txt",
+                    sep = "\t")
+
+# Get the observed FMT values
+ggplot(data.frame(rm_auc_null), aes(x = deltaAUC)) +
+    geom_density() +
+    geom_vline(xintercept = rm_d_auc) +
+  theme_classic()
+
+# Place that difference on the null distribution of differences and get its p-value
+quant_fun = ecdf(rm_auc_null[,1])
+auc_pval = 1 - quant_fun(rm_d_auc)
+auc_pval
+
+# merging the results together:
+plt_df = filter(npts_fmt, Npts > 0)
+ribdat = plt_df %>% spread(Remission, n, fill = 0)
+
+
+cols <- c("Res" = "#2166ac",
+          "NoRes" = "#b2182b")
+  
+f3 <- ggplot(plt_df, aes(Npts, n, color=Remission)) +
+  geom_point() + geom_line() +
+  geom_ribbon(data = ribdat, aes(ymin=NoRes,ymax=Res, x = Npts),
+              linetype=2, alpha=0.1, inherit.aes = FALSE)+
+  scale_x_continuous(breaks = seq(0, max(plt_df$Npts), 1)) +
+  annotate("text", x=5, y=20, size=2,
+           label= paste("Permutation test,\n p=", auc_pval, sep = " ")) +
+  scale_color_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank())
+
+```
+
+### saving figure
+```{r}
+
+cowplot::plot_grid(f1, f2, f3, ncol = 1, hjust = T, vjust = T)
+ggsave("../figs/mags_CEm.png",
+       width = 6, height = 12, units = "cm")
+
+```
+
+
+## common engraftment for >=3 pts
+
+```{r}
+
+
+cts %>%
+  filter(Total >= 3) %>%
+  select(Marker, Total, Uniqueness)-> of_int
+
+of_int %>%
+  pull(Marker) -> of_int_mark
+
+map_mod = (mapfile
+           %>% select(Study_ID, Timepoint, Treatment, Fig_lab))
+
+get_engraft(markers_long, map_mod, cutoff, 
+            Treatment %in% c('FMT', 'Placebo')) %>%
+  group_by(Marker, Fig_lab, Treatment) %>%
+  summarize(n= sum(WK6 > 0)) %>%
+  filter(Marker %in% of_int_mark) %>%
+  left_join(of_int) %>%
+  mutate(color= case_when(n > 0 & Uniqueness == "Both" ~ paste("Both"),
+                          n > 0 & Uniqueness == "FMT" ~ paste("FMT"),
+                          n > 0 & Uniqueness == "Placebo" ~ paste("Placebo"),
+                          TRUE ~ paste("none")))-> plt_df
+
+cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999",
+          "Both" = "#fc8d59")
+
+ggplot(plt_df, aes(reorder_within(Marker, -Total, 1, ), Fig_lab, fill=color)) +
+  geom_tile() +
+  facet_grid(Treatment~., space = "free", scales = "free") +
+  scale_fill_manual(values = cols, na.value = NA) +
+  scale_x_reordered() +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title = element_blank(),
+        legend.position = "none")
+ggsave("../figs/mags_CEm_3pts.png",
+       width = 12, height = 8, units = "cm")
+
+
+plt_df %>%
+  filter(color %in% c("FMT", "Placebo")) %>%
+  left_join(gtdb)
+
+```
+
+
+
+## genomic events
+```{r}
+
+get_events <- function(long_markerlvl, mapfile, cutoff=cutoff, ...){
+  # complete list of engrafted
+  engraft <- (long_markerlvl 
+              %>% left_join(mapfile) 
+              %>% filter(...)
+              %>% spread(Timepoint, abundance, fill = 0)
+              %>% mutate(Event= case_when(WK0 < 25 & WK6 >= cutoff ~ paste("Engraft"),
+                                          WK0 < 25 & WK6 < 25 ~ paste("UniqueToDonor"),
+                                          WK0 >= 25 & WK6 >= 25 ~ paste("Shared"),
+                                          #WK0 >= cutoff & WK6 < 25 ~ paste("Lost"),
+                                          TRUE ~ paste("Other"))))
+  return(engraft)
+}
+
+get_events(markers_long, map_mod, cutoff = cutoff,
+           Treatment %in% c("FMT", "Placebo")) %>%
+  group_by(Treatment) %>%
+  summarize(total_events=n()) -> events
+
+get_events(markers_long, map_mod, cutoff = cutoff,
+           Treatment %in% c("FMT", "Placebo")) %>%
+  group_by(Treatment, Event) %>%
+  summarize(n=n()) %>%
+  left_join(events) %>%
+  mutate(percent= n/total_events*100)-> plt_df
+
+cols <- c("Engraft" = "#008837",
+          "Other" = "#a6dba0",
+          "UniqueToDonor" = "#bababa")
+
+ggplot(plt_df, aes(Treatment, percent, fill=Event)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(axis.title = element_blank(),
+        legend.position = "none")
+ggsave("../figs/mags_events.png",
+       width = 4, height = 8, units = "cm")
+
+
+```
+
+
+```{r}
+library(ggpubr)
+library(rstatix)
+
+map_mod = (mapfile
+           %>% select(Study_ID, Timepoint, Treatment, Fig_lab))
+
+get_engraft(markers_long, map_mod, cutoff, 
+            Treatment %in% c('FMT', 'Placebo')) %>%
+  group_by(Fig_lab, Treatment) %>%
+  summarize(n= sum(WK6 > 0)) %>%
+  left_join(mapfile %>% select(Fig_lab, Remission)) %>%
+  ungroup() %>%
+  # adding samples with no engraftment:
+  full_join(mapfile %>% select(Fig_lab, Treatment, Remission)) %>%
+  distinct() %>%
+  filter(!is.na(Treatment)) %>%
+  mutate(n= replace_na(n, 0)) -> plt_df
+
+stat.test <- plt_df %>%
+  group_by(Treatment) %>%
+  t_test(n ~ Remission) %>%
+  adjust_pvalue() %>%
+  add_significance()
+stat.test
+
+stat.test <- stat.test %>% add_xy_position(x = "Remission")
+
+ggplot(plt_df, aes(Remission,n, color = "engraft")) +
+  geom_boxplot() + geom_point() +
+  facet_grid(~Treatment, scales = "free") +
+  scale_color_manual(values = c("engraft" = "#008837")) +
+  stat_pvalue_manual(stat.test, label = "T-test, p = {p}", size = 3) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) 
+ggsave("../figs/mags_engraft_stats.png",
+       width = 6, height = 8, units = "cm")
+
+```
+
+
+```{r}
+
+map_mod = (mapfile
+           %>% select(Study_ID, Timepoint, Treatment, Fig_lab))
+
+get_engraft(markers_long, map_mod, cutoff, 
+            Treatment %in% c('FMT', 'Placebo')) %>%
+  group_by(Fig_lab, Treatment) %>%
+  summarize(n= sum(WK6 > 0)) %>%
+  ungroup() %>%
+  # adding samples with no engraftment:
+  full_join(mapfile %>% select(Fig_lab, Treatment, Remission)) %>%
+  distinct() %>%
+  filter(!is.na(Treatment)) %>%
+  mutate(n= replace_na(n, 0)) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab)))-> plt_df
+
+pt_order <- plt_df %>%
+            select(Fig_lab, n) %>% rename(order = n)
+
+ggplot(plt_df, aes(n, reorder_within(Fig_lab, -n, Treatment), fill="engraft")) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment~., space = "free", scales = "free") +
+  scale_fill_manual(values = c("engraft" = "#008837")) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(legend.position = "none", 
+        axis.title = element_blank(),
+        strip.text = element_blank())
+ggsave("../figs/mags_engraft_pt1.png",
+     width = 4, height = 8, units = "cm")
+
+```
+
+
+```{r}
+
+gtdb %>%
+  separate(classification, c("Kingdom", "Phylum", "Class",
+                                   "Order", "Family", "Genus",
+                                   "Species"), ";.__") -> gtdb_viz
+#select top 10 families
+gtdb_viz %>%
+  filter(Marker %in% MAGs) %>%
+  select(Marker, Family) %>%
+  group_by(Family) %>%
+  summarise(n= n()) %>%
+  arrange(-n) %>% pull(Family) -> tfam
+tfam10 <- tfam[1:10]
+
+##############################################################################
+## 1. summary of taxonomy of donor B MAGs
+##############################################################################
+family_col= c(
+"Lachnospiraceae" = "#6a3d9a",
+"Ruminococcaceae" = "#33a02c",
+"Bacteroidaceae" = "#1f78b4",
+"Oscillospiraceae" = "#ff7f00",
+"CAG-508" = "#b2df8a",
+"Acutalibacteraceae" = "#fdbf6f",
+"Streptococcaceae" = "#ffff99",
+"CAG-822" =  "#a6cee3",
+"Lactobacillaceae" = "#fb9a99",
+"Butyricicoccaceae" = "#f781bf",
+"Other" = "#808080"
+)
+
+family_order <- c("Lachnospiraceae", "Oscillospiraceae",
+                  "Ruminococcaceae", "CAG-508", "Bacteroidaceae", 
+                  "Acutalibacteraceae", "Lactobacillaceae",
+                  "Streptococcaceae", "Butyricicoccaceae",
+                  "CAG-822", "Other")
+
+gtdb_viz %>%
+  filter(Marker %in% MAGs) %>%
+  select(Marker, Family) %>%
+  mutate(Family_lab= case_when(Family %in% tfam10 ~ paste(Family),
+                               TRUE ~ paste("Other"))) -> gtdb.mag.fam
+gtdb.mag.fam %>%
+  group_by(Family_lab) %>%
+  summarise(abundance= n()) %>%
+  mutate(database=paste("DonorB")) %>%
+  mutate(Family_lab= factor(Family_lab, family_order)) -> plt_df
+
+ggplot(plt_df, aes(database, abundance, fill=Family_lab)) +
+  geom_bar(stat="identity") +
+  scale_fill_manual(values = family_col) +
+  theme_classic() +
+  theme(legend.position = "right",
+        axis.title = element_blank())
+ggsave("../figs/mags_donorB.png",
+       width = 10, height = 8, units = "cm")
+
+
+
+```
+
+
+```{r}
+
+
+map_mod = (mapfile
+           %>% select(Study_ID, Timepoint, Treatment, Fig_lab))
+
+get_engraft(markers_long, map_mod, cutoff, 
+            Treatment %in% c('FMT', 'Placebo')) %>%
+  group_by(Marker, Fig_lab, Treatment) %>%
+  summarize(n= sum(WK6 > 0)) %>%
+  ungroup() %>%
+  # adding samples with no engraftment:
+  full_join(mapfile %>% select(Fig_lab, Treatment, Remission)) %>%
+  distinct() %>%
+  filter(!is.na(Treatment)) %>%
+  mutate(n= replace_na(n, 0)) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) %>%
+  mutate(color= case_when(n == 1 ~ paste("engraft"),
+                          TRUE ~ paste("none"))) %>%
+  left_join(pt_order) %>%
+  left_join(gtdb.mag.fam)-> plt_df
+
+plt_df$Family_lab <- factor(plt_df$Family_lab,
+                            levels = family_order)
+
+ggplot(plt_df, aes(Marker, reorder_within(Fig_lab, -order, Treatment), fill=color)) +
+  geom_tile() +
+  facet_grid(Treatment~Family_lab, space = "free", scales = "free") +
+  scale_fill_manual(values = c("engraft" = "#008837"), na.value = NA) +
+  scale_y_reordered() +
+  theme_classic() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none",
+        strip.text.x = element_blank)
+ggsave("../figs/mags_engraft_pt2.png",
+     width = 12, height = 8, units = "cm")
+
+```
+

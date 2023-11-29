@@ -21,6 +21,7 @@ mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
 ## Marker-level analysis
 Reading marker abundance files, parse them into one
 ```{r}
+
 path="../data/Metaphlan4/marker_abund"
 #outpath="metaphlan4"
 data.frame(sample.id = paste(dir(path,
@@ -39,6 +40,28 @@ mutate(sample.id= gsub(".marker_abund_norm.txt", "", sample.id)) %>%
                               TRUE ~ paste(temp1))) %>%
   select(sp_marker, st_marker, Marker, DonorB_D_2013:PMCL883) -> marker_lvl
 
+# sum of abundance based on normalized data (will be used for relative abund)
+marker_lvl %>%
+  select( -sp_marker, -st_marker) %>%
+  gather(sample, abundance, -Marker, na.rm = TRUE) %>%
+  ungroup() %>%
+  group_by(sample) %>%
+  summarise(total_abund=sum(abundance)) -> total.abund
+
+# convert the marker-level data to relative abundance
+# this is just to use a standard cut-off
+marker_lvl %>%
+  select( -sp_marker, -st_marker) %>%
+  gather(sample, abundance, -Marker, na.rm = TRUE) %>%
+  left_join(total.abund) %>%
+  mutate(relative_abund= abundance/total_abund * 100) %>%
+  select(Marker, sample, relative_abund) %>%
+  spread(sample, relative_abund) %>%
+  mutate(temp=Marker) %>%
+  separate(temp, c("sp_marker", "temp1", "temp2"), sep = "__") %>%
+  mutate(st_marker= case_when(!is.na(temp2) ~ paste(temp1, temp2, sep = "__"),
+                              TRUE ~ paste(temp1))) %>%
+  select(-temp1, -temp2) -> marker_lvl_RA
 
 ```
 
@@ -78,102 +101,594 @@ stCE <- function(marker_lvl, mapfile, strains, cutoff=cutoff, ...){
   for (i in 1:number_of_samples) {
   Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
   Emark.2[[i]] <- data_frame(Npts = paste(i),
-                             E.strains = length(Emark.1[[i]]$Marker))
+                             n = length(Emark.1[[i]]$Marker))
   }
   do.call(rbind.data.frame, Emark.2)
 }
 
 ################################################################################
+
+stCE_2 <- function(marker_lvl, mapfile, strains, cutoff=cutoff, ...){
+  # convert marker-lvl to long format, make Study_ID variable (in mapfile),
+  # and select only donor's strains
+  marker_lvl %>%
+  filter(Marker %in% strains) %>%
+  select( -sp_marker, -st_marker) %>%
+  gather(sample, abundance, -Marker) %>%
+  mutate(Study_ID = case_when(
+    str_detect(sample,"PMCL") ~ paste(gsub("_.*", "",sample)),
+    TRUE ~ paste(sample))) -> long_markerlvl
+  # complete list of engrafted
+  long_markerlvl %>%
+    left_join(mapfile) %>%
+    filter(...) %>%
+    spread(Timepoint, abundance, fill = 0) %>%
+    mutate(model= case_when(WK0 <= 0 & WK6 > cutoff ~ paste("Engraft"),
+                          TRUE ~ paste("other"))) %>%
+    filter(model == "Engraft") %>%
+    select(Marker, Study_ID, WK6) %>%
+    spread(Study_ID, WK6, fill = 0) -> engraft
+  # number of samples in input table
+  engraft %>%
+    gather(sample, abund, -Marker) %>% 
+    pull(sample) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i), Emark.1[[i]])
+  }
+  common_engraft <- do.call(rbind.data.frame, Emark.2)
+  common_engraft %>%
+    gather(Study_ID, abundance, -Marker, -Npts) %>%
+    filter(abundance >= cutoff) %>%
+    left_join(mapfile %>% select(Study_ID, Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+    group_by(Npts, Marker, Treatment, Remission) %>%
+    tally() %>%
+    mutate(cat= paste(Treatment, Remission, sep = "")) %>%
+    ungroup() %>%
+    select(Npts, Marker, n, cat) %>%
+    spread(cat, n) %>%
+    mutate(M_cat= case_when(is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTNoRes) &
+                               FMTRes > 0 ~ paste("FMT-Res"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTRes) &
+                               FMTNoRes > 0 ~ paste("FMT-NoRes"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) ~ paste("FMT"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboRes) &
+                               PlaceboNoRes > 0 ~ paste("Placebo-NoRes"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboNoRes) &
+                               PlaceboRes > 0 ~ paste("Placebo-Res"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) ~ paste("Placebo"),
+                             TRUE ~ paste("Both"))) %>%
+  mutate(across(everything(), ~replace_na(., 0)))
+}
+
 ################################################################################
 
 ```
 
 
-commonly engraftment of markers:
+
+## engraftment cut-off for strains
+
 ```{r}
 
-marker_lvl %>%
+marker_lvl_RA %>%
   gather(sample, abundance, -sp_marker, -st_marker, -Marker) %>%
   #filtering donor B markers
   filter(str_detect(sample, "DonorB_D_")) %>%
   #any marker with abundance > 0
   #markers that were present in at least one donor B sample
   filter(!is.na(abundance)) %>%
-  filter(as.numeric(abundance) > 0) -> donorB_markers
+  filter(as.numeric(abundance) > 0) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample)) -> donorB_markers
+
+
+# a function to filter marker above cutoff:
+Fpos_finder <- function(table, cutoff){
+  #table %>%
+  #  ungroup() %>%
+  #  group_by(sample) %>%
+  #  summarise(total_abund=sum(abundance))-> total.abund
+  
+  # total number of unqiue marker in each sample
+  table %>%
+    group_by(sample) %>%
+    summarise(total=n()) -> total.marker
+  
+  # total number of unique marker above cutoff
+  table %>%
+    #left_join(total.abund) %>%
+    #mutate(relative_abund= abundance/total_abund * 100) %>%
+    mutate(relative_abund= abundance) %>%
+    filter(relative_abund >= cutoff) %>%
+    group_by(sample) %>%
+    summarise(pos_n=n()) %>%
+    left_join(total.marker) %>%
+    mutate(pos_p=pos_n/total * 100) %>%
+    mutate(cutoff=paste(cutoff))
+}
+
+cols <- c("2013" = "#bae4b3",
+          "2016" = "#74c476", 
+          "May17" = "#31a354",
+          "Oct17" = "#006d2c")
+
+# comparison of detection cut-offs
+Fpos_visualizer <- function(table) {
+  
+  vector <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1)
+  vector <- as.character(vector)  # Convert vector to character for proper factor levels
+  
+  res <- list()
+  for (i in vector) {
+    res[[i]] <- Fpos_finder(table, as.numeric(i))
+  }
+  
+  tbl <- do.call(rbind.data.frame, res)
+  tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+  
+  ggplot(tbl, aes(cutoff, pos_p, color = sample, fill=sample)) +
+    geom_line(aes(group = sample)) +
+    scale_color_manual(values = cols) +
+    scale_fill_manual(values = cols) +
+    theme_bw() +
+    theme(legend.position = c(0.8,0.7),
+          legend.title = element_blank()) +
+    xlab("Relative abundance (%)") +
+    ylab("% of unique strain marker")
+}
+
+p1 <- Fpos_visualizer(donorB_markers)
+
+p2 <- donorB_markers %>%
+  ungroup() %>%
+  group_by(sample) %>%
+  summarise(percent=abundance/sum(abundance) * 100) %>%
+ggplot(aes(x=percent, fill=sample, color=sample)) +
+    geom_histogram(position="identity", colour="grey40", alpha=0.7, bins = 10) +
+    scale_x_log10() +
+    facet_grid(. ~ sample) +
+    geom_vline(xintercept = 0.0001, color = "red") +
+    scale_fill_manual(values = cols) +
+    theme_classic() +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 90)) +
+  xlab("Relative abundance (%)") +
+  ylab("# of strain markers")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+ggsave("../figs/reads_strain_cutoff.png",
+       width = 14, height = 14, units = "cm")
+
+```
+
+## donorB markers and set engraftment cutoff
+
+```{r}
+
+marker_lvl_RA %>%
+  gather(sample, abundance, -sp_marker, -st_marker, -Marker) %>%
+  #filtering donor B markers
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  #any marker with abundance > 0
+  #markers that were present in at least one donor B sample
+  filter(!is.na(abundance)) %>%
+  filter(as.numeric(abundance) > 0) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample)) -> donorB_markers
 
 ##### seting engraftment cut-off
-donorB_markers %>%
-  group_by(sample) %>%
-  # minimum detection in each donor B sample
-  slice(which.min(abundance)) -> min_B_markers
-  # average of minimum detections-> test
-cutoff= mean(min_B_markers$abundance)
+# based on donor B benchmarking data: 0.0001 (as shown above)
+cutoff=0.0001
 ####################################################################
 
-# selecting only those donor B markers that meet below cutoff:
+# selecting only those donor B markers that meet cutoff:
 # > average of minimum detections
 donorB_markers %>%
   filter(as.numeric(abundance) > cutoff) -> donorB_markers
+
+#####################################################################
+# selecting only donor B markers that present across all donor B samples:
+#donorB_markers %>%
+#  spread(sample, abundance, fill = 0) %>%
+#  select("Marker", "2013":Oct17) -> B_wide
+#B_wide <- B_wide[rowSums(B_wide[,2:ncol(B_wide)] > cutoff) >= 2, ]
+#B_wide %>%
+#  gather(sample, abundance, -Marker) -> donorB_markers
+  
+#####################################################################
 
 donorB_markers %>%
   select(Marker) %>% distinct() %>%
   pull() -> B_markers
 
+```
 
 
-######### common engraftment for FMT ###############################
-stCE(marker_lvl, mapfile, strains = B_markers, cutoff = cutoff,
-     Treatment == "FMT") -> commonE_FMT
-######### common engraftment for Placebo ############################
-stCE(marker_lvl, mapfile, strains = B_markers, cutoff = cutoff,
-     Treatment == "Placebo") -> commonE_Placebo
-######### common engraftment for Responder #########################
-stCE(marker_lvl, mapfile, strains = B_markers, cutoff = cutoff,
-     Treatment == "FMT" & Remission == "Res") -> commonE_FMTRes
-######### common engraftment for Non-responder #####################
-stCE(marker_lvl, mapfile, strains = B_markers, cutoff = cutoff,
-     Treatment == "FMT" & Remission == "NoRes") -> commonE_FMTNoRes
+## Permutation on treatments for strins
+1k permutation with no replace was done on treatment data
+then the area under the curve were calculated for FMT and Placebo
+see ../script/permutation_strains.R for more details
 
-######################################################
-########### visualizing
-######################################################
+```{r}
 
-cols1 <- c("FMT" = "#008837",
-           "Placebo" = "#bdbdbd",
-           "Responder" = "#0571b0",
-           "Non-Responder" = "#ca0020")
+# load data:
 
-commonE_FMT %>% 
-  mutate(Type=paste("FMT"),
-          Samples= "All") %>%
-  bind_rows(commonE_Placebo %>% 
-             mutate(Type=paste("Placebo"),
-                    Samples="All")) %>%
-  bind_rows(commonE_FMTRes %>%
-              mutate(Type="Responder",
-                     Samples="onlyFMT")) %>%
-  bind_rows(commonE_FMTNoRes %>%
-              mutate(Type="Non-Responder",
-                     Samples="onlyFMT")) -> tbl
+auc_null<- read.csv("../permut_data/strains_auc_null.txt",
+                    sep = "\t")
+final_result<- read.csv("../permut_data/strains_permutated.txt",
+                    sep = "\t")
 
-tbl$Type <- factor(tbl$Type, levels = c("FMT", "Placebo", 
-                                        "Responder", "Non-Responder"))
-ggplot(tbl, aes(as.numeric(Npts), E.strains, color=Type)) +
-  geom_line(aes(group=Type))+
-  #facet_grid(~Samples, space = "free") +
-  scale_y_log10() +
-  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7,8,9,10,11,12)) +
-  scale_color_manual(values = cols1) +
-  theme_classic() +
-  theme(legend.title = element_blank(),
-        legend.position = c("0.8", "0.8")) +
-  xlab("Increasing # of patients") +
-  ylab("# of engrafted Strains")
-ggsave("../figs/CESt.png",
-       width = 10, height = 8, units = "cm")
 
 ```
 
+## merging permutation result with observed
+
+```{r}
+
+# Get the observed FMT values
+stCE(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment %in% c("FMT")) %>%
+  mutate(Treatment=paste("withinFMT(n=12)"))-> C2
+#3. WithinPlacebo
+stCE(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment %in% c("Placebo")) %>%
+  mutate(Treatment=paste("withinPlacebo(n=12)"))-> C3
+
+# Get the observed FMT and Placebo AUC values and find the difference
+fmt_auc = integrate(approxfun(C2$Npts, C2$n), 1, as.numeric(max(C2$Npts)))
+plc_auc = integrate(approxfun(C3$Npts, C3$n), 1, as.numeric(max(C3$Npts)))
+obsdeltaAuc = fmt_auc$value - plc_auc$value
+
+ggplot(data.frame(auc_null), aes(x = deltaAUC)) +
+    geom_density() +
+    geom_vline(xintercept = obsdeltaAuc)
+
+# Place that difference on the null distribution of differences and get its p-value
+quant_fun = ecdf(auc_null[,1])
+auc_pval = 1 - quant_fun(obsdeltaAuc)
+auc_pval
+
+# merging the results together:
+plt_df = rbind(C2, C3)
+ribdat = plt_df %>% spread(Treatment, n)
+
+cols <- c("withinFMT(n=12)" = "#1b7837",
+          "withinPlacebo(n=12)" = "#999999")
+
+f1 <- ggplot(plt_df, aes(as.numeric(Npts), n, color=Treatment)) +
+  geom_point() + geom_line() +
+  geom_ribbon(data = ribdat, aes(ymin=`withinPlacebo(n=12)`,
+                                 ymax=`withinFMT(n=12)`, 
+                                 x = as.numeric(Npts)),
+              linetype=2, alpha=0.1, inherit.aes = FALSE)+
+  annotate("text", x=9, y=12000, size=2,
+           label= paste("Permutation test,\n p=", auc_pval, sep = " ")) +
+  #scale_y_log10() +
+  scale_x_continuous(breaks = seq(0,max(as.numeric(plt_df$Npts)) + 1, 2)) +
+  scale_color_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        legend.title = element_blank(),
+        axis.title = element_blank())
+
+```
+
+
+## common engraftment - strains
+
+```{r}
+
+
+#1. total:
+stCE(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment %in% c("FMT", "Placebo")) %>%
+  mutate(Type=paste("Total(n=24)"))-> C1
+
+
+#1. Unique to FMT or Placebo and FMT responder vs non-
+stCE_2(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment %in% c("FMT", "Placebo")) -> U
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT") ~ paste("uniquetoFMT"),
+                           str_detect(M_cat, "Placebo") ~ paste("uniquetoPlacebo"),
+                           TRUE ~ paste("Overlap"))) %>%
+  ungroup() %>% group_by(Npts, Type) %>%
+  summarise(n=sum(n)) -> U1
+
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  filter(str_detect(M_cat, "FMT")) %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT-Res") ~ paste("uniquetoFMT-Res"),
+                           str_detect(M_cat, "FMT-NoRes") ~ paste("uniquetoFMT-NoRes"),
+                           TRUE ~ paste("uniquetoFMT-Overlap"))) %>%
+  select(Npts, Type, n)-> U2
+
+# merging the results together:
+rbind(C1, C2, C3) -> tbl1
+rbind(U1, U2) -> tbl2
+
+cols <- c("Total(n=24)" = "black",
+          "withinFMT(n=12)" = "#1b7837",
+          "withinPlacebo(n=12)" = "#999999",
+          "withinFMT-Res(n=6)" = "#2166ac",
+          "withinFMT-NoRes(n=6)" = "#b2182b",
+          "Overlap" = "#fc8d59",
+          "uniquetoFMT" = "#1b7837",
+          "uniquetoPlacebo" = "#999999",
+          "uniquetoFMT-Res" = "#2166ac",
+          "uniquetoFMT-NoRes" = "#b2182b",
+          "uniquetoFMT-Overlap" = "#6A3F6C")
+
+
+f2 <- ggplot(U1, aes(as.numeric(Npts), as.numeric(n), fill=Type)) +
+  #geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cols) +
+  #scale_y_log10() +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) 
+
+U2$Type <- factor(U2$Type, levels = c("uniquetoFMT-Overlap",
+                                      "uniquetoFMT-NoRes",
+                                      "uniquetoFMT-Res"))
+f3 <- ggplot(U2, aes(as.numeric(Npts), as.numeric(n), fill=Type)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+   #xlab("Increasting # of patients") + ylab("Engrafted strains")
+cowplot::plot_grid(f1, f2, f3, ncol = 1, hjust = T, vjust = T)
+ggsave("../figs/reads_CESt.png",
+       width = 6, height = 12, units = "cm")
+write.table(tbl1, "../figs/tbl1.txt", 
+            sep = "\t", row.names = F, quote = F)
+write.table(U1, "../figs/U1.txt", 
+            sep = "\t", row.names = F, quote = F)
+write.table(U2, "../figs/U2.txt",
+            sep = "\t", row.names = F, quote = F)
+```
+
+
+
+```{r}
+
+# Sample data frame
+data <- data.frame(
+  Fig_lab = c("pt1", "pt2", "pt3", "pt4", "pt5", "pt6"),
+  Treatment = c("FMT", "Placebo", "FMT", "Placebo", "FMT", "Placebo")
+)
+
+# Function that operates on a data frame
+custom_function <- function(df) {
+  df %>%
+    group_by(Treatment) %>%
+    tally()
+}
+
+# Number of permutations
+num_permutations <- 10
+
+# Create an empty list to store the results of each iteration
+iteration_results <- list()
+
+# Loop through permutations
+for (i in 1:num_permutations) {
+  # Permute the Treatment column
+  permuted_data <- data %>%
+    mutate(Treatment = sample(Treatment, replace = TRUE))
+  
+  # Store the result in the iteration_results list
+  iteration_results[[i]] <- custom_function(permuted_data)
+  iteration_results[[i]]$it <- paste("it", i, sep="_")
+}
+
+# Combine the iteration results into a single data frame
+final_result <- do.call(rbind, iteration_results)
+
+# Print the final result
+print(final_result)
+
+```
+
+
+
+
+## commonly engrafted strains for 6pts
+
+```{r}
+
+################################################################################
+# a function to detect common engraftment in 3pts 
+################################################################################
+stCE_3pts <- function(marker_lvl, mapfile, strains, cutoff=cutoff, ...){
+  # convert marker-lvl to long format, make Study_ID variable (in mapfile),
+  # and select only donor's strains
+  marker_lvl %>%
+  filter(Marker %in% strains) %>%
+  select( -sp_marker, -st_marker) %>%
+  gather(sample, abundance, -Marker) %>%
+  mutate(Study_ID = case_when(
+    str_detect(sample,"PMCL") ~ paste(gsub("_.*", "",sample)),
+    TRUE ~ paste(sample))) -> long_markerlvl
+  # complete list of engrafted
+  long_markerlvl %>%
+    left_join(mapfile) %>%
+    filter(...) %>%
+    spread(Timepoint, abundance, fill = 0) %>%
+    mutate(model= case_when(WK0 <= 0 & WK6 > cutoff ~ paste("Engraft"),
+                          TRUE ~ paste("other"))) %>%
+    filter(model == "Engraft") %>%
+    select(Marker, Study_ID, WK6) %>%
+    spread(Study_ID, WK6, fill = 0) -> engraft
+  # number of samples in input table
+  engraft %>%
+    gather(sample, abund, -Marker) %>% 
+    pull(sample) %>% n_distinct() -> number_of_samples
+  
+  engraft_3 <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= 6, ]
+  engraft_3 %>%
+    gather(Study_ID, abundance, -Marker) %>%
+    filter(abundance >= cutoff)
+  
+}
+
+################################################################################
+################################################################################
+
+##### seting engraftment cut-off
+# based on donor B benchmarking data: 0.0001 (as shown above)
+cutoff=0.0001
+
+######### common engraftment for 3 in FMT ###############################
+stCE_3pts(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment == "FMT") -> commonE_FMT_3
+######### common engraftment for 3 in Placebo ############################
+stCE_3pts(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment == "Placebo") -> commonE_Placebo_3
+
+stCE_3pts(marker_lvl_RA, mapfile, strains = B_markers, cutoff = cutoff,
+     Treatment %in% c("FMT", "Placebo")) -> tbl
+
+tbl %>%
+#commonE_FMT_3 %>%
+#  bind_rows(commonE_Placebo_3) %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) -> engraft_3pts
+
+engraft_3pts %>%
+  group_by(Marker, Treatment, Remission) %>%
+  tally() %>%
+  mutate(cat= paste(Treatment, Remission, sep = "")) %>%
+  ungroup() %>%
+  select(Marker, n, cat) %>%
+  spread(cat, n) %>%
+   mutate(M_cat= case_when(is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTNoRes) &
+                               FMTRes > 0 ~ paste("FR"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTRes) &
+                               FMTNoRes > 0 ~ paste("FN"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) ~ paste("F"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboRes) &
+                               PlaceboNoRes > 0 ~ paste("PN"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboNoRes) &
+                               PlaceboRes > 0 ~ paste("PR"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) ~ paste("P"),
+                             TRUE ~ paste("Other"))) %>%
+  mutate(across(everything(), ~replace_na(., 0))) %>%
+
+  mutate(M_cat_order= case_when(M_cat == "F" ~ paste(as.numeric(FMTNoRes+FMTRes)),
+                                   M_cat == "FR" ~ paste(as.numeric(FMTRes)),
+                                   M_cat == "FN" ~ paste(as.numeric(FMTNoRes)),
+                                   M_cat == "P" ~ paste(as.numeric(PlaceboRes,PlaceboNoRes)),
+                                   M_cat == "PR" ~ paste(as.numeric(PlaceboRes)),
+                                   M_cat == "PN" ~ paste(as.numeric(PlaceboNoRes)),
+                                   M_cat == "Other" ~ paste(as.numeric(FMTRes+FMTNoRes+PlaceboNoRes+PlaceboRes)),
+                                   TRUE ~ paste(0))) -> engraft_3pts_cat
+
+engraft_3pts %>%
+  left_join(engraft_3pts_cat) -> engraft_3pts_strain
+
+ggplot(engraft_3pts_strain, aes(reorder_within(Marker, -as.numeric(M_cat_order), M_cat),
+                               Fig_lab, fill=Treatment)) +
+  geom_tile() +
+  facet_grid(Treatment~M_cat, space = "free", scales = "free") +
+  scale_fill_manual(values = c("FMT" = "#008837",
+                               "Placebo" = "#bdbdbd")) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_text(size=7),
+        strip.text.x = element_blank(),
+        legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("Donor strains commonly engrafted in >=6 pts")
+ggsave("../figs/reads_CESt_6pts.png", width = 20, height = 8, units = "cm")
+
+unique(engraft_3pts_strain$M_cat)
+
+engraft_3pts_strain %>%
+  filter(M_cat == "PN") %>%
+  select(Marker) %>% distinct() %>% pull() -> strains_of_interest
+
+#the only bacteria unqiue to Placebo non-responder:
+# "SGB6939__FFILHHMK_01448" which is a Veillonella parvula (SGB6939)
+
+ggplot(engraft_3pts_strain %>%
+         filter(M_cat == "F"), 
+       aes(reorder_within(Marker, -as.numeric(M_cat_order), M_cat),
+                               Fig_lab, fill=Treatment)) +
+  geom_tile() +
+  facet_grid(Treatment~M_cat, space = "free", scales = "free") +
+  scale_fill_manual(values = c("FMT" = "#008837",
+                               "Placebo" = "#bdbdbd")) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.title.x = element_text(size=7),
+        #strip.text.x = element_blank(),
+        legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("Donor strains commonly engrafted in >=6 pts")
+
+engraft_3pts_strain %>%
+  group_by(M_cat, Marker) %>%
+  summarise(n=n()) %>%
+  group_by(M_cat) %>%
+  summarise(Markers=n()) %>%
+  mutate(Treatment= case_when(str_detect(M_cat, "F") ~ paste("FMT"),
+                              str_detect(M_cat, "P") ~ paste("Placebo"),
+                              str_detect(M_cat, "Other") ~ paste("Both"))) %>%
+  mutate(Treatment = factor(Treatment, levels = c("FMT", "Placebo", "Both"))) %>%
+  ggplot(aes(Treatment, Markers)) +
+  geom_bar(stat = "identity") +
+  scale_y_sqrt() +
+  theme_bw() +
+  theme(axis.title.x = element_blank()) +
+  ylab("# of unique markers engrafted in >= 6 patients")
+ggsave("../figs/reads_CESt_6pts_bar.png",
+       width = 8, height = 8, units = "cm")
+  
+```
+
+## Species-level analysis
 Reading metaphlan4 default output (merged)
 relative abundance
 ```{r}
@@ -195,7 +710,6 @@ metaphlan %>%
   select(clade_name,Kingdom:marker) %>%
   mutate(sp_marker= gsub("t__", "", marker)) %>%
   mutate(sp_marker=gsub("_group", "", sp_marker))-> lineage
-
 
 ```
 
@@ -234,19 +748,90 @@ spCE <- function(metaphlan, mapfile, species, cutoff=cutoff, ...){
   for (i in 1:number_of_samples) {
   Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
   Emark.2[[i]] <- data_frame(Npts = paste(i),
-                             E.species = length(Emark.1[[i]]$clade_name))
+                             n = length(Emark.1[[i]]$clade_name))
   }
   do.call(rbind.data.frame, Emark.2)
 }
 ################################################################################
+
+spCE_2 <- function(metaphlan, mapfile, species, cutoff=cutoff, ...){
+  
+metaphlan %>%
+  filter(clade_name %in% species) %>%
+  gather(sample, abundance, -clade_name) %>%
+  mutate(Study_ID = case_when(
+    str_detect(sample,"PMCL") ~ paste(gsub("_.*", "",sample)),
+    TRUE ~ paste(sample))) -> long_metaphlan
+  # complete list of engrafted
+  long_metaphlan %>%
+    left_join(mapfile) %>%
+    filter(...) %>%
+    spread(Timepoint, abundance, fill = 0) %>%
+    mutate(model= case_when(WK0 <= 0 & WK6 > cutoff ~ paste("Engraft"),
+                          TRUE ~ paste("other"))) %>%
+    filter(model == "Engraft") %>%
+    select(clade_name, Study_ID, WK6) %>%
+    spread(Study_ID, WK6, fill = 0) -> engraft
+  # number of samples in input table
+  engraft %>%
+    gather(sample, abund, -clade_name) %>% 
+    pull(sample) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i), Emark.1[[i]])
+  }
+  common_engraft <- do.call(rbind.data.frame, Emark.2)
+  common_engraft %>%
+    gather(Study_ID, abundance, -clade_name, -Npts) %>%
+    filter(abundance >= cutoff) %>%
+    left_join(mapfile %>% select(Study_ID, Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+    group_by(Npts, clade_name, Treatment, Remission) %>%
+    tally() %>%
+    mutate(cat= paste(Treatment, Remission, sep = "")) %>%
+    ungroup() %>%
+    select(Npts, clade_name, n, cat) %>%
+    spread(cat, n) %>%
+    mutate(M_cat= case_when(is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTNoRes) &
+                               FMTRes > 0 ~ paste("FMT-Res"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTRes) &
+                               FMTNoRes > 0 ~ paste("FMT-NoRes"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) ~ paste("FMT"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboRes) &
+                               PlaceboNoRes > 0 ~ paste("Placebo-NoRes"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboNoRes) &
+                               PlaceboRes > 0 ~ paste("Placebo-Res"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) ~ paste("Placebo"),
+                             TRUE ~ paste("Both"))) %>%
+  mutate(across(everything(), ~replace_na(., 0)))
+}
+
+
 ################################################################################
 
 ```
 
+## engraftment cut-off for species
 
-commonly engraftment of species (default metaphlan):
 ```{r}
-mapfile %>% select(Study_ID, Treatment, Timepoint) -> map
 
 metaphlan %>%
   gather(sample, abundance, -clade_name) %>%
@@ -255,15 +840,101 @@ metaphlan %>%
   #any marker with abundance > 0
   #markers that were present in at least one donor B sample
   filter(!is.na(abundance)) %>%
-  filter(as.numeric(abundance) > 0) -> donorB_species
+  filter(as.numeric(abundance) > 0) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample)) -> donorB_species
+
+# a function to filter species above cutoff:
+Fpos_finder2 <- function(table, cutoff){
+  # total number of unqiue species in each sample
+  table %>%
+    group_by(sample) %>%
+    summarise(total=n()) -> total.species
+  
+  # total number of unique marker above cutoff
+  table %>%
+    mutate(relative_abund= abundance) %>%
+    filter(relative_abund >= cutoff) %>%
+    group_by(sample) %>%
+    summarise(pos_n=n()) %>%
+    left_join(total.species) %>%
+    mutate(pos_p=pos_n/total * 100) %>%
+    mutate(cutoff=paste(cutoff))
+}
+
+cols <- c("2013" = "#bae4b3",
+          "2016" = "#74c476", 
+          "May17" = "#31a354",
+          "Oct17" = "#006d2c")
+
+# comparison of detection cut-offs
+Fpos_visualizer2 <- function(table) {
+  
+  vector <- c(0.001, 0.005, 0.01, 0.1, 1, 2, 3)
+  vector <- as.character(vector)  # Convert vector to character for proper factor levels
+  
+  res <- list()
+  for (i in vector) {
+    res[[i]] <- Fpos_finder2(table, as.numeric(i))
+  }
+  
+  tbl <- do.call(rbind.data.frame, res)
+  tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+  
+  ggplot(tbl, aes(cutoff, pos_p, color = sample, fill=sample)) +
+    geom_line(aes(group = sample)) +
+    scale_color_manual(values = cols) +
+    scale_fill_manual(values = cols) +
+    theme_bw() +
+    theme(legend.position = c(0.8,0.7),
+          legend.title = element_blank()) +
+    xlab("Relative abundance (%)") +
+    ylab("% of unique species")
+}
+
+p1 <- Fpos_visualizer2(donorB_species)
+
+p2 <- donorB_species %>%
+  ungroup() %>%
+  group_by(sample) %>%
+  summarise(percent=as.numeric(abundance)/sum(as.numeric(abundance)) * 100) %>%
+ggplot(aes(x=percent, fill=sample, color=sample)) +
+    geom_histogram(position="identity", colour="grey40", alpha=0.7, bins = 10) +
+    scale_x_log10() +
+    facet_grid(. ~ sample) +
+    geom_vline(xintercept = 0.005, color = "red") +
+    scale_fill_manual(values = cols) +
+    theme_classic() +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 90)) +
+  xlab("Relative abundance (%)") +
+  ylab("# of species")
+
+cowplot::plot_grid(p1, p2, ncol = 1)
+ggsave("../figs/reads_species_cutoff.png",
+       width = 14, height = 14, units = "cm")
+
+```
+
+
+```{r}
+
+
+metaphlan %>%
+  gather(sample, abundance, -clade_name) %>%
+  #filtering donor B markers
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  #any marker with abundance > 0
+  #markers that were present in at least one donor B sample
+  filter(!is.na(abundance)) %>%
+  filter(as.numeric(abundance) > 0) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample)) -> donorB_species
+
+mapfile %>% select(Study_ID, Treatment, Timepoint) -> map
 
 ##### seting engraftment cut-off
-donorB_species %>%
-  group_by(sample) %>%
-  # minimum detection in each donor B sample
-  slice(which.min(abundance)) -> min_B_species
-  # average of minimum detections-> test
-cutoff= mean(as.numeric(min_B_species$abundance))
+# based on donor B benchmarking data: 0.005 (as shown above)
+# minimum relative abundance detected maximum (top quartile) of species
+cutoff= 0.005
 ######
 
 # working with only donor B species that meeet cutoff
@@ -271,68 +942,262 @@ cutoff= mean(as.numeric(min_B_species$abundance))
 donorB_species %>%
   filter(as.numeric(abundance) > cutoff) -> donorB_species
 
+#####################################################################
+# selecting only donor B specoes that present across all donor B samples:
+#donorB_species %>%
+#  spread(sample, abundance, fill = 0) %>%
+#  select("clade_name", "2013":Oct17) -> B_wide
+#B_wide <- B_wide[rowSums(B_wide[,2:ncol(B_wide)] > cutoff) >= 2, ]
+#B_wide %>%
+#  gather(sample, abundance, -clade_name) -> donorB_species
   
+#####################################################################
+
 donorB_species %>%
   select(clade_name) %>% distinct() %>%
   pull() -> B_species
-  
 
-######### common engraftment for FMT ################################
+#1. total:
 spCE(metaphlan, mapfile, species = B_species,
-     cutoff = cutoff, Treatment == "FMT") -> commonE_FMT
-
-######### common engraftment for Placebo ############################
+     cutoff = cutoff, Treatment %in% c("FMT", "Placebo")) %>%
+  mutate(Type=paste("Total(n=24)"))-> C1
+#2 WithinFMT:
 spCE(metaphlan, mapfile, species = B_species,
-     cutoff = cutoff, Treatment == "Placebo") -> commonE_Placebo
-
-######### common engraftment for Responder #########################
+     cutoff = cutoff, Treatment %in% c("FMT")) %>%
+  mutate(Type=paste("withinFMT(n=12)"))-> C2
+#3 WithinPlacebo:
 spCE(metaphlan, mapfile, species = B_species,
-     cutoff = cutoff, 
-     Treatment == "FMT" & Remission == "Res") -> commonE_FMTRes
-######### common engraftment for Non-responder #####################
-spCE(metaphlan, mapfile, species = B_species,
-     cutoff = cutoff, 
-     Treatment == "FMT" & Remission == "NoRes") -> commonE_FMTNoRes
+     cutoff = cutoff, Treatment %in% c("Placebo")) %>%
+  mutate(Type=paste("withinPlacebo(n=12)"))-> C3
+#4 WithtinFMTresponder:
+spCE(metaphlan, mapfile, species = B_species, cutoff = cutoff,
+     Treatment == "FMT" & Remission == "Res") %>%
+     mutate(Type=paste("withinFMT-Res(n=6)"))-> C4
+#5 WithtinFMTresponder:
+spCE(metaphlan, mapfile, species = B_species, cutoff = cutoff,
+     Treatment == "FMT" & Remission == "NoRes") %>%
+     mutate(Type=paste("withinFMT-NoRes(n=6)"))-> C5
+
+#1. Unique to FMT or Placebo and FMT responder vs non-
+spCE_2(metaphlan, mapfile, species = B_species,
+     cutoff = cutoff, Treatment %in% c("FMT", "Placebo")) -> U
+
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT") ~ paste("uniquetoFMT"),
+                           str_detect(M_cat, "Placebo") ~ paste("uniquetoPlacebo"),
+                           TRUE ~ paste("Overlap"))) %>%
+  ungroup() %>% group_by(Npts, Type) %>%
+  summarise(n=sum(n)) -> U1
+
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  filter(str_detect(M_cat, "FMT")) %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT-Res") ~ paste("uniquetoFMT-Res"),
+                           str_detect(M_cat, "FMT-NoRes") ~ paste("uniquetoFMT-NoRes"),
+                           TRUE ~ paste("uniquetoFMT-Overlap"))) %>%
+  select(Npts, Type, n)-> U2
+
+# merging the results together:
+rbind(C1, C2, C3) -> tbl1
+rbind(U1, U2) -> tbl2
+
+cols <- c("Total(n=24)" = "black",
+          "withinFMT(n=12)" = "#1b7837",
+          "withinPlacebo(n=12)" = "#999999",
+          "withinFMT-Res(n=6)" = "#2166ac",
+          "withinFMT-NoRes(n=6)" = "#b2182b",
+          "Overlap" = "#fc8d59",
+          "uniquetoFMT" = "#1b7837",
+          "uniquetoPlacebo" = "#999999",
+          "uniquetoFMT-Res" = "#2166ac",
+          "uniquetoFMT-NoRes" = "#b2182b",
+          "uniquetoFMT-Overlap" = "#6A3F6C")
 
 
-######################################################
-########### visualizing
-######################################################
-
-cols1 <- c("FMT" = "#008837",
-           "Placebo" = "#bdbdbd",
-           "Responder" = "#0571b0",
-           "Non-Responder" = "#ca0020")
-
-commonE_FMT %>% 
-  mutate(Type=paste("FMT"),
-          Samples= "All") %>%
-  bind_rows(commonE_Placebo %>% 
-             mutate(Type=paste("Placebo"),
-                    Samples="All")) %>%
-  bind_rows(commonE_FMTRes %>%
-              mutate(Type="Responder",
-                     Samples="onlyFMT")) %>%
-  bind_rows(commonE_FMTNoRes %>%
-              mutate(Type="Non-Responder",
-                     Samples="onlyFMT")) -> tbl
-tbl$Type <- factor(tbl$Type, levels = c("FMT", "Placebo", 
-                                        "Responder", "Non-Responder"))
-ggplot(tbl, aes(as.numeric(Npts), E.species, color=Type)) +
-  geom_line(aes(group=Type))+
-  #facet_grid(~Samples, space = "free") +
+f1 <- ggplot(tbl1, aes(as.numeric(Npts), n, color=Type)) +
+  geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
   scale_y_log10() +
-  scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7,8,9,10,11,12)) +
-  scale_color_manual(values = cols1) +
-  theme_classic() +
-  theme(legend.title = element_blank(),
-        legend.position = c("0.8", "0.8")) +
-  xlab("Increasing # of patients") +
-  ylab("# of engrafted Species")
-ggsave("../figs/CESp.png",
-       width = 10, height = 8, units = "cm")
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+  #xlab("Increasting # of patients") + ylab("Engrafted species")
+
+f2 <- ggplot(U1, aes(as.numeric(Npts), n, fill=Type)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+   #xlab("Increasting # of patients") + ylab("Engrafted species")
+
+f3 <- ggplot(U2, aes(as.numeric(Npts), n, color=Type)) +
+  geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+   #xlab("Increasting # of patients") + ylab("Engrafted species")
+cowplot::plot_grid(f1, f2, f3, ncol = 1, hjust = T, vjust = T)
+ggsave("../figs/reads_CESp.png",
+       width = 6, height = 12, units = "cm")
 
 ```
+
+## commonly engrafted species for 6pts
+
+```{r}
+
+################################################################################
+# a function to detect common engraft species (metaphlan) in >= 3pts
+################################################################################
+spCE_3pts <- function(metaphlan, mapfile, species, cutoff=cutoff, ...){
+  # convert metaphlan to long format, make Study_ID variable (in mapfile),
+  # and select only donor's species
+  metaphlan %>%
+  filter(clade_name %in% species) %>%
+  gather(sample, abundance, -clade_name) %>%
+  mutate(Study_ID = case_when(
+    str_detect(sample,"PMCL") ~ paste(gsub("_.*", "",sample)),
+    TRUE ~ paste(sample))) -> long_metaphlan
+  # complete list of engrafted
+  long_metaphlan %>%
+    left_join(mapfile) %>%
+    filter(...) %>%
+    spread(Timepoint, abundance, fill = 0) %>%
+    mutate(model= case_when(WK0 <= 0 & WK6 > cutoff ~ paste("Engraft"),
+                          TRUE ~ paste("other"))) %>%
+    filter(model == "Engraft") %>%
+    select(clade_name, Study_ID, WK6) %>%
+    spread(Study_ID, WK6, fill = 0) -> engraft
+  # number of samples in input table
+  engraft %>%
+    gather(sample, abund, -clade_name) %>% 
+    pull(sample) %>% n_distinct() -> number_of_samples
+  
+  engraft_3 <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= 6, ]
+  engraft_3 %>%
+    gather(Study_ID, abundance, -clade_name) %>%
+    filter(abundance >= cutoff)
+}
+################################################################################
+################################################################################
+
+##### seting engraftment cut-off
+# based on donor B benchmarking data: 0.005 (as shown above)
+# minimum relative abundance detected maximum (top quartile) of species
+cutoff= 0.005
+######
+
+spCE_3pts(metaphlan, mapfile, species = B_species,
+     cutoff = cutoff, Treatment %in% c("FMT", "Placebo")) -> tbl
+
+tbl %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+  mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ paste(Fig_lab))) -> engraft_3pts
+
+engraft_3pts %>%
+  group_by(clade_name, Treatment, Remission) %>%
+  tally() %>%
+  mutate(cat= paste(Treatment, Remission, sep = "")) %>%
+  ungroup() %>%
+  select(clade_name, n, cat) %>%
+  spread(cat, n) %>%
+   mutate(M_cat= case_when(is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTNoRes) &
+                               FMTRes > 0 ~ paste("FR"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTRes) &
+                               FMTNoRes > 0 ~ paste("FN"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) ~ paste("F"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboRes) &
+                               PlaceboNoRes > 0 ~ paste("PN"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboNoRes) &
+                               PlaceboRes > 0 ~ paste("PR"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) ~ paste("P"),
+                             TRUE ~ paste("Other"))) %>%
+  mutate(across(everything(), ~replace_na(., 0))) %>%
+
+  mutate(M_cat_order= case_when(M_cat == "F" ~ paste(as.numeric(FMTNoRes+FMTRes)),
+                                   M_cat == "FR" ~ paste(as.numeric(FMTRes)),
+                                   M_cat == "FN" ~ paste(as.numeric(FMTNoRes)),
+                                   M_cat == "P" ~ paste(as.numeric(PlaceboRes,PlaceboNoRes)),
+                                   M_cat == "PR" ~ paste(as.numeric(PlaceboRes)),
+                                   M_cat == "PN" ~ paste(as.numeric(PlaceboNoRes)),
+                                   M_cat == "Other" ~ paste(as.numeric(FMTRes+FMTNoRes+PlaceboNoRes+PlaceboRes)),
+                                   TRUE ~ paste(0))) -> engraft_3pts_cat
+
+engraft_3pts %>%
+  left_join(engraft_3pts_cat) -> engraft_3pts_species
+
+ggplot(engraft_3pts_species, aes(reorder_within(clade_name, -as.numeric(M_cat_order), M_cat),
+                               Fig_lab, fill=Treatment)) +
+  geom_tile() +
+  facet_grid(Treatment~M_cat, space = "free", scales = "free") +
+  scale_fill_manual(values = c("FMT" = "#008837",
+                               "Placebo" = "#bdbdbd")) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_text(size=7),
+        strip.text.x = element_blank(),
+        legend.position = "none",
+        axis.title.y = element_blank()) +
+  xlab("Donor species commonly engrafted in >=6 pts")
+ggsave("../figs/reads_CESp_6pts.png", width = 20, height = 8, units = "cm")
+
+
+unique(engraft_3pts_species$M_cat)
+
+engraft_3pts_species %>%
+  filter(M_cat == "P") %>%
+  select(clade_name) %>% distinct() %>% pull() -> species_of_interest
+
+#the only bacteria unqiue to Placebo:
+# s__Veillonella_parvula|t__SGB6939"
+
+engraft_3pts_species %>%
+  group_by(M_cat, clade_name) %>%
+  summarise(n=n()) %>%
+  group_by(M_cat) %>%
+  summarise(Species=n()) %>%
+  mutate(Treatment= case_when(str_detect(M_cat, "F") ~ paste("FMT"),
+                              str_detect(M_cat, "P") ~ paste("Placebo"),
+                              str_detect(M_cat, "Other") ~ paste("Both"))) %>%
+  bind_rows(data.frame(M_cat=c("F"), Species = c(0), Treatment="FMT")) %>%
+  mutate(Treatment = factor(Treatment, levels = c("FMT", "Placebo", "Both"))) %>%
+  ggplot(aes(Treatment, Species)) +
+  geom_bar(stat = "identity") +
+  scale_y_sqrt() +
+  theme_bw() +
+  theme(axis.title.x = element_blank()) +
+  ylab("# of unique species engrafted in >= 6 patients")
+ggsave("../figs/reads_CESp_6pts_bar.png",
+       width = 8, height = 8, units = "cm")
+
+
+```
+
+
 
 ## profile microbial taxa
 
@@ -444,7 +1309,7 @@ ggplot(aes(abundance, sample, fill=Family_lab, color=Family_lab)) +
   guides(fill=guide_legend(ncol =1))
 
 cowplot::plot_grid(p1, p2, ncol = 2)
-ggsave("../figs/RA_profile.png",
+ggsave("../figs/reads_RA_profile.png",
        width = 30, height = 15, units = "cm")
 
 ```
@@ -479,7 +1344,7 @@ ggplot(tbl, aes(x = Timepoint, y = diversity_shannon)) +
         text = element_text(size = 10),
         legend.position = "none", axis.title.x = element_blank()) +
   ylab("Shannon")
-ggsave("../figs/Shannon_div.png",
+ggsave("../figs/reads_Shannon_div.png",
        width = 6, height = 6, units = "cm")
 
 # We happen to have lower diversity in patients on placebo; this observed both
@@ -551,7 +1416,7 @@ ggplot(tbl, aes(Treatment_2, value)) +
         text = element_text(size = 10),
         legend.position = "none", axis.title.x = element_blank()) +
   ylab("Bray-Curtis")
-ggsave("../figs/Bray-Curtis_div.png",
+ggsave("../figs/reads_Bray-Curtis_div.png",
        width = 10, height = 6, units = "cm")
 
 ```
@@ -613,7 +1478,7 @@ ggplot(tbl, aes(Treatment_2, value)) +
         text = element_text(size = 10),
         legend.position = "none", axis.title.x = element_blank()) +
   ylab("Aitchison")
-ggsave("../figs/Aitchison_div.png",
+ggsave("../figs/reads_Aitchison_div.png",
        width = 10, height = 6, units = "cm")
 
 

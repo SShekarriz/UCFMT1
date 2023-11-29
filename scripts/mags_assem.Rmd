@@ -6,8 +6,10 @@ output: html_document
 ---
 
 ```{r}
+
 library(tidyverse)
 library(tidytext)
+
 ```
 
 
@@ -33,7 +35,6 @@ c_inMAG %>% select(bin_id) %>% distinct() %>% pull() -> MAGs
 ```{r}
 
 # gtdb taxonomy output for all the bins
-
 gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
 gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
 
@@ -42,6 +43,7 @@ gtdb.bac %>% mutate(bin_id=user_genome) %>%
   bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
               select(bin_id, classification)) %>%
   mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
+
   
 ```
 
@@ -114,7 +116,7 @@ BDB_perfect_1x %>%
   filter(str_detect(sample, "DonorB")) %>%
   mutate(sample= gsub("DonorB_D_", "", sample))  -> BDB_perfect_1x_D
 
-##############################################################################
+########################################################################
 
 # UHGG + BDB together for donor sample:
 UHGG_perfect_1x_D %>%
@@ -129,25 +131,28 @@ UHGG_perfect_1x_P %>%
                        str_detect(bin_id, "bin") ~ paste("BDB"),
                        TRUE ~ paste("Other"))) -> table_P
 
- 
 # calculate percentage of positive bins per sample
 Fpos <- function(table, cutoff){
+  
+  table %>%
+    group_by(sample, DB) %>%
+    summarise(total=n()) -> total.bins
   
   table %>%
   mutate(detect= case_when(bin_coverage >= cutoff ~ paste("Yes"),
                            TRUE ~ paste("No"))) %>%
   filter(detect == "Yes") %>%
   group_by(sample, DB) %>%
-  summarise(pos_n=n(),
-            total=length(unique(table$bin_id)),
-            pos_p=pos_n/length(unique(table$bin_id))*100) %>%
+  summarise(pos_n=n()) %>%
+  left_join(total.bins) %>%
+  mutate(pos_p=pos_n/total * 100) %>%
   mutate(cutoff=paste(cutoff))
 }
 
 # comparison of detection cut-offs
 Fpos_var <- function(table) {
   
-vector <- seq(10, 100, by=10)
+vector <- seq(5, 100, by=5)
 res <- list()
 for (i in vector) {
    res[[i]] <- Fpos(table = table, i)
@@ -155,10 +160,50 @@ for (i in vector) {
 do.call(rbind.data.frame, res)
 }
 
+##########################################################################
+# function to combine all samples together to check for detection cutoff
+# the donor B database contains all samples to gether so the correct
+# approach is to combine all together
+##########################################################################
+
+# calculate percentage of positive bins per sample
+Fpos_db <- function(table, cutoff){
+  
+  table %>%
+    group_by(DB, bin_id) %>%
+    summarise(total=n()) %>%
+    group_by(DB) %>% 
+    summarise(total=n())-> total.bins
+  
+  table %>%
+  mutate(detect= case_when(bin_coverage >= cutoff ~ paste("Yes"),
+                           TRUE ~ paste("No"))) %>%
+  filter(detect == "Yes") %>%
+  group_by(DB, bin_id) %>%
+  summarise(pos_n=n()) %>%
+  group_by(DB) %>%
+  summarise(pos_min=n()) %>%
+  left_join(total.bins) %>%
+  mutate(pos_p=pos_min/total * 100) %>%
+  mutate(cutoff=paste(cutoff))
+}
+
+# comparison of detection cut-offs
+Fpos_var_db <- function(table) {
+  
+vector <- seq(5, 100, by=5)
+res <- list()
+for (i in vector) {
+   res[[i]] <- Fpos_db(table = table, i)
+}
+do.call(rbind.data.frame, res)
+}
+
+
 ```
 
 ## benchmarking- donor
-visualizing only donor samples, comparing detectin cutoffs
+visualizing only donor samples, comparing detection cutoffs
 
 ```{r}
 
@@ -173,7 +218,7 @@ cols <- c("2013" = "#bae4b3",
           "May17" = "#31a354",
           "Oct17" = "#006d2c")
 
-vector <- seq(10, 100, by=10)
+vector <- seq(5, 100, by=5)
 tbl$cutoff <- factor(tbl$cutoff, levels = vector)
 ggplot(tbl, aes(as.numeric(as.character(cutoff)), pos_n, color=sample)) +
   facet_grid(~DB) +
@@ -194,7 +239,63 @@ ggsave("../figs/Benchmark_perfect_BDB_UHGG.png",
        width = 16, height = 10, units = "cm")
 
 
+vector <- seq(5, 100, by=5)
+tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+tbl %>% filter(DB=="BDB") %>%
+ggplot(aes(as.numeric(as.character(cutoff)), pos_p, color=sample)) +
+  geom_line(aes(group=sample), size = 1) +
+  geom_vline(xintercept = 20, linetype="dotted", 
+                color = "black", size=0.5, alpha=0.3) +
+  scale_color_manual(values = cols) +
+  theme_bw() +
+  theme(legend.position = c(x=0.2, y=0.2),
+        legend.title = element_blank()) +
+  xlab("% of genomic detection") +
+  ylab("% of unique MAGs in db")
+
+
 ```
+
+## benchmark genomic detection based on database coverage
+combining all samples together to check for database coverage
+this is important becauase each sample microbiome is quite different
+and the database is the result of all samples together
+
+```{r}
+
+Fpos_var_db(table_D) %>%
+  filter(DB=="BDB") %>%
+  mutate(sample= paste("All")) %>%
+  rename(pos_n=pos_min) %>%
+  select(sample, DB:cutoff) %>%
+  bind_rows(tbl %>% filter(DB=="BDB"))-> tbl2
+
+
+cols <- c("2013" = "#bae4b3",
+          "2016" = "#74c476", 
+          "May17" = "#31a354",
+          "Oct17" = "#006d2c",
+          "All" = "#2c7bb6")
+
+vector <- seq(5, 100, by=5)
+tbl2$cutoff <- factor(tbl2$cutoff, levels = vector)
+tbl2$sample <- factor(tbl2$sample, levels = c("All", "2013", "2016",
+                                              "May17", "Oct17"))
+tbl2 %>% 
+ggplot(aes(as.numeric(as.character(cutoff)), pos_p, color=sample)) +
+  geom_line(aes(group=sample), size = 1) +
+  scale_color_manual(values = cols) +
+  theme_bw() +
+  theme(legend.position = c(x=0.2, y=0.3),
+        legend.title = element_blank()) +
+  xlab("% of genomic detection") +
+  ylab("% of unique MAGs in DB")
+ggsave("../figs/Benchmark_perfect_BDB.png",
+       width = 14, height = 10, units = "cm")
+
+```
+
+
 
 ## benchmarking- pts
 visualizing only patients samples, comparing detectin cutoffs
@@ -239,7 +340,7 @@ ggsave("../figs/Benchmark_perfect_BDB_UHGG_patient.png",
 
 ```{r}
 
-C=90
+C=25
 table_P %>%
   ungroup() %>%
   mutate(sample= gsub("sub_", "", sample)) %>%
@@ -304,7 +405,7 @@ ggplot(aes(Treatment, percent,fill=detection)) +
         axis.title = element_blank())
 ggsave("../figs/MAGs_perfect_treatment.png",
        width = 6, height = 8, units = "cm")
-################################################################################
+###############################################################################
 ###############################################################################
 #2. summary per patients:
 tbl0 %>%
@@ -320,7 +421,7 @@ tbl0 %>%
   theme(legend.position = "none", axis.title = element_blank())
 ggsave("../figs/MAGs_perfect_BDB_patient.png",
        width = 8, height = 8, units = "cm")
-################################################################################
+###############################################################################
 ###############################################################################
 #3. engraftment stats:
 # some of pts dont have any engrafted mags, those should have
@@ -346,14 +447,14 @@ tbl0 %>%
   theme(legend.position = "none", axis.title = element_blank())
 ggsave("../figs/MAGs_perfect_engraftment.png",
        width = 6, height = 8, units = "cm")
+
 ```
 
 ## Taxonomy of engrafted MAGs
 
 ```{r}
 
-
-C=90
+C=25
 table_P %>%
   ungroup() %>%
   mutate(sample= gsub("sub_", "", sample)) %>%
@@ -366,7 +467,6 @@ table_P %>%
                               WK0 < C & WK6 >= C ~ paste("Post"),
                               WK0 < C & WK6 < C ~ paste("none"),
                               TRUE ~ paste("Other"))) -> tbl
-
 
 gtdb %>%
   separate(classification, c("Kingdom", "Phylum", "Class",
@@ -507,9 +607,229 @@ ggsave("../figs/MAGs_perfect_engrafted_heatmap.png",
 
 ## Comm engrafted MAGs
 
+
 ```{r}
 
-C=90
+
+############################################################################
+common_Emagers <- function(tbl){
+tbl %>%
+  filter(detection == "Post") %>%
+  select(Fig_lab, bin_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> engraft
+
+# number of samples in input table
+  tbl %>%
+    pull(Fig_lab) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i),
+                             n = length(Emark.1[[i]]$bin_id))
+  }
+  do.call(rbind.data.frame, Emark.2)
+}
+
+###############################################################################
+
+common_Emagers_2 <- function(tbl){
+tbl %>%
+  filter(detection == "Post") %>%
+  select(Fig_lab, bin_id, WK6) %>%
+  spread(Fig_lab, WK6, fill=0) -> engraft
+
+# number of samples in input table
+  tbl %>%
+    pull(Fig_lab) %>% n_distinct() -> number_of_samples
+  # for loop for engraftment across increasing number of patients
+  Emark.1 <- list()
+  Emark.2 <- list()
+  for (i in 1:number_of_samples) {
+  Emark.1[[i]] <- engraft[rowSums(engraft[,2:ncol(engraft)] > 0) >= i, ]
+  Emark.2[[i]] <- data_frame(Npts = paste(i), Emark.1[[i]])
+  }
+  common_engraft <- do.call(rbind.data.frame, Emark.2)
+  common_engraft %>%
+    gather(Fig_lab, detect, -bin_id, -Npts) %>%
+    filter(detect >= 1) %>%
+    left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
+              distinct()) %>%
+    group_by(Npts, bin_id, Treatment, Remission) %>%
+    tally() %>%
+    mutate(cat= paste(Treatment, Remission, sep = "")) %>%
+    ungroup() %>%
+    select(Npts, bin_id, n, cat) %>%
+    spread(cat, n) %>%
+    mutate(M_cat= case_when(is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTNoRes) &
+                               FMTRes > 0 ~ paste("FMT-Res"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) &
+                               is.na(FMTRes) &
+                               FMTNoRes > 0 ~ paste("FMT-NoRes"),
+                             
+                             is.na(PlaceboRes) &
+                               is.na(PlaceboNoRes) ~ paste("FMT"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboRes) &
+                               PlaceboNoRes > 0 ~ paste("Placebo-NoRes"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) &
+                               is.na(PlaceboNoRes) &
+                               PlaceboRes > 0 ~ paste("Placebo-Res"),
+                             
+                             is.na(FMTRes) &
+                               is.na(FMTNoRes) ~ paste("Placebo"),
+                             TRUE ~ paste("Both"))) %>%
+  mutate(across(everything(), ~replace_na(., 0)))
+  
+}
+###############################################################################
+###############################################################################
+
+```
+
+
+
+```{r}
+
+C=25
+table_P %>%
+  ungroup() %>%
+  mutate(sample= gsub("sub_", "", sample)) %>%
+  mutate(Study_ID= gsub("_.*", "", sample)) %>%
+  left_join(mapfile %>% select(Study_ID, Fig_lab, Timepoint)) %>%
+  select(Fig_lab, bin_id, bin_coverage, DB, Timepoint) %>%
+  spread(Timepoint, bin_coverage) %>%
+  mutate(detection= case_when(WK0 >= C & WK6 >= C ~ paste("Both"),
+                              WK0 >= C & WK6 < C ~ paste("Pre"),
+                              WK0 < C & WK6 >= C ~ paste("Post"),
+                              WK0 < C & WK6 < C ~ paste("none"),
+                              TRUE ~ paste("Other"))) %>%
+  filter(DB == "BDB") %>%
+  select(-DB)-> engraft_model
+
+####################################################################
+
+#1. total 
+common_Emagers(engraft_model) %>%
+  mutate(Type=paste("Total(n=24)"))-> C1
+#2. withinFMT
+engraft_model %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment) %>%
+            distinct()) %>%
+  filter(Treatment == "FMT") -> C2
+common_Emagers(C2) %>%
+  mutate(Type=paste("withinFMT(n=12)"))-> C2
+#3. withinPlacebo
+engraft_model %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment) %>%
+            distinct()) %>%
+  filter(Treatment == "Placebo") -> C3
+common_Emagers(C3) %>%
+  mutate(Type=paste("withinPlacebo(n=12)"))-> C3
+#4. WithinFMTresponder
+engraft_model %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(Treatment == "FMT" & Remission == "Res") -> C4
+common_Emagers(C4) %>%
+  mutate(Type=paste("withinFMT-Res(n=6)"))-> C4
+#5. WithinFMTnonresponder
+engraft_model %>%
+  left_join(mapfile %>% 
+            select(Fig_lab, Treatment, Remission) %>%
+            distinct()) %>%
+  filter(Treatment == "FMT" & Remission == "NoRes") -> C5
+common_Emagers(C5) %>%
+  mutate(Type=paste("withinFMT-NoRes(n=6)"))-> C5
+
+
+#1. Unique to FMT or Placebo and FMT responder vs non-
+common_Emagers_2(engraft_model) -> U
+
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT") ~ paste("uniquetoFMT"),
+                           str_detect(M_cat, "Placebo") ~ paste("uniquetoPlacebo"),
+                           TRUE ~ paste("Overlap"))) %>%
+  ungroup() %>% group_by(Npts, Type) %>%
+  summarise(n=sum(n)) -> U1
+
+U %>%
+  group_by(Npts, M_cat) %>%
+  tally() %>%
+  filter(str_detect(M_cat, "FMT")) %>%
+  mutate(Type= case_when(str_detect(M_cat, "FMT-Res") ~ paste("uniquetoFMT-Res"),
+                           str_detect(M_cat, "FMT-NoRes") ~ paste("uniquetoFMT-NoRes"),
+                           TRUE ~ paste("uniquetoFMT-Overlap"))) %>%
+  select(Npts, Type, n)-> U2
+
+# merging the results together:
+rbind(C1, C2, C3) -> tbl1
+rbind(U1, U2) -> tbl2
+
+cols <- c("Total(n=24)" = "black",
+          "withinFMT(n=12)" = "#1b7837",
+          "withinPlacebo(n=12)" = "#999999",
+          "withinFMT-Res(n=6)" = "#2166ac",
+          "withinFMT-NoRes(n=6)" = "#b2182b",
+          "Overlap" = "#fc8d59",
+          "uniquetoFMT" = "#1b7837",
+          "uniquetoPlacebo" = "#999999",
+          "uniquetoFMT-Res" = "#2166ac",
+          "uniquetoFMT-NoRes" = "#b2182b",
+          "uniquetoFMT-Overlap" = "#6A3F6C")
+
+
+f1 <- ggplot(tbl1, aes(as.numeric(Npts), n, color=Type)) +
+  geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+  #xlab("Increasting # of patients") + ylab("Engrafted strains")
+
+f2 <- ggplot(U1, aes(as.numeric(Npts), n, fill=Type)) +
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) +
+   xlab("Increasting # of patients") + ylab("Engrafted strains")
+
+f3 <- ggplot(U2, aes(as.numeric(Npts), n, color=Type)) +
+  geom_point() + geom_line(aes(group=Type)) +
+  scale_color_manual(values = cols) +
+  scale_y_log10() +
+  theme_bw() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) #+
+   #xlab("Increasting # of patients") + ylab("Engrafted strains")
+cowplot::plot_grid(f1, f2, f3, ncol = 1, hjust = T, vjust = T)
+ggsave("../figs/MAG_CEG_curve.png", width = 6, height = 12, units = "cm")
+
+
+```
+
+
+
+```{r}
+
+C=25
 table_P %>%
   ungroup() %>%
   mutate(sample= gsub("sub_", "", sample)) %>%
@@ -522,6 +842,7 @@ table_P %>%
                               WK0 < C & WK6 >= C ~ paste("Post"),
                               WK0 < C & WK6 < C ~ paste("none"),
                               TRUE ~ paste("Other"))) -> tbl
+
 
 ###############################################################################
 
@@ -567,53 +888,25 @@ tbl %>%
   filter(Treatment == "FMT") -> tbl_fmt
 common_Emagers(tbl_fmt) -> tbl_fmt
 
-############################################
-# common engraftment for FMT-NoRes
-tbl %>%
-  left_join(mapfile %>% 
-            select(Fig_lab, Treatment, Remission) %>%
-            distinct()) %>%
-  filter(DB=="BDB") %>%
-  filter(Treatment == "FMT" & Remission == "NoRes") -> tbl_fmt_n
-common_Emagers(tbl_fmt_n) -> tbl_fmt_n
-
-############################################
-# common engraftment for FMT-Res
-tbl %>%
-  left_join(mapfile %>% 
-            select(Fig_lab, Treatment, Remission) %>%
-            distinct()) %>%
-  filter(DB=="BDB") %>%
-  filter(Treatment == "FMT" & Remission == "Res") -> tbl_fmt_r
-common_Emagers(tbl_fmt_r) -> tbl_fmt_r
 
 ######################################################
 ########### visualizing
 ######################################################
 
 cols1 <- c("FMT(n=12)" = "#008837",
-           "Placebo(n=12)" = "#bdbdbd",
-           "Responder(n=6)" = "#0571b0",
-           "Non-Responder(n=6)" = "#ca0020")
+           "Placebo(n=12)" = "#bdbdbd")
 
 tbl_fmt %>% 
   mutate(Type=paste("FMT(n=12)"),
           Samples= "All") %>%
   bind_rows(tbl_pla %>% 
              mutate(Type=paste("Placebo(n=12)"),
-                    Samples="All")) %>%
-  bind_rows(tbl_fmt_r %>%
-              mutate(Type="Responder(n=6)",
-                     Samples="onlyFMT")) %>%
-  bind_rows(tbl_fmt_n %>%
-              mutate(Type="Non-Responder(n=6)",
-                     Samples="onlyFMT")) -> tbl2
-tbl2$Type <- factor(tbl2$Type, levels = c("FMT(n=12)", "Placebo(n=12)", 
-                                        "Responder(n=6)", "Non-Responder(n=6)"))
+                    Samples="All")) -> tbl2
+tbl2$Type <- factor(tbl2$Type, levels = c("FMT(n=12)", "Placebo(n=12)"))
 ggplot(tbl2, aes(as.numeric(Npts), E.mags, color=Type)) +
   geom_line(aes(group=Type))+
   #facet_grid(~Samples, space = "free") +
-  scale_y_sqrt() +
+  scale_y_log10() +
   scale_x_continuous(breaks = c(1, 2, 3, 4, 5, 6, 7,8,9,10)) +
   scale_color_manual(values = cols1) +
   theme_classic() +
@@ -623,9 +916,8 @@ ggplot(tbl2, aes(as.numeric(Npts), E.mags, color=Type)) +
   ylab("# of engrafted MAGs")
 ggsave("../figs/MAG_CEG_curve.png", width = 8, height = 8, units = "cm")
 
-
 #######################################################################
-########### MAGs commonly engrafted in >= 3 pts within FMT and Placebo
+########### MAGs commonly engrafted in >= 6 pts within FMT and Placebo
 #######################################################################
 
 tbl %>%
@@ -633,29 +925,15 @@ tbl %>%
   filter(!grepl("UHGG", bin_id)) %>%
   left_join(mapfile %>% select(Fig_lab, Treatment) %>%
               distinct()) %>%
-  filter(detection == "Post" & Treatment == "FMT") %>%
+  filter(detection == "Post" & Treatment %in% c("FMT", "Placebo")) %>%
   select(Fig_lab, bin_id, WK6) %>%
-  spread(Fig_lab, WK6, fill=0) -> eng_fmt
-engraft_3fmt <- eng_fmt[rowSums(eng_fmt[,2:ncol(eng_fmt)] > 0) >= 3, ]
-engraft_3fmt %>%
+  spread(Fig_lab, WK6, fill=0) -> eng
+engraft_3 <- eng[rowSums(eng[,2:ncol(eng)] > 0) >= 4, ]
+engraft_3 %>%
   gather(Fig_lab, detection, -bin_id) %>%
-  filter(detection >= 90) -> engraft_3fmt
+  filter(detection >= C) -> engraft_3
 
-tbl %>%
-  #only donor B MAGs (removinf UHGG)
-  filter(!grepl("UHGG", bin_id)) %>%
-  left_join(mapfile %>% select(Fig_lab, Treatment) %>%
-              distinct()) %>%
-  filter(detection == "Post" & Treatment == "Placebo") %>%
-  select(Fig_lab, bin_id, WK6) %>%
-  spread(Fig_lab, WK6, fill=0) -> eng_placebo
-engraft_3placebo <- eng_placebo[rowSums(eng_placebo[,2:ncol(eng_placebo)] > 0) >= 3, ]
-engraft_3placebo %>%
-  gather(Fig_lab, detection, -bin_id) %>%
-  filter(detection >= 90) -> engraft_3placebo
-
-engraft_3fmt %>%
-  bind_rows(engraft_3placebo) %>%
+engraft_3 %>%
   left_join(mapfile %>% select(Fig_lab, Treatment, Remission) %>%
               distinct()) %>%
   mutate(Fig_lab= case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
@@ -669,18 +947,17 @@ mapfile %>%
                             TRUE ~ paste(Fig_lab))) %>%
   distinct() %>%
   left_join(engraft_3pts) %>%
-  left_join(gtdb_viz) %>%
+  left_join(gtdb_viz) %>% 
   # SINCE i ADDED ALL THE PATIENTS HERE (INCLUDING THOSE PLACEBO WITH NO 
   # ENGRAFTMETN) BECAUSE OF VISUALIZING. Here I'll manually change those
   # NA values so it looks alright visually.
   mutate(detection= case_when(is.na(detection) ~ paste("empty"),
-                              TRUE ~ paste("Post"))) %>%
+                              TRUE ~ paste("Post"))) -> tbl3
   # add the empty values to a bin just to look alright visually
-  mutate(bin_id= case_when(detection == "empty" ~ paste("bin_219"),
-                           TRUE ~ paste(bin_id))) %>%
-  mutate(Genus= case_when(detection == "empty" ~ paste("UBA11774"),
-                          TRUE ~ paste(Genus)))-> tbl3
-
+  #mutate(bin_id= case_when(detection == "empty" ~ paste("bin_219"),
+                    #       TRUE ~ paste(bin_id))) %>%
+  #mutate(Genus= case_when(detection == "empty" ~ paste("UBA11774"),
+                      #    TRUE ~ paste(Genus)))-> tbl3
 
 ggplot(tbl3, aes(bin_id, Fig_lab, fill=detection)) +
   geom_tile() +
@@ -695,3 +972,4 @@ ggplot(tbl3, aes(bin_id, Fig_lab, fill=detection)) +
 ggsave("../figs/MAG_CEG_heatmap.png", width = 12, height = 8, units = "cm")
 
 ```
+
