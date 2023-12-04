@@ -64,8 +64,8 @@ count_engraft <- function(engraft, group_cols){
 
 ## permutation of treatment FMT vs placebo (n=12)
 # Number of permutations
-num_permutations <- 1000
-# it_res = list()
+num_permutations <- 10
+it_res = list() # when not parallel
 # Remove unnecessary columns from the mapfile to speed up 
 # the loop (saves 10s per loop)
 map_mod = (mapfile
@@ -75,16 +75,17 @@ map_mod = (mapfile
 markers_long = mark_to_long(marker_lvl_RA)
 
 # Set up the cores for the parallelization and create the cluster
-cores = 60
-cl = makeCluster(cores)
+# cores = 6 # when testing parallel
+# cores = 60 # when running parallel
+# cl = makeCluster(cores) # when parallel
 
 # Load required packages into the clusters
-clusterEvalQ(cl, library(tidyverse))
+# clusterEvalQ(cl, library(tidyverse)) # when parallel
 
 # Start parallel work
-registerDoParallel(cl)
-it_res = foreach(i = 1:num_permutations) %dopar% {
-# for (i in 1:num_permutations) {
+# registerDoParallel(cl) # when parallel
+# it_res = foreach(i = 1:num_permutations) %dopar% { # when parallel
+for (i in 1:num_permutations) {  # when not parallel
   # Permute the Treatment column
   permuted_data <- (map_mod
                     %>% select(Fig_lab, Treatment)
@@ -93,7 +94,7 @@ it_res = foreach(i = 1:num_permutations) %dopar% {
                     %>% right_join(select(map_mod, -Treatment))
                     %>% select(-Fig_lab)) # don't need this anymore
   tmplst = list()
-  # it_res[[i]] = list()
+  tmplst[['raw']] = permuted_data
   tmplst[['counts']] = (markers_long
                              %>% get_engraft(permuted_data, cutoff, 
                                              Treatment %in% c('FMT', 'Placebo'))
@@ -117,10 +118,13 @@ it_res = foreach(i = 1:num_permutations) %dopar% {
                                  %>% count(Total, Uniqueness)
                                  %>% rename(Npts = Total)
                                  %>% mutate(Treatment = 'Total'))
-  tmplst
+  # tmplst  # when parallel
+  it_res[[i]] = tmplst # when not parallel
 }
 # Stop parallel work
-stopCluster(cl)
+# stopCluster(cl)
+
+save(it_res, file = '../permut_data/intermed/genes_it_res.RData')
 
 ### Permuted AUC
 #approxfun creates an approximate function from the data using imputation
@@ -147,7 +151,7 @@ write.table(auc_null, "../permut_data/genes_auc_null.txt",
 
 ## permutations of responders vs non-responders within FMT
 # Number of permutations
-num_permutations <- 1000
+num_permutations <- 10
 
 # fmt_res = list()
 
@@ -157,7 +161,7 @@ map_mod = (mapfile
            %>% filter(Treatment == 'FMT')
            %>% select(Study_ID, Timepoint, Remission, Fig_lab))
 # Loop through permutations
-cores = 60
+cores = 6
 cl = makeCluster(cores)
 clusterEvalQ(cl, library(tidyverse))
 registerDoParallel(cl)
@@ -171,6 +175,7 @@ fmt_res = foreach(i = 1:num_permutations) %dopar% {
                     %>% right_join(select(map_mod, -Remission))
                     %>% select(-Fig_lab)) # don't need this anymore
   tmplst = list()
+  tmplst[['raw']] = permuted_data
   tmplst[['counts']] = (markers_long
                               %>% get_engraft(permuted_data, cutoff, 
                                               Remission %in% c('Res', 'NoRes'))
@@ -198,6 +203,8 @@ fmt_res = foreach(i = 1:num_permutations) %dopar% {
   
 }
 stopCluster(cl)
+
+save(tmplst, file = '../permute_data/intermed/gene_it_res.RData')
 
 ### Permuted AUC
 #approxfun creates an approximate function from the data using imputation

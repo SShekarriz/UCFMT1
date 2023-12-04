@@ -1,0 +1,214 @@
+# New Permutation Functions
+
+## Functions
+# Make the marker data frame long
+mark_to_long = function(marker_lvl, donB = NULL) {
+    
+    # For some feature types there is not a resticted list of donor B features
+    # because all features are from donor B
+    if(!is.null(donB)){
+        # But if there is such a list, remove any features that are absent from
+        # it
+        markerlvl = filter(marker_lvl, Marker %in% donB)
+    } 
+    
+    # Gather the marker data frame to a long format and fix the naming problems
+    # in the sample names
+    long_markerlvl = (marker_lvl
+                      %>% gather(sample_orig, abundance, -Marker)
+                      %>% mutate(sample = case_when(str_detect(sample_orig,"PMCL") ~ 
+                                                        paste(gsub("_.*", "",sample_orig)),
+                                                    TRUE ~ paste(sample_orig))))
+    return(long_markerlvl)
+}
+
+## Identify engrafted features
+get_engraft = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,  ...){
+    engraft = (long_markerlvl
+               # Join the feature count/coverage data with the metadata and
+               # filter to the desired groups
+               %>% left_join(mapfile, by = c('sample' = 'Study_ID'))
+               %>% filter(...)
+               # Reshape the table so we can determine what has been engrafted
+               %>% select(Marker, Timepoint, abundance, Fig_lab)
+               %>% spread(Timepoint, abundance, fill = 0)
+               # Set engrafted column to 1 if engraftment criteria are met, 0
+               # otherwise
+               %>% mutate(engrafted = case_when(WK0 <= cutoff_abs & WK6 >= cutoff_pres ~ 1,
+                                                TRUE ~ 0))
+               # Select the columns and reshape the data frame to create a wide
+               # matrix of 1/0 engraftment values
+               %>% select(Marker, Fig_lab,  engrafted)
+               %>% pivot_wider(names_from = Fig_lab, values_from = engrafted,
+                               values_fill = 0)
+               # Make the Marker column the rownames
+               %>% column_to_rownames('Marker'))
+    
+    # Turn it into a matrix and remove all rows that are 0 everywhere. This
+    # removal has no effect on the test statistic, it's just tidier
+    engraft = as.matrix(engraft)
+    engraft = engraft[rowSums(engraft) > 0,]
+    return(engraft)
+}
+
+## Make a vector of patient IDs/treatment group correspondences
+pat_to_vect = function(mapfile, patcol, catcol){
+    # Create a two-column data frame of unique patient IDs and the grouping column
+    # (probably Treatment or Remission)
+    to_perm = mapfile[,c(patcol,catcol)]
+    to_perm = unique(to_perm)
+    
+    # Create a vector of the grouping variable and name it with the patient IDs
+    # to make it easy to permute
+    perm = to_perm[,catcol]
+    names(perm) = to_perm$Fig_lab
+    
+    # Remove any NAs
+    perm = na.omit(perm)
+    return(perm)
+}
+
+## Count the number of engrafted features in baseline and non-baseline groups
+count_engraft = function(engraft, pat_vect, txrm = 'Treatment'){
+    # Is this treatment or remission?
+    if (txrm == 'Treatment'){
+        bl = 'Placebo'
+        tx = 'FMT'
+    } else if (txrm == 'Remission'){
+        bl = 'NoRes'
+        tx = 'Res'
+    }
+    
+    # Subset the engraftment matrix to just the columns identified as FMT or Res
+    # (see above) in the patient vector and take the row sums to get the number
+    # of times each feature was engrafted in the FMT (Res) group
+    engr_tx = engraft[,names(pat_vect[pat_vect == tx])]
+    tx_tot = rowSums(engr_tx)
+    
+    # As above, but with the Placebo/NoRes group
+    engr_bl = engraft[,names(pat_vect[pat_vect == bl])]
+    bl_tot = rowSums(engr_bl)
+    
+    # create a data frame with the two sets of counts as columns
+    engr_ct = cbind(tx_tot, bl_tot)
+    return(engr_ct)
+}
+
+get_stats = function(cts_mat){
+    
+    # Get the difference in number of engrafted features (features where
+    # engraftment is > 0)
+	stat_v = c('fx' = sum(cts_mat[,'tx_tot'] > 0) - sum(cts_mat[,'bl_tot'] > 0),
+	# Get the difference in the number of engraftment events           
+	           'xfx' = sum(cts_mat[,'tx_tot']) - sum(cts_mat[,'bl_tot']),
+	# Get the difference in square-weighted number of engraftment events (weighted
+	# by the number of people they are engrafted in)
+	           'x2fx' = sum(cts_mat[,'tx_tot']^2) - sum(cts_mat[,'bl_tot']^2))
+	return(stat_v)
+}
+
+do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
+                      txrm = NULL){
+    
+    # Check the inputs. Make sure that Treatment vs. Remission is specified if
+    # subsample is set. Set the variables to use lower down.
+    if (subsample > 0){
+        if (is.null(txrm) | !(txrm %in% c('Treatment','Remission'))){
+            stop(paste('If subsample is greater than 0, txrm must be set to',
+                       '"Treatment" or "Remission"'))
+        } else if (txrm == 'Treatment'){
+            bl = 'Placebo'
+            tx = 'FMT'
+        } else if (txrm == 'Remission'){
+            bl = 'NoRes'
+            tx = 'Res'
+        }
+    }
+    
+    # Set seed. Permutations should be the same each time.
+    set.seed(4)
+    
+    # Create an array to put the permuted engraftment counts in
+    cts_array = array(dim = c(dim(cts), nperm))
+    
+    # Add the observed values as the first matrix in the array
+    cts_array[,,1] = cts
+    
+    # Create a matrix to store the permuted test statistic values in
+    stat_mat = matrix(nrow = nperm, ncol = 3)
+    colnames(stat_mat) = c('fx','xfx','x2fx')
+    
+    # Add the observed values as the first row in the matrix
+    stat_mat[1,] = obs
+    
+    # Permute the remaining nperm-1 times
+    for (i in 2:nperm){
+        
+        # Copy the patient vector for permuting
+        perm_pv = pv
+        
+        # We actually permute the names (patient IDs) while keeping the values
+        # (group membership) in place. It doesn't matter.
+        names(perm_pv) = names(pv)[sample(1:length(pv), length(pv))]
+        
+        # If subsample >0, that means the groups are not equal sizes. We need to
+        # subsample down to the smaller group size and take an average to get
+        # unbiased count values
+        if (subsample > 0){
+            
+            # Create an array to hold the subsampled count values
+            cts_sub = array(dim = c(dim(cts), 100), 
+                            dimnames = list(rownames(cts),
+                                            colnames(cts),
+                                            NULL))
+            # subsample 100 times
+            for (j in 1:100){
+                # Sample from both groups the same depth. This should, in
+                # principle, be the depth of one of the groups so sampling will
+                # have a null effect. But since I don't know a priori which
+                # group that is, it doesn't hurt to do it to both.
+                perm_pv_sub = c(sample(perm_pv[perm_pv == tx], subsample),
+                                sample(perm_pv[perm_pv == bl], subsample))
+                
+                # Add the counts from this subsampling to the subsampling array
+                cts_sub[,,j] = count_engraft(engr, perm_pv_sub)
+            }
+            
+            # Take the mean of all the subsamplings to get the counts matrix to
+            # use for calculating the test statistic
+            engr_ct = apply(cts_sub, c(1,2), mean)
+        } else{
+            
+            # If we're not subsampling, just get the count matrix once
+            engr_ct = count_engraft(engr, perm_pv)
+        }
+        # Add the count matrix to its array and the test statistics to their
+        # matrix
+        cts_array[,,i] = engr_ct
+        stat_mat[i,] = get_stats(engr_ct)
+    }
+    
+    # Return a list with the fully permutation information and output so it can
+    # easily be re-run
+    return(list('cts_array' = cts_array, 'stat_mat' = stat_mat, 
+                'perm_pv' = perm_pv))
+}
+
+get_pvals = function(stat_mat){
+	
+    # Create a vector for the three p-values
+	pvals = c()
+
+	# For each column in the matrix of test-statistics, create a function to
+	# identify quantiles and then find the quantile of the first value in the
+	# matrix, which is always the observed value
+	for (i in colnames(stat_mat)){
+		quant = ecdf(stat_mat[,i])
+		p = 1 - quant(stat_mat[1,i])
+		pvals = c(pvals, p)
+	}
+    
+	# Name the p-values to correspond with their respective test statistics
+	names(pvals) = colnames(stat_mat)
+	return(pvals)
+}

@@ -80,6 +80,9 @@ map_mod = (mapfile
 # Converting the markers to long format only needs to be done once, saves 5s per
 # loop
 markers_long = mark_to_long(marker_lvl_RA, core_DonB)
+
+# set seed so that we get the same permutations each time
+set.seed(4)
 for (i in 1:num_permutations) {
   # Permute the Treatment column
   permuted_data <- (map_mod
@@ -89,6 +92,7 @@ for (i in 1:num_permutations) {
                     %>% right_join(select(map_mod, -Treatment))
                     %>% select(-Fig_lab)) # don't need this anymore
   it_res[[i]] = list()
+  it_res[[i]][['raw']] = permuted_data
   it_res[[i]][['counts']] = (markers_long
                              %>% get_engraft(permuted_data, cutoff, 
                                              Treatment %in% c('FMT', 'Placebo'))
@@ -114,6 +118,7 @@ for (i in 1:num_permutations) {
                                  %>% mutate(Treatment = 'Total'))
 }
 
+save(it_res, file = '../permut_data/intermed/16S_it_res.RData')
 ### Permuted AUC
 #approxfun creates an approximate function from the data using imputation
 #integrate performs numerical integration to get the area under the curve
