@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
 ##### Setup #####
+print('Setup')
 
 # Import packages, set working directory, source functions
 library(tidyverse)
@@ -19,6 +20,7 @@ rownames(pvals) = c('FMTvPl_16s','ResvNoRes_16s',
 
 
 ##### 16S Setup #####
+print('16S Setup')
 
 ### Import the data ###
 
@@ -51,8 +53,10 @@ engr_16s = get_engraft(long_mark_16s, mapfile, cutoff_abs_16S, cutoff_pres_16S,
 
 
 #### 16S FMT vs Placebo ####
+print('16S FMT vs Placebo')
 
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 # The uneven numbers in the two groups make our test invalid. Subsample to fix
 # that
@@ -82,6 +86,7 @@ cts_16s = apply(cts_16s_all, c(1,2), mean)
 obs_16s = get_stats(cts_16s)
 
 #### Permute 
+print('Permute')
 
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
@@ -103,7 +108,10 @@ pvals_16s = get_pvals(perms_16s[['stat_mat']])
 pvals['FMTvPl_16s',] = pvals_16s
 
 #### 16S Res vs NoRes ####
+print('16S Res vs NoRes')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 # Subsample 100 times to get means
 cts_16s_rem_all = array(dim = c(1105, 2, 100), 
@@ -132,6 +140,7 @@ obs_16s_rem = get_stats(cts_16s_rem)
 
 
 #### Permute
+print('Permute')
 
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
@@ -150,6 +159,7 @@ pvals['ResvNoRes_16s',] = pvals_16s_rem
 
 
 #### Setup Metagenomics ####
+print('Setup Metagenomics')
 
 # This mapfile is used for every non-16S feature type
 mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
@@ -161,6 +171,8 @@ rs_pv = pat_to_vect(filter(mapfile, Treatment == 'FMT'), 'Fig_lab',
 
 
 #### Species Setup ####
+print('Species Setup')
+
 ### Import the data
 
 # Read in the species-level markers
@@ -200,8 +212,10 @@ engr_sp = get_engraft(long_mark_sp, mapfile, cutoff_abs_sp, cutoff_pres_sp,
 
 
 #### Species FMT vs Placebo ####
+print('Species FMT vs Placebo')
 
 ### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 # Get the engraftment counts and calculate the test statistics
 cts_sp = count_engraft(engr_sp, tx_pv)
@@ -209,6 +223,7 @@ obs_sp = get_stats(cts_sp)
 
 
 ### Permute 
+print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
 nperm = 2000
@@ -224,13 +239,16 @@ pvals['FMTvPl_species',] = pvals_sp
 
 
 #### Species Res vs NoRes ####
+print('Species Res vs NoRes')
 
 ### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_sp_rem = count_engraft(engr_sp, rs_pv, txrm = 'Remission')
 obs_sp_rem = get_stats(cts_sp_rem)
 
 #### Permute
+print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
 nperm = 2000
@@ -245,6 +263,7 @@ pvals_sp_rem = get_pvals(perms_sp_rem[['stat_mat']])
 pvals['ResvNoRes_species',] = pvals_sp_rem
 
 #### Strains Setup ####
+print('Strains Setup')
 
 ### Import the data
 
@@ -283,13 +302,17 @@ engr_st = get_engraft(long_mark_st, mapfile, cutoff_abs_st, cutoff_pres_st,
                        Treatment %in% c('FMT', 'Placebo'))
 
 
-### FMT vs Placebo
+#### Strains FMT vs Placebo ####
+print('Strains FMT vs Placebo')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_st = count_engraft(engr_st, tx_pv)
 obs_st = get_stats(cts_st)
 
 #### Permute 
+print('Permute')
 
 # 1999 permutations plus the observed value go in the null distribution
 nperm = 2000
@@ -303,13 +326,17 @@ pvals_st = get_pvals(perms_st[['stat_mat']])
 (pvals_st = 2*pvals_st)
 pvals['FMTvPl_strain',] = pvals_st
 
-### Res vs NoRes
+#### Strains Res vs NoRes ####
+print('Strains Res vs NoRes')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_st_rem = count_engraft(engr_st, rs_pv, txrm = 'Remission')
 obs_st_rem = get_stats(cts_st_rem)
 
 #### Permute
+print('Permute')
 
 nperm = 2000
 perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv, nperm)
@@ -322,7 +349,9 @@ pvals_st_rem = get_pvals(perms_st_rem[['stat_mat']])
 (pvals_st_rem = 2*pvals_st_rem)
 pvals['ResvNoRes_strain',] = pvals_st_rem
 
-## MAGs
+#### MAGs Setup ####
+print('MAGs Setup')
+
 ### Import the data
 
 # Import the MAG and bin data
@@ -394,13 +423,17 @@ engr_mg = get_engraft(long_mark_mg, mapfile, cutoff_abs_mg, cutoff_pres_mg,
                        Treatment %in% c('FMT', 'Placebo'))
 
 
-### FMT vs Placebo
+#### MAGs FMT vs Placebo ####
+print('MAGs FMT vs Placebo')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_mg = count_engraft(engr_mg, tx_pv)
 obs_mg = get_stats(cts_mg)
 
 #### Permute 
+print('Permute')
 
 nperm = 2000
 perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm)
@@ -412,13 +445,17 @@ pvals_mg = get_pvals(perms_mg[['stat_mat']])
 (pvals_mg = 2*pvals_mg)
 pvals['FMTvPl_mags',] = pvals_mg
 
-### Res vs NoRes
+#### MAGs Res vs NoRes ####
+print('MAGs Res vs NoRes')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_mg_rem = count_engraft(engr_mg, rs_pv, txrm = 'Remission')
 obs_mg_rem = get_stats(cts_mg_rem)
 
 #### Permute
+print('Permute')
 
 nperm = 2000
 perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm)
@@ -431,8 +468,9 @@ pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']])
 pvals['ResvNoRes_mags',] = pvals_mg_rem
 
 
+#### Genes Setup ####
+print('Genes Setup')
 
-## Genes
 ### Import the data
 
 marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
@@ -449,13 +487,17 @@ engr_ge = get_engraft(long_mark_ge, mapfile, cutoff_abs_ge, cutoff_pres_ge,
                        Treatment %in% c('FMT', 'Placebo'))
 
 
-### FMT vs Placebo
+#### Genes FMT vs Placebo ####
+print('Genes FMT vs Placebo')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_ge = count_engraft(engr_ge, tx_pv)
 obs_ge = get_stats(cts_ge)
 
 #### Permute 
+print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 2000
@@ -469,13 +511,17 @@ pvals_ge = get_pvals(perms_ge[['stat_mat']])
 (pvals_ge = 2*pvals_ge)
 pvals['FMTvPl_genes',] = pvals_ge
 
-### Res vs NoRes
+#### Genes Res vs NoRes ####
+print('Genes Res vs NoRes')
+
 #### Calculate the observed test statistics
+print('Calculate the observed test statistics')
 
 cts_ge_rem = count_engraft(engr_ge, rs_pv, txrm = 'Remission')
 obs_ge_rem = get_stats(cts_ge_rem)
 
 #### Permute
+print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 20
@@ -488,5 +534,7 @@ pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']])
 pvals['ResvNoRes_genes',] = pvals_ge_rem
 
 # Write the p-value table
+print('Write the p-value table')
+
 write.csv(pvals, file = '../results/permuation_pvals.csv', 
           row.names = TRUE, col.names = NA)
