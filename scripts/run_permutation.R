@@ -151,7 +151,7 @@ print('Permute')
 nperm = 2000
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
                            subsample = nsamp, txrm = 'Remission')
-perm_16s_rem[['cts_sd_array']][,,1] = cts_16s_rem_sd
+perms_16s_rem[['cts_sd_array']][,,1] = cts_16s_rem_sd
 # Save the permuted data
 save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
 
