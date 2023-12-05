@@ -488,4 +488,5 @@ pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']])
 pvals['ResvNoRes_genes',] = pvals_ge_rem
 
 # Write the p-value table
-write.csv(pvals, file = '../results/permuation_pvals.csv')
+write.csv(pvals, file = '../results/permuation_pvals.csv', 
+          row.names = TRUE, col.names = NA)

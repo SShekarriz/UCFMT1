@@ -16,8 +16,8 @@ mark_to_long = function(marker_lvl, donB = NULL) {
     # in the sample names
     long_markerlvl = (marker_lvl
                       %>% gather(sample_orig, abundance, -Marker)
-                      %>% mutate(sample = case_when(str_detect(sample_orig,"PMCL") ~ 
-                                                        paste(gsub("_.*", "",sample_orig)),
+                 %>% mutate(sample = case_when(str_detect(sample_orig,"PMCL") ~ 
+                                             paste(gsub("_.*", "",sample_orig)),
                                                     TRUE ~ paste(sample_orig))))
     return(long_markerlvl)
 }
@@ -141,6 +141,12 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
     # Add the observed values as the first row in the matrix
     stat_mat[1,] = obs
     
+    # Create a matrix to store the permuted patient ID vectors in
+    perm_pvs = matrix(nrow = nperm, ncol = length(pv))
+    
+    # Put the actual patient vector in the first row
+    perm_pvs[1,] = pv
+    
     # Permute the remaining nperm-1 times
     for (i in 2:nperm){
         
@@ -186,12 +192,13 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
         # matrix
         cts_array[,,i] = engr_ct
         stat_mat[i,] = get_stats(engr_ct)
+        perm_pvs[i,] = perm_pv
     }
     
-    # Return a list with the fully permutation information and output so it can
-    # easily be re-run
+    # Return a list with the full permutation information and output so it can
+    # easily be reused
     return(list('cts_array' = cts_array, 'stat_mat' = stat_mat, 
-                'perm_pv' = perm_pv))
+                'perm_pv' = perm_pvs))
 }
 
 get_pvals = function(stat_mat){
