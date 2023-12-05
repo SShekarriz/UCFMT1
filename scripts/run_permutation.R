@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 ##### Setup #####
 
 # Import packages, set working directory, source functions
@@ -57,6 +59,7 @@ engr_16s = get_engraft(long_mark_16s, mapfile, cutoff_abs_16S, cutoff_pres_16S,
 
 # Find out how many of each group there are. It's 20
 table(tx_pv)
+nsamp = min(table(tx_pv))
 
 # Create an array to store 100 count matrices
 cts_16s_all = array(dim = c(1105, 2, 100), 
@@ -68,7 +71,7 @@ cts_16s_all = array(dim = c(1105, 2, 100),
 for (i in 1:100){
     # Subsample to 20
     tx_pv_sub = tx_pv[tx_pv == 'FMT']
-    tx_pv_sub = c(tx_pv_sub, sample(tx_pv[tx_pv == 'Placebo'], 20))
+    tx_pv_sub = c(tx_pv_sub, sample(tx_pv[tx_pv == 'Placebo'], nsamp))
     cts_16s_all[,,i] = count_engraft(engr_16s, tx_pv_sub)
 }
 
@@ -84,8 +87,8 @@ obs_16s = get_stats(cts_16s)
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
 nperm = 2000
-perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm, subsample = 20,
-                       txrm = 'Treatment')
+perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm, 
+                       subsample = nsamp, txrm = 'Treatment')
 
 # Save the permuted data
 save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
@@ -110,13 +113,14 @@ cts_16s_rem_all = array(dim = c(1105, 2, 100),
 
 # Find out how many of each group there are. It's 6
 table(rs_pv)
+nsamp = min(table(rs_pv))
 
 # Resample (without permuting) from the Placebo group 100 times to get 100 count
 # matrices
 for (i in 1:100){
     # Subsample to 20
     rs_pv_sub = rs_pv[rs_pv == 'Res']
-    rs_pv_sub = c(rs_pv_sub, sample(rs_pv[rs_pv == 'NoRes'], 6))
+    rs_pv_sub = c(rs_pv_sub, sample(rs_pv[rs_pv == 'NoRes'], nsamp))
     cts_16s_rem_all[,,i] = count_engraft(engr_16s, rs_pv_sub)
 }
 
@@ -134,7 +138,7 @@ obs_16s_rem = get_stats(cts_16s_rem)
 # observed value.
 nperm = 2000
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
-                           subsample = 6, txrm = 'Remission')
+                           subsample = nsamp, txrm = 'Remission')
 # Save the permuted data
 save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
 
@@ -287,9 +291,14 @@ obs_st = get_stats(cts_st)
 
 #### Permute 
 
+# 1999 permutations plus the observed value go in the null distribution
 nperm = 2000
 perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv, nperm)
+
+# Save the permuted values
 save(perms_st, file = '../permut_data/intermed/perms_st.RData')
+
+# Calculate, double, and store the p-values
 pvals_st = get_pvals(perms_st[['stat_mat']])
 (pvals_st = 2*pvals_st)
 pvals['FMTvPl_strain',] = pvals_st
@@ -304,7 +313,11 @@ obs_st_rem = get_stats(cts_st_rem)
 
 nperm = 2000
 perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv, nperm)
+
+# Save the permuted values
 save(perms_st_rem, file = '../permut_data/intermed/perms_st_rem.RData')
+
+# calculate, double, and store the p-values
 pvals_st_rem = get_pvals(perms_st_rem[['stat_mat']])
 (pvals_st_rem = 2*pvals_st_rem)
 pvals['ResvNoRes_strain',] = pvals_st_rem
@@ -312,19 +325,20 @@ pvals['ResvNoRes_strain',] = pvals_st_rem
 ## MAGs
 ### Import the data
 
+# Import the MAG and bin data
 c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", header = F)
 c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", header = F)
 colnames(c_inBin) <- c("contig", "bin_id")
 colnames(c_inMAG) <- c("contig", "bin_id")
 
+# Get a vector of the mags
 MAGs = (c_inMAG 
         %>% select(bin_id) 
         %>% distinct() 
         %>% pull())
 
 
-## reading MAG coverage
-
+## read in the MAG coverage
 heads_cover <- c("sample.id",
                  "contig", "startpos", "endpos", 
                  "numreads", "covbases", "coverage", "meandepth",
@@ -345,6 +359,8 @@ marker_lvl_mg = (data.frame(sample.id = paste(dir(path,
                                               "", sample.id)))
 colnames(marker_lvl_mg) <- heads_cover
 
+# Join the coverage info with the bin info, filter to only keep mags, calculate
+# normalized coverage
 marker_lvl_mg = (marker_lvl_mg 
                  %>% left_join(c_inBin) 
                  %>% mutate(bin_q= case_when(bin_id %in% MAGs ~ paste("MAG"),
@@ -358,14 +374,18 @@ marker_lvl_mg = (marker_lvl_mg
                                bin_numreads=sum(numreads),
                                bin_coverage=bin_covbases/bin_len*100))
 
+# Keep only the patient samples, reshape the numbers, and name the Marker column
 marker_lvl_mg = (marker_lvl_mg 
                  %>% filter(str_detect(sample, "PMCL")) 
                  %>% select(sample, bin_id, bin_coverage) 
                  %>% spread(sample, bin_coverage) 
                  %>% rename(Marker= bin_id))
 
+# Set the presence and absence cutoffs for patients. DonorB doesn't need these
+# because all the MAGs come from donor B
 cutoff_pres_mg = 90
 cutoff_abs_mg = 25
+
 
 ### Get the engraftment matrix
 
@@ -384,7 +404,10 @@ obs_mg = get_stats(cts_mg)
 
 nperm = 2000
 perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm)
+# save the permuted data
 save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
+
+# calculate, double, and store the p-values
 pvals_mg = get_pvals(perms_mg[['stat_mat']])
 (pvals_mg = 2*pvals_mg)
 pvals['FMTvPl_mags',] = pvals_mg
@@ -399,16 +422,23 @@ obs_mg_rem = get_stats(cts_mg_rem)
 
 nperm = 2000
 perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm)
+# save the permutations
 save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
+
+# calculate, double, and store the p-values
 pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']])
 (pvals_mg_rem = 2*pvals_mg_rem)
 pvals['ResvNoRes_mags',] = pvals_mg_rem
+
+
 
 ## Genes
 ### Import the data
 
 marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
 
+# Set the presence and absence cutoffs for patients. These aren't used for donor
+# B because all the genes came from the donor B assemblies.
 cutoff_pres_ge = 90
 cutoff_abs_ge = 5
 
@@ -427,12 +457,14 @@ obs_ge = get_stats(cts_ge)
 
 #### Permute 
 
+# This uses tens of GB of RAM and should be done on alpsr only
 nperm = 2000
-start = Sys.time()
 perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv, nperm)
+
+# Save the permutations
 save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
-end = Sys.time()
-end - start
+
+# Calculate, double, and store the p-values
 pvals_ge = get_pvals(perms_ge[['stat_mat']])
 (pvals_ge = 2*pvals_ge)
 pvals['FMTvPl_genes',] = pvals_ge
@@ -445,9 +477,15 @@ obs_ge_rem = get_stats(cts_ge_rem)
 
 #### Permute
 
+# This uses tens of GB of RAM and should be done on alpsr only
 nperm = 20
 perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm)
+# save the permutations
 save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
+# calculated, double, and store the p-values
 pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']])
 (pvals_ge_rem = 2*pvals_ge_rem)
 pvals['ResvNoRes_genes',] = pvals_ge_rem
+
+# Write the p-value table
+write.csv(pvals, file = '../results/permuation_pvals.csv')
