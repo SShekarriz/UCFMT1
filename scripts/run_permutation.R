@@ -535,7 +535,7 @@ obs_ge_rem = get_stats(cts_ge_rem)
 print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
-nperm = 20
+nperm = 2000
 perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm,
                           txrm = 'Remission')
 # save the permutations
