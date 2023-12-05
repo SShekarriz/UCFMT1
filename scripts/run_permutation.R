@@ -231,7 +231,8 @@ print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
 nperm = 2000
-perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm)
+perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm, 
+                      txrm = 'Treatment')
 
 # Save the permuted data so we don't have to do this all again
 save(perms_sp, file = '../permut_data/intermed/perms_sp.RData')
@@ -256,7 +257,8 @@ print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
 nperm = 2000
-perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv, nperm)
+perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv, nperm,
+                          txrm = 'Remission')
 
 # Save the permuted values
 save(perms_sp_rem, file = '../permut_data/intermed/perms_sp_rem.RData')
@@ -320,7 +322,8 @@ print('Permute')
 
 # 1999 permutations plus the observed value go in the null distribution
 nperm = 2000
-perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv, nperm)
+perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv, nperm, 
+                      txrm = 'Treatment')
 
 # Save the permuted values
 save(perms_st, file = '../permut_data/intermed/perms_st.RData')
@@ -343,7 +346,8 @@ obs_st_rem = get_stats(cts_st_rem)
 print('Permute')
 
 nperm = 2000
-perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv, nperm)
+perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv, nperm,
+                          txrm = 'Remission')
 
 # Save the permuted values
 save(perms_st_rem, file = '../permut_data/intermed/perms_st_rem.RData')
@@ -440,7 +444,8 @@ obs_mg = get_stats(cts_mg)
 print('Permute')
 
 nperm = 2000
-perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm)
+perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm,
+                      txrm = 'Treatment')
 # save the permuted data
 save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
 
@@ -462,7 +467,8 @@ obs_mg_rem = get_stats(cts_mg_rem)
 print('Permute')
 
 nperm = 2000
-perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm)
+perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm,
+                          txrm = 'Remission')
 # save the permutations
 save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
 
@@ -505,7 +511,8 @@ print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 2000
-perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv, nperm)
+perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv, nperm,
+                      txrm = 'Treatment')
 
 # Save the permutations
 save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
@@ -529,7 +536,8 @@ print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 20
-perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm)
+perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm,
+                          txrm = 'Remission')
 # save the permutations
 save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
 # calculated, double, and store the p-values

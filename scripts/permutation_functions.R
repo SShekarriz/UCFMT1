@@ -112,11 +112,12 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
     
     # Check the inputs. Make sure that Treatment vs. Remission is specified if
     # subsample is set. Set the variables to use lower down.
+    if (is.null(txrm) | !(txrm %in% c('Treatment','Remission'))){
+        stop(paste('txrm must be set to',
+                   '"Treatment" or "Remission"'))
+    }
     if (subsample > 0){
-        if (is.null(txrm) | !(txrm %in% c('Treatment','Remission'))){
-            stop(paste('If subsample is greater than 0, txrm must be set to',
-                       '"Treatment" or "Remission"'))
-        } else if (txrm == 'Treatment'){
+        if (txrm == 'Treatment'){
             bl = 'Placebo'
             tx = 'FMT'
         } else if (txrm == 'Remission'){
@@ -181,7 +182,7 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
                                 sample(perm_pv[perm_pv == bl], subsample))
                 
                 # Add the counts from this subsampling to the subsampling array
-                cts_sub[,,j] = count_engraft(engr, perm_pv_sub)
+                cts_sub[,,j] = count_engraft(engr, perm_pv_sub, txrm)
             }
             
             # Take the mean of all the subsamplings to get the counts matrix to
@@ -191,7 +192,7 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
         } else{
             
             # If we're not subsampling, just get the count matrix once
-            engr_ct = count_engraft(engr, perm_pv)
+            engr_ct = count_engraft(engr, perm_pv, txrm)
         }
         # Add the count matrix to its array and the test statistics to their
         # matrix
