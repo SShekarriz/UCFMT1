@@ -72,15 +72,17 @@ cts_16s_all = array(dim = c(1105, 2, 100),
                                     NULL))
 # Resample (without permuting) from the Placebo group 100 times to get 100 count
 # matrices
+set.seed(4)
 for (i in 1:100){
     # Subsample to 20
     tx_pv_sub = tx_pv[tx_pv == 'FMT']
     tx_pv_sub = c(tx_pv_sub, sample(tx_pv[tx_pv == 'Placebo'], nsamp))
-    cts_16s_all[,,i] = count_engraft(engr_16s, tx_pv_sub)
+    cts_16s_all[,,i] = count_engraft(engr_16s, tx_pv_sub, 'Treatment')
 }
 
 # Take the average of the 100 matrices to get the observed count
 cts_16s = apply(cts_16s_all, c(1,2), mean)
+cts_16s_sd = apply(cts_16s_all, c(1,2), sd)
 # Calculate the observed value of the three test statistics from the averaged
 # counts
 obs_16s = get_stats(cts_16s)
@@ -94,7 +96,7 @@ print('Permute')
 nperm = 2000
 perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm, 
                        subsample = nsamp, txrm = 'Treatment')
-
+perms_16s[['cts_sd_array']][,,1] = cts_16s_sd
 # Save the permuted data
 save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
 
@@ -105,7 +107,7 @@ pvals_16s = get_pvals(perms_16s[['stat_mat']])
 (pvals_16s = 2*pvals_16s)
 
 # add the p-value to the matrix for plotting
-pvals['FMTvPl_16s',] = pvals_16s
+pvals['FMTvPl_16s',] = round(pvals_16s, 5)
 
 #### 16S Res vs NoRes ####
 print('16S Res vs NoRes')
@@ -129,11 +131,12 @@ for (i in 1:100){
     # Subsample to 20
     rs_pv_sub = rs_pv[rs_pv == 'Res']
     rs_pv_sub = c(rs_pv_sub, sample(rs_pv[rs_pv == 'NoRes'], nsamp))
-    cts_16s_rem_all[,,i] = count_engraft(engr_16s, rs_pv_sub)
+    cts_16s_rem_all[,,i] = count_engraft(engr_16s, rs_pv_sub, 'Remission')
 }
 
 # Take the average of the 100 matrices to get the observed count
 cts_16s_rem = apply(cts_16s_rem_all, c(1,2), mean)
+cts_16s_rem_sd = apply(cts_16s_rem_all, c(1,2), sd)
 # Calculate the observed value of the three test statistics from the averaged
 # counts
 obs_16s_rem = get_stats(cts_16s_rem)
@@ -148,6 +151,7 @@ print('Permute')
 nperm = 2000
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
                            subsample = nsamp, txrm = 'Remission')
+perm_16s_rem[['cts_sd_array']][,,1] = cts_16s_rem_sd
 # Save the permuted data
 save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
 
@@ -155,7 +159,7 @@ save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
 pvals_16s_rem = get_pvals(perms_16s_rem[['stat_mat']])
 pvals_16s_rem
 (pvals_16s_rem = 2 * pvals_16s_rem)
-pvals['ResvNoRes_16s',] = pvals_16s_rem
+pvals['ResvNoRes_16s',] = round(pvals_16s_rem, 5)
 
 
 #### Setup Metagenomics ####
@@ -218,7 +222,7 @@ print('Species FMT vs Placebo')
 print('Calculate the observed test statistics')
 
 # Get the engraftment counts and calculate the test statistics
-cts_sp = count_engraft(engr_sp, tx_pv)
+cts_sp = count_engraft(engr_sp, tx_pv, 'Treatment')
 obs_sp = get_stats(cts_sp)
 
 
@@ -235,7 +239,7 @@ save(perms_sp, file = '../permut_data/intermed/perms_sp.RData')
 # Calculate the p-values, double them, and store them
 pvals_sp = get_pvals(perms_sp[['stat_mat']])
 (pvals_sp = 2*pvals_sp)
-pvals['FMTvPl_species',] = pvals_sp
+pvals['FMTvPl_species',] = round(pvals_sp, 5)
 
 
 #### Species Res vs NoRes ####
@@ -260,7 +264,7 @@ save(perms_sp_rem, file = '../permut_data/intermed/perms_sp_rem.RData')
 # Calculate the p-values, double them, and store them
 pvals_sp_rem = get_pvals(perms_sp_rem[['stat_mat']])
 (pvals_sp_rem = 2*pvals_sp_rem)
-pvals['ResvNoRes_species',] = pvals_sp_rem
+pvals['ResvNoRes_species',] = round(pvals_sp_rem, 5)
 
 #### Strains Setup ####
 print('Strains Setup')
@@ -308,7 +312,7 @@ print('Strains FMT vs Placebo')
 #### Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
-cts_st = count_engraft(engr_st, tx_pv)
+cts_st = count_engraft(engr_st, tx_pv, 'Treatment')
 obs_st = get_stats(cts_st)
 
 #### Permute 
@@ -324,7 +328,7 @@ save(perms_st, file = '../permut_data/intermed/perms_st.RData')
 # Calculate, double, and store the p-values
 pvals_st = get_pvals(perms_st[['stat_mat']])
 (pvals_st = 2*pvals_st)
-pvals['FMTvPl_strain',] = pvals_st
+pvals['FMTvPl_strain',] = round(pvals_st, 5)
 
 #### Strains Res vs NoRes ####
 print('Strains Res vs NoRes')
@@ -347,7 +351,7 @@ save(perms_st_rem, file = '../permut_data/intermed/perms_st_rem.RData')
 # calculate, double, and store the p-values
 pvals_st_rem = get_pvals(perms_st_rem[['stat_mat']])
 (pvals_st_rem = 2*pvals_st_rem)
-pvals['ResvNoRes_strain',] = pvals_st_rem
+pvals['ResvNoRes_strain',] = round(pvals_st_rem, 5)
 
 #### MAGs Setup ####
 print('MAGs Setup')
@@ -429,7 +433,7 @@ print('MAGs FMT vs Placebo')
 #### Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
-cts_mg = count_engraft(engr_mg, tx_pv)
+cts_mg = count_engraft(engr_mg, tx_pv, 'Treatment')
 obs_mg = get_stats(cts_mg)
 
 #### Permute 
@@ -443,7 +447,7 @@ save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
 # calculate, double, and store the p-values
 pvals_mg = get_pvals(perms_mg[['stat_mat']])
 (pvals_mg = 2*pvals_mg)
-pvals['FMTvPl_mags',] = pvals_mg
+pvals['FMTvPl_mags',] = round(pvals_mg, 5)
 
 #### MAGs Res vs NoRes ####
 print('MAGs Res vs NoRes')
@@ -465,7 +469,7 @@ save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
 # calculate, double, and store the p-values
 pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']])
 (pvals_mg_rem = 2*pvals_mg_rem)
-pvals['ResvNoRes_mags',] = pvals_mg_rem
+pvals['ResvNoRes_mags',] = round(pvals_mg_rem, 5)
 
 
 #### Genes Setup ####
@@ -493,7 +497,7 @@ print('Genes FMT vs Placebo')
 #### Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
-cts_ge = count_engraft(engr_ge, tx_pv)
+cts_ge = count_engraft(engr_ge, tx_pv, 'Treatment')
 obs_ge = get_stats(cts_ge)
 
 #### Permute 
@@ -509,7 +513,7 @@ save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
 # Calculate, double, and store the p-values
 pvals_ge = get_pvals(perms_ge[['stat_mat']])
 (pvals_ge = 2*pvals_ge)
-pvals['FMTvPl_genes',] = pvals_ge
+pvals['FMTvPl_genes',] = round(pvals_ge, 5)
 
 #### Genes Res vs NoRes ####
 print('Genes Res vs NoRes')
@@ -531,7 +535,7 @@ save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
 # calculated, double, and store the p-values
 pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']])
 (pvals_ge_rem = 2*pvals_ge_rem)
-pvals['ResvNoRes_genes',] = pvals_ge_rem
+pvals['ResvNoRes_genes',] = round(pvals_ge_rem, 5)
 
 # Write the p-value table
 print('Write the p-value table')

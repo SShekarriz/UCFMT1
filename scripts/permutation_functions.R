@@ -69,7 +69,7 @@ pat_to_vect = function(mapfile, patcol, catcol){
 }
 
 ## Count the number of engrafted features in baseline and non-baseline groups
-count_engraft = function(engraft, pat_vect, txrm = 'Treatment'){
+count_engraft = function(engraft, pat_vect, txrm){
     # Is this treatment or remission?
     if (txrm == 'Treatment'){
         bl = 'Placebo'
@@ -130,6 +130,9 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
     
     # Create an array to put the permuted engraftment counts in
     cts_array = array(dim = c(dim(cts), nperm))
+    if (subsample > 0){
+        cts_sd_array = array(dim = c(dim(cts), nperm))
+    }
     
     # Add the observed values as the first matrix in the array
     cts_array[,,1] = cts
@@ -168,6 +171,7 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
                                             colnames(cts),
                                             NULL))
             # subsample 100 times
+            set.seed(4)
             for (j in 1:100){
                 # Sample from both groups the same depth. This should, in
                 # principle, be the depth of one of the groups so sampling will
@@ -183,6 +187,7 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
             # Take the mean of all the subsamplings to get the counts matrix to
             # use for calculating the test statistic
             engr_ct = apply(cts_sub, c(1,2), mean)
+            engr_sd = apply(cts_sub, c(1,2), sd)
         } else{
             
             # If we're not subsampling, just get the count matrix once
@@ -197,8 +202,13 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
     
     # Return a list with the full permutation information and output so it can
     # easily be reused
-    return(list('cts_array' = cts_array, 'stat_mat' = stat_mat, 
-                'perm_pv' = perm_pvs))
+    ret_l = list('cts_array' = cts_array, 'stat_mat' = stat_mat, 
+                'perm_pv' = perm_pvs)
+    if (subsample > 0){
+        ret_l[['cts_sd_array']] = cts_sd_array
+    }
+    
+    return(ret_l)
 }
 
 get_pvals = function(stat_mat){
