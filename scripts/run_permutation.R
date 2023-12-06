@@ -4,6 +4,7 @@
 print('Setup')
 
 # Import packages, set working directory, source functions
+set.seed(4)
 library(tidyverse)
 setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
 source('./permutation_functions.R')
@@ -70,22 +71,23 @@ cts_16s_all = array(dim = c(1105, 2, 100),
                     dimnames = list(rownames(engr_16s),
                                     c('tx_tot','bl_tot'),
                                     NULL))
+# Create a matrix to store the 100 test statistics
+obs_16s_all = matrix(nrow = 100, ncol = 3)
+
 # Resample (without permuting) from the Placebo group 100 times to get 100 count
 # matrices
-set.seed(4)
 for (i in 1:100){
     # Subsample to 20
     tx_pv_sub = tx_pv[tx_pv == 'FMT']
     tx_pv_sub = c(tx_pv_sub, sample(tx_pv[tx_pv == 'Placebo'], nsamp))
     cts_16s_all[,,i] = count_engraft(engr_16s, tx_pv_sub, 'Treatment')
+    obs_16s_all[i,] = get_stats(cts_16s_all[,,i])
 }
 
-# Take the average of the 100 matrices to get the observed count
+# Calculate the means of the 100 subsampled test statistics
+obs_16s = colMeans(obs_16s_all)
+
 cts_16s = apply(cts_16s_all, c(1,2), mean)
-cts_16s_sd = apply(cts_16s_all, c(1,2), sd)
-# Calculate the observed value of the three test statistics from the averaged
-# counts
-obs_16s = get_stats(cts_16s)
 
 #### Permute 
 print('Permute')
@@ -93,18 +95,14 @@ print('Permute')
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-nperm = 2000
+nperm = 20
 perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm, 
                        subsample = nsamp, txrm = 'Treatment')
-perms_16s[['cts_sd_array']][,,1] = cts_16s_sd
 # Save the permuted data
 save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
 
 # Calculate the p-values
-pvals_16s = get_pvals(perms_16s[['stat_mat']])
-
-# x2 because we're doing a two-tailed test
-(pvals_16s = 2*pvals_16s)
+(pvals_16s = get_pvals(perms_16s[['stat_mat']]))
 
 # add the p-value to the matrix for plotting
 pvals['FMTvPl_16s',] = round(pvals_16s, 5)
@@ -120,10 +118,13 @@ cts_16s_rem_all = array(dim = c(1105, 2, 100),
                     dimnames = list(rownames(engr_16s),
                                     c('tx_tot','bl_tot'),
                                     NULL))
+# Create a matrix to store the 100 test statistics
+obs_16s_rem_all = matrix(nrow = 100, ncol = 3)
 
 # Find out how many of each group there are. It's 6
 table(rs_pv)
 nsamp = min(table(rs_pv))
+
 
 # Resample (without permuting) from the Placebo group 100 times to get 100 count
 # matrices
@@ -132,14 +133,14 @@ for (i in 1:100){
     rs_pv_sub = rs_pv[rs_pv == 'Res']
     rs_pv_sub = c(rs_pv_sub, sample(rs_pv[rs_pv == 'NoRes'], nsamp))
     cts_16s_rem_all[,,i] = count_engraft(engr_16s, rs_pv_sub, 'Remission')
+    obs_16s_rem_all[i,] = get_stats(cts_16s_rem_all[,,i])
 }
 
 # Take the average of the 100 matrices to get the observed count
 cts_16s_rem = apply(cts_16s_rem_all, c(1,2), mean)
-cts_16s_rem_sd = apply(cts_16s_rem_all, c(1,2), sd)
 # Calculate the observed value of the three test statistics from the averaged
 # counts
-obs_16s_rem = get_stats(cts_16s_rem)
+obs_16s_rem = colMeans(obs_16s_rem_all)
 
 
 #### Permute
@@ -148,17 +149,14 @@ print('Permute')
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-nperm = 2000
+nperm = 20
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
                            subsample = nsamp, txrm = 'Remission')
-perms_16s_rem[['cts_sd_array']][,,1] = cts_16s_rem_sd
 # Save the permuted data
 save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
 
 # Calculate, double, and store the p-values
-pvals_16s_rem = get_pvals(perms_16s_rem[['stat_mat']])
-pvals_16s_rem
-(pvals_16s_rem = 2 * pvals_16s_rem)
+(pvals_16s_rem = get_pvals(perms_16s_rem[['stat_mat']]))
 pvals['ResvNoRes_16s',] = round(pvals_16s_rem, 5)
 
 
@@ -230,7 +228,7 @@ obs_sp = get_stats(cts_sp)
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
-nperm = 2000
+nperm = 20
 perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm, 
                       txrm = 'Treatment')
 
@@ -238,8 +236,7 @@ perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm,
 save(perms_sp, file = '../permut_data/intermed/perms_sp.RData')
 
 # Calculate the p-values, double them, and store them
-pvals_sp = get_pvals(perms_sp[['stat_mat']])
-(pvals_sp = 2*pvals_sp)
+(pvals_sp = get_pvals(perms_sp[['stat_mat']]))
 pvals['FMTvPl_species',] = round(pvals_sp, 5)
 
 
@@ -256,7 +253,7 @@ obs_sp_rem = get_stats(cts_sp_rem)
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
-nperm = 2000
+nperm = 20
 perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv, nperm,
                           txrm = 'Remission')
 

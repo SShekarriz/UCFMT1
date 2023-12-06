@@ -126,14 +126,8 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
         }
     }
     
-    # Set seed. Permutations should be the same each time.
-    set.seed(4)
-    
     # Create an array to put the permuted engraftment counts in
     cts_array = array(dim = c(dim(cts), nperm))
-    if (subsample > 0){
-        cts_sd_array = array(dim = c(dim(cts), nperm))
-    }
     
     # Add the observed values as the first matrix in the array
     cts_array[,,1] = cts
@@ -171,8 +165,9 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
                             dimnames = list(rownames(cts),
                                             colnames(cts),
                                             NULL))
+            # Create a matrix to hold the subsampled test statistics
+            stat_sub = matrix(ncol = 3, nrow = 100)
             # subsample 100 times
-            set.seed(4)
             for (j in 1:100){
                 # Sample from both groups the same depth. This should, in
                 # principle, be the depth of one of the groups so sampling will
@@ -183,21 +178,25 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
                 
                 # Add the counts from this subsampling to the subsampling array
                 cts_sub[,,j] = count_engraft(engr, perm_pv_sub, txrm)
+                stat_sub[j,] = get_stats(cts_sub[,,j])
             }
             
-            # Take the mean of all the subsamplings to get the counts matrix to
-            # use for calculating the test statistic
+            
+            # Take the mean of all the subsamplings just to have something
             engr_ct = apply(cts_sub, c(1,2), mean)
             engr_sd = apply(cts_sub, c(1,2), sd)
+            
+            # Take the mean of the test statistics
+            stat_mat[i,] = colMeans(stat_sub)
         } else{
             
-            # If we're not subsampling, just get the count matrix once
+            # If we're not subsampling, just get the count matrix and stats once
             engr_ct = count_engraft(engr, perm_pv, txrm)
+            stat_mat[i,] = get_stats(engr_ct)
         }
         # Add the count matrix to its array and the test statistics to their
         # matrix
         cts_array[,,i] = engr_ct
-        stat_mat[i,] = get_stats(engr_ct)
         perm_pvs[i,] = perm_pv
     }
     
@@ -205,10 +204,6 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
     # easily be reused
     ret_l = list('cts_array' = cts_array, 'stat_mat' = stat_mat, 
                 'perm_pv' = perm_pvs)
-    if (subsample > 0){
-        ret_l[['cts_sd_array']] = cts_sd_array
-    }
-    
     return(ret_l)
 }
 
@@ -228,5 +223,12 @@ get_pvals = function(stat_mat){
     
 	# Name the p-values to correspond with their respective test statistics
 	names(pvals) = colnames(stat_mat)
+	
+	# Correct them so they are two-tailed. NEGATIVE VALUES MEANS THE WRONG
+	# DIRECTION
+	
+	pvals = ifelse(pvals < 0.5,
+	               2*pvals,
+	               -2*(1-pvals))
 	return(pvals)
 }
