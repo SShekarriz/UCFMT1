@@ -85,7 +85,7 @@ count_engraft = function(engraft, pat_vect, txrm){
     engr_tx = engraft[,names(pat_vect[pat_vect == tx])]
     tx_tot = rowSums(engr_tx)
     
-    # As above, but with the Placebo/NoRes group
+    # As above, but with the baseline (Placebo/NoRes) group
     engr_bl = engraft[,names(pat_vect[pat_vect == bl])]
     bl_tot = rowSums(engr_bl)
     

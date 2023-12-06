@@ -95,9 +95,10 @@ print('Permute')
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-nperm = 20
+nperm = 2000
 perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm, 
                        subsample = nsamp, txrm = 'Treatment')
+head(perms_16s[['stat_mat']])
 # Save the permuted data
 save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
 
@@ -149,9 +150,10 @@ print('Permute')
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-nperm = 20
+nperm = 2000
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
                            subsample = nsamp, txrm = 'Remission')
+head(perms_16s_rem[['stat_mat']])
 # Save the permuted data
 save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
 
@@ -228,9 +230,10 @@ obs_sp = get_stats(cts_sp)
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
-nperm = 20
+nperm = 2000
 perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm, 
                       txrm = 'Treatment')
+head(perms_sp[['stat_mat']])
 
 # Save the permuted data so we don't have to do this all again
 save(perms_sp, file = '../permut_data/intermed/perms_sp.RData')
@@ -253,16 +256,16 @@ obs_sp_rem = get_stats(cts_sp_rem)
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
-nperm = 20
+nperm = 2000
 perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv, nperm,
                           txrm = 'Remission')
+head(perms_sp_rem[['stat_mat']])
 
 # Save the permuted values
 save(perms_sp_rem, file = '../permut_data/intermed/perms_sp_rem.RData')
 
 # Calculate the p-values, double them, and store them
-pvals_sp_rem = get_pvals(perms_sp_rem[['stat_mat']])
-(pvals_sp_rem = 2*pvals_sp_rem)
+(pvals_sp_rem = get_pvals(perms_sp_rem[['stat_mat']]))
 pvals['ResvNoRes_species',] = round(pvals_sp_rem, 5)
 
 #### Strains Setup ####
@@ -321,13 +324,13 @@ print('Permute')
 nperm = 2000
 perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv, nperm, 
                       txrm = 'Treatment')
+head(perms_st[['stat_mat']])
 
 # Save the permuted values
 save(perms_st, file = '../permut_data/intermed/perms_st.RData')
 
 # Calculate, double, and store the p-values
-pvals_st = get_pvals(perms_st[['stat_mat']])
-(pvals_st = 2*pvals_st)
+(pvals_st = get_pvals(perms_st[['stat_mat']]))
 pvals['FMTvPl_strain',] = round(pvals_st, 5)
 
 #### Strains Res vs NoRes ####
@@ -345,13 +348,13 @@ print('Permute')
 nperm = 2000
 perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv, nperm,
                           txrm = 'Remission')
+head(perms_st_rem[['stat_mat']])
 
 # Save the permuted values
 save(perms_st_rem, file = '../permut_data/intermed/perms_st_rem.RData')
 
 # calculate, double, and store the p-values
-pvals_st_rem = get_pvals(perms_st_rem[['stat_mat']])
-(pvals_st_rem = 2*pvals_st_rem)
+(pvals_st_rem = get_pvals(perms_st_rem[['stat_mat']]))
 pvals['ResvNoRes_strain',] = round(pvals_st_rem, 5)
 
 #### MAGs Setup ####
@@ -443,12 +446,12 @@ print('Permute')
 nperm = 2000
 perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm,
                       txrm = 'Treatment')
+head(perms_mg[['stat_mat']])
 # save the permuted data
 save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
 
 # calculate, double, and store the p-values
-pvals_mg = get_pvals(perms_mg[['stat_mat']])
-(pvals_mg = 2*pvals_mg)
+(pvals_mg = get_pvals(perms_mg[['stat_mat']]))
 pvals['FMTvPl_mags',] = round(pvals_mg, 5)
 
 #### MAGs Res vs NoRes ####
@@ -466,12 +469,12 @@ print('Permute')
 nperm = 2000
 perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm,
                           txrm = 'Remission')
+head(perms_mg_rem[['stat_mat']])
 # save the permutations
 save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
 
 # calculate, double, and store the p-values
-pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']])
-(pvals_mg_rem = 2*pvals_mg_rem)
+(pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']]))
 pvals['ResvNoRes_mags',] = round(pvals_mg_rem, 5)
 
 
@@ -510,13 +513,13 @@ print('Permute')
 nperm = 2000
 perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv, nperm,
                       txrm = 'Treatment')
+head(perms_ge[['stat_mat']])
 
 # Save the permutations
 save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
 
 # Calculate, double, and store the p-values
-pvals_ge = get_pvals(perms_ge[['stat_mat']])
-(pvals_ge = 2*pvals_ge)
+(pvals_ge = get_pvals(perms_ge[['stat_mat']]))
 pvals['FMTvPl_genes',] = round(pvals_ge, 5)
 
 #### Genes Res vs NoRes ####
@@ -535,11 +538,11 @@ print('Permute')
 nperm = 2000
 perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm,
                           txrm = 'Remission')
+head(perms_ge_rem[['stat_mat']])
 # save the permutations
 save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
 # calculated, double, and store the p-values
-pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']])
-(pvals_ge_rem = 2*pvals_ge_rem)
+(pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']]))
 pvals['ResvNoRes_genes',] = round(pvals_ge_rem, 5)
 
 # Write the p-value table
