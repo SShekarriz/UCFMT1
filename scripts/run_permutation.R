@@ -6,7 +6,7 @@ print('Setup')
 # Import packages, set working directory, source functions
 set.seed(4)
 library(tidyverse)
-setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
+# setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
 source('./permutation_functions.R')
 
 # Create the p-value storage matrix
