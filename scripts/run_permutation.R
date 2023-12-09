@@ -6,6 +6,7 @@ print('Setup')
 # Import packages, set working directory, source functions
 set.seed(4)
 library(tidyverse)
+theme_set(theme_bw())
 # setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
 source('./permutation_functions.R')
 
@@ -67,7 +68,7 @@ table(tx_pv)
 nsamp = min(table(tx_pv))
 
 # Create an array to store 100 count matrices
-cts_16s_all = array(dim = c(1105, 2, 100), 
+cts_16s_all = array(dim = c(nrow(engr_16s), 2, 100),
                     dimnames = list(rownames(engr_16s),
                                     c('tx_tot','bl_tot'),
                                     NULL))
@@ -88,6 +89,34 @@ for (i in 1:100){
 obs_16s = colMeans(obs_16s_all)
 
 cts_16s = apply(cts_16s_all, c(1,2), mean)
+
+# Create a graph to check this against Sharok's data
+cts_16s_plt = count_engraft(engr_16s, tx_pv, 'Treatment')
+(cts_16s_fmt = table(cts_16s_plt[,1]))
+(cts_16s_plc = table(cts_16s_plt[,2]))
+
+plt_mat_16s = matrix(nrow = 11, ncol = 2)
+rownames(plt_mat_16s) = as.character(0:10)
+colnames(plt_mat_16s) = c('FMT', 'Placebo')
+plt_mat_16s[names(cts_16s_fmt),'FMT'] = cts_16s_fmt
+plt_mat_16s[names(cts_16s_plc),'Placebo'] = cts_16s_plc
+plt_mat_16s
+plt_mat_16s = plt_mat_16s[-1,]
+plt_mat_16s[is.na(plt_mat_16s)] = 0
+
+plt_df_16s = (plt_mat_16s
+              %>% data.frame()
+              %>% rownames_to_column('Npats')
+              %>% mutate(Npats = as.numeric(Npats))
+              %>% pivot_longer(names_to = 'Treatment', values_to = 'Count',
+                               -Npats))
+plt_df_16s
+ggplot(plt_df_16s, aes(Npats, Count, colour = Treatment)) +
+    geom_point() +
+    geom_line() +
+    scale_x_continuous(breaks = 1:10)
+
+# This does not match Sharok's graph. Will have to track that down.
 
 #### Permute 
 print('Permute')
@@ -115,7 +144,7 @@ print('16S Res vs NoRes')
 print('Calculate the observed test statistics')
 
 # Subsample 100 times to get means
-cts_16s_rem_all = array(dim = c(1105, 2, 100), 
+cts_16s_rem_all = array(dim = c(nrow(engr_16s), 2, 100), 
                     dimnames = list(rownames(engr_16s),
                                     c('tx_tot','bl_tot'),
                                     NULL))
@@ -143,6 +172,33 @@ cts_16s_rem = apply(cts_16s_rem_all, c(1,2), mean)
 # counts
 obs_16s_rem = colMeans(obs_16s_rem_all)
 
+# Create the graph to check against Sharok
+cts_16s_plt_rem = count_engraft(engr_16s, rs_pv, 'Remission')
+(cts_16s_fmt_rem = table(cts_16s_plt_rem[,1]))
+(cts_16s_plc_rem = table(cts_16s_plt_rem[,2]))
+
+plt_mat_16s_rem = matrix(nrow = 8, ncol = 2)
+rownames(plt_mat_16s_rem) = as.character(0:7)
+colnames(plt_mat_16s_rem) = c('FMT', 'Placebo')
+plt_mat_16s_rem[names(cts_16s_fmt_rem),'FMT'] = cts_16s_fmt_rem
+plt_mat_16s_rem[names(cts_16s_plc_rem),'Placebo'] = cts_16s_plc_rem
+plt_mat_16s_rem
+plt_mat_16s_rem = plt_mat_16s_rem[-1,]
+plt_mat_16s_rem[is.na(plt_mat_16s_rem)] = 0
+
+plt_df_16s_rem = (plt_mat_16s_rem
+              %>% data.frame()
+              %>% rownames_to_column('Npats')
+              %>% mutate(Npats = as.numeric(Npats))
+              %>% pivot_longer(names_to = 'Treatment', values_to = 'Count',
+                               -Npats))
+plt_df_16s_rem
+ggplot(plt_df_16s_rem, aes(Npats, Count, colour = Treatment)) +
+    geom_point() +
+    geom_line() +
+    scale_x_continuous(breaks = 1:10)
+
+# This does not match Sharok's plot
 
 #### Permute
 print('Permute')
@@ -223,6 +279,30 @@ print('Calculate the observed test statistics')
 
 # Get the engraftment counts and calculate the test statistics
 cts_sp = count_engraft(engr_sp, tx_pv, 'Treatment')
+# Make the species graph
+tx_tab = table(cts_sp[,'tx_tot'])
+bl_tab = table(cts_sp[,'bl_tot'])
+tab_mat = matrix(nrow = 6, ncol = 2)
+rownames(tab_mat) = as.character(0:5)
+colnames(tab_mat) = c('FMT', 'Placebo')
+tab_mat[names(tx_tab),'FMT'] = tx_tab
+tab_mat[names(bl_tab),'Placebo'] = bl_tab
+tab_mat
+plt_df = (tab_mat
+          %>% data.frame()
+          %>% rownames_to_column('Npats')
+          %>% pivot_longer(names_to = 'Treatment', values_to = 'Counts',
+                           -Npats)
+          %>% filter(Npats != '0'))
+head(plt_df)
+plt_sp_jcsz = ggplot(plt_df, aes(x = as.numeric(Npats), y = Counts, colour = Treatment)) +
+    geom_point() +
+    geom_line() +
+    scale_x_continuous(breaks = 0:5) +
+    theme_bw()
+plt_sp_jcsz
+
+save(plt_sp_jcsz, file = '../debug/plt_sp_jcsz.RData')
 obs_sp = get_stats(cts_sp)
 
 
@@ -316,6 +396,32 @@ print('Calculate the observed test statistics')
 
 cts_st = count_engraft(engr_st, tx_pv, 'Treatment')
 obs_st = get_stats(cts_st)
+
+# Create a graph to check this against Sharok's data
+(cts_sp_fmt = table(cts_sp[,1]))
+(cts_sp_plc = table(cts_sp[,2]))
+plt_mat_sp = matrix(nrow = 6, ncol = 2)
+rownames(plt_mat_sp) = as.character(0:5)
+colnames(plt_mat_sp) = c('FMT', 'Placebo')
+plt_mat_sp[names(cts_sp_fmt),'FMT'] = cts_sp_fmt
+plt_mat_sp[names(cts_sp_plc),'Placebo'] = cts_sp_plc
+plt_mat_sp
+plt_mat_sp = plt_mat_sp[-1,]
+plt_mat_sp[is.na(plt_mat_sp)] = 0
+
+plt_df_sp = (plt_mat_sp
+              %>% data.frame()
+              %>% rownames_to_column('Npats')
+              %>% mutate(Npats = as.numeric(Npats))
+              %>% pivot_longer(names_to = 'Treatment', values_to = 'Count',
+                               -Npats))
+plt_df_sp
+ggplot(plt_df_sp, aes(Npats, Count, colour = Treatment)) +
+    geom_point() +
+    geom_line() +
+    scale_x_continuous(breaks = 1:10)
+
+# Does not match Sharok's plot
 
 #### Permute 
 print('Permute')

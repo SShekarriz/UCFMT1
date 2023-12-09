@@ -24,7 +24,7 @@ mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
 ```{r}
 
 heads_cover <- c("sample.id",
-                 "gene_id", "startpos", "endpos", 
+                 "gene_id", "startpos", "endpos",
                  "numreads", "covbases", "coverage", "meandepth",
                  "meanbaseq", "meanmapq",
                  "ReadSampling", "Quality")
@@ -49,6 +49,8 @@ marker_lvl_RA %>%
   filter(meandepth >= 1) %>% select(-meandepth) %>%
   rename(Marker=gene_id) %>%
   spread(sample.id, coverage, fill=0) -> marker_lvl_RA
+save(marker_lvl_RA, file = '../data/perfect_mapping/meta_genes_marker_lvl_RA.RData')
+load('../data/perfect_mapping/meta_genes_marker_lvl_RA.RData')
   
 cutoff = 90
 
@@ -59,7 +61,7 @@ cutoff = 90
 
 ```{r}
 # Make the marker data frame long
-mark_to_long = function(marker_lvl) {
+mark_to_long_sh = function(marker_lvl) {
   # This can be done once. It doesn't need to be repeated each time
   # convert marker-lvl to long format and make StudyID variable to match mapfile
   # and select only donor's strains
@@ -74,7 +76,7 @@ mark_to_long = function(marker_lvl) {
 ################################################################################
 # a function to detect common engraftment based on strains (metaphlan markers)
 ################################################################################
-get_engraft <- function(long_markerlvl, mapfile, cutoff=cutoff, ...){
+get_engraft_sh <- function(long_markerlvl, mapfile, cutoff=cutoff, ...){
   # complete list of engrafted
   engraft <- (long_markerlvl 
               %>% left_join(mapfile) 
@@ -88,7 +90,7 @@ get_engraft <- function(long_markerlvl, mapfile, cutoff=cutoff, ...){
   return(engraft)
 }
 
-count_engraft <- function(engraft, group_cols){
+count_engraft_sh <- function(engraft, group_cols){
   # Count how many markers engrafted in how many patients
   g1 = group_cols
   g2 = c('Marker', group_cols)
@@ -123,11 +125,11 @@ map_mod = (mapfile
 
 # Converting the markers to long format only needs to be done once, saves 5s per
 # loop
-markers_long = mark_to_long(marker_lvl_RA)
+markers_long = mark_to_long_sh(marker_lvl_RA)
 
 cts = (markers_long
-       %>% get_engraft(map_mod, cutoff, 
-                       Treatment %in% c('FMT', 'Placebo'))
+       %>% get_engraft_sh(map_mod, cutoff, 
+                       Treatment %in% c('FMT', 'Placebo')))
        %>% count_engraft(group_cols = 'Treatment')
        %>% mutate(Uniqueness = 
                     case_when(FMT == 0 & Placebo == 0 ~ 'zero',
@@ -308,7 +310,7 @@ f3 <- ggplot(plt_df, aes(Npts, n, color=Remission)) +
   theme_classic() +
   theme(legend.position = "none",
         axis.title = element_blank())
-
+f3
 ```
 
 ### saving figure

@@ -9,7 +9,7 @@ mark_to_long = function(marker_lvl, donB = NULL) {
     if(!is.null(donB)){
         # But if there is such a list, remove any features that are absent from
         # it
-        markerlvl = filter(marker_lvl, Marker %in% donB)
+        marker_lvl = filter(marker_lvl, Marker %in% donB)
     } 
     
     # Gather the marker data frame to a long format and fix the naming problems
