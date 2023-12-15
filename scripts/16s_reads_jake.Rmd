@@ -1,0 +1,515 @@
+---
+title: "16S analysis"
+author: "Sharok"
+date: "2023-06-28"
+output: html_document
+---
+
+I'm not getting sensible/consistent results when I try to trim down the 16S data 
+to only use ASVs that are present at >0.1% abundance in donor B. I feel like there
+is a lot of data maniupation in the original script that is not strictly necessary 
+and it's making debugging hard, so I'm redoing some stuff here.
+
+```{r}
+
+library(tidyverse)
+library(phyloseq)
+library(AfterSl1p)
+library(tidytext)
+
+```
+
+This is all fine:
+
+```{r}
+
+Mapfile <- read.csv("../data/16s/UCFMT1_16Smap.txt", sep = "\t")
+
+#Importing the Dada2 sequece variants file
+seqtab.nochim <- readRDS("../data/16s/mergetab_nochim_UCFMT1_16SJosie.rds")
+# Importing taxonomic assignment
+taxa <- readRDS("../data/16s/taxa_UCFMT1_16SJosie_gg2013.rds")
+
+# add rowname to mapfile so phyloseq can read
+rownames(Mapfile) <- Mapfile$X.SampleID
+
+#import the data into phyloseq:
+ps <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=FALSE), 
+               sample_data(Mapfile), 
+               tax_table(taxa))
+ps
+
+############################################################
+#### REMOVING SAMPLES THAT ARE NOT PAIRED ##################
+############################################################
+# PTs AA64 and SW68 do not have timpoint6 samples so taking them out!
+# PT NS73 has only timepoint6 so taking it out as well
+# 3 X SAMPLES REMOVED HERE!
+sample_data(ps) <- subset_samples(ps, !Donor %in% c("AA64", "SW68", "NS73"))
+############################################################
+# REMOVING SAMPLES THAT HAVE BELOW 5K READS
+############################################################
+# HERE IS THE READ PLOT
+#depth_plt <- plot_read_depth(ps) +
+#	theme_minimal()
+#depth_plt
+# find the samples with low read numbers anything below 10,000
+#data.frame(sample_sums(ps)) %>%
+#   tibble::rownames_to_column("X.SampleID") %>%
+#    rename(read_length = sample_sums.ps.)) %>%
+#    right_join(data.frame(sample_data(ps)), by = "X.SampleID") %>% 
+#    filter(read_length <= 10000) -> low_read_numbers
+
+########## THERE ARE THREE SAMPLES BELOW 10,000 READS:#####################
+# PBH48: 212reads > A0, Non-responder, DonorB <<< REMOVED THIS FOR NOW >>>
+# KPM41: 2959reads> A0, Responders,    DonorD <<< REMOVED THIS FOR NOW >>>
+# CM44:  8883reads> A0, Non-responder, DonorB
+# ND1:  14728reads> A6, Non-responder, DonorC
+sample_data(ps) <- subset_samples(ps, !Donor %in% c("PBH48", "KPM41"))
+
+# STILL SOUNDS LIKE WE HAVE TWO OUTLIER!? SHOULD I TAKE THEM OUT?
+# DB16: 357838reads> A6, Non-responder, Not clear donor
+###########################################################################
+
+##############################################################################
+# A NEW PHYLOSEQ OBJECT: ALL PTS WHO GET DONORB, Placebo AND DONORB SAMPLES
+##############################################################################
+
+ps_DonB <- subset_samples(ps, MajorDonor %in% c("B", "Placebo") | Donor == "DonorB")
+ps_DonB_rel <- ps_DonB %>%
+transform_sample_counts(function(x) {x/sum(x)} )# Transform to rel. abundance
+
+ps_DonB_rel
+
+```
+
+##Description of DonorB 16S data:
+These are all the patients who receive FMT from donorB (Major donor) and all the
+16S samples collected from DonorB as well as placebo samples.
+
+40 samples from Patients + 34 DonorB + 62 placebo
+40= 20(2xtimepoint) : baseline and after FMT
+20= 14 Non-responders patients + 6 Responder patients
+31(Placebo) = 2(Responder) + 29(Non-responder)
+
+## engraftment cutoff
+based on relative abundance
+
+Jake:
+This is where I start to find it confusing:
+
+```{r}
+
+#extracting donorB's ASVs:
+subset_samples(ps_DonB_rel, donorB %in% c("DonB")) -> onlyDonB
+onlyDonB
+# I'm just starting by removing any ASVs that are not >0 in donor B
+onlyDonB = prune_taxa(taxa_sums(onlyDonB) > 0, onlyDonB)
+onlyDonB
+
+# Since I added the line removing the ASVs that were zero everywhere, this 
+# manipulation where we make it wide and then count the values is not needed.
+# Instead, we can just get the taxon names directly
+
+# # Now we can melt it
+# psmelt(onlyDonB) -> df_DonB
+# head(df_DonB)
+# 
+# 
+# core_DonB = taxa_names(onlyDonB)
+# length(core_DonB)
+
+# df_DonB %>%
+#   add_rownames("ASVn") %>%
+#   select(ASVn, OTU, Phylum, Family, Genus, Sample, Abundance) %>%
+#   spread(Sample, Abundance, fill=0) -> df_DonB_wide
+
+#df_DonB_wide %>%
+#  select(OTU) %>% distinct() %>%
+#  pull(OTU) -> core_DonB
+
+# selecting ASVs that are present at least in one DonorB samples:
+#df_DonB_wide[rowSums(df_DonB_wide[,6:39] > 0) >= 1, ] %>%
+# df_DonB_wide[rowSums(df_DonB_wide[,6:39] > 0) >= 1, ] %>%
+#   select(OTU) %>% distinct() %>%
+#   pull(OTU)-> core_DonB
+
+# Finding DonB ASVs in the whole DonorB dataset
+subset_taxa(ps_DonB_rel,
+            rownames(tax_table(ps_DonB_rel)) %in% core_DonB) -> core_DonB_ps
+core_DonB_ps <- prop_tax_down(core_DonB_ps, TRUE, dbig = FALSE)
+
+
+# a function to filter ASV above cutoff:
+Fpos_finder <- function(core_DonB_ps, cutoff){
+
+  subset_samples(core_DonB_ps, Fig_lab == "DonB") %>%
+  psmelt() -> table  # I think this pulls out the DonorB samples
+  # total number of unqiue ASV in each sample
+  table %>%
+    filter(Abundance > 0) %>% 
+    group_by(Sample) %>%
+    summarise(total=n()) -> total.marker
+  
+  # total number of unique marker above cutoff
+  table %>%
+    select(OTU, Sample, Abundance, Fig_lab, Timepoint, Treatment) %>%
+    filter(Abundance >= cutoff) %>%
+    group_by(Sample) %>%
+    summarise(pos_n=n()) %>%
+    left_join(total.marker) %>%
+    mutate(pos_p=pos_n/total * 100) %>%
+    mutate(cutoff=paste(cutoff))
+}
+
+# comparison of detection cut-offs
+Fpos_visualizer <- function(table) {
+  
+  vector <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1)
+  vector <- as.character(vector)  # Convert vector to character for proper factor levels
+  
+  res <- list()
+  for (i in vector) {
+    res[[i]] <- Fpos_finder(table, as.numeric(i))
+  }
+  
+  tbl <- do.call(rbind.data.frame, res)
+  tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+  
+  ggplot(tbl, aes(cutoff, pos_p, color="DonorB(n=34)")) +
+    geom_line(aes(group = Sample)) +
+    theme_bw() +
+    scale_color_manual(values = c("DonorB(n=34)" = "#31a354")) +
+    theme(legend.position = c(0.8,0.7),
+          legend.title = element_blank()) +
+    xlab("Relative abundance (%)") +
+    ylab("% of unique ASVs")
+}
+
+Fpos_visualizer(core_DonB_ps)
+ggsave("../figs/16S_ASV_cutoff.png",
+       width = 14, height = 7, units = "cm")
+
+#based on this the right cutoff= 0.0001
+
+# Since that's the cutoff, I'll use it
+
+# Find the taxa in onlyDonB that are t least 0.0001 in at least one sample.
+# Taxa are columns, so
+keep = (colSums(otu_table(onlyDonB) > 0.0001)>1)
+onlyDonB_core = prune_taxa(keep, onlyDonB)
+onlyDonB_core
+
+core_DonB = taxa_names(onlyDonB_core)
+```
+
+## a standard input data for the functions
+
+```{r}
+
+ps_DonB_rel %>%
+  psmelt() %>%
+  #remove DonB ASVs
+  filter(Fig_lab != "DonB") %>%
+  mutate(Study_ID= paste("PMCL", Sample, sep = "")) -> tbl
+
+tbl %>%
+  select(Study_ID, Fig_lab, Timepoint, Treatment, Remission) %>%
+  distinct()-> mapfile
+write.csv(mapfile, "../data/UCFMT1_16Smap.txt",
+          quote = F, row.names = F)
+
+tbl %>%
+  select(OTU, Kingdom:Species) %>%
+  rename(Marker=OTU) %>%
+  distinct()-> marker_lvl_lineage
+  
+tbl %>%
+  select(OTU, Study_ID, Abundance) %>%
+  rename(Marker=OTU) %>%
+  spread(Study_ID, Abundance) -> marker_lvl_RA
+write.csv(marker_lvl_RA, "../data/16s_lvl_RA.csv",
+          quote = F, row.names = F)
+
+#save donor B ASVs
+write.csv(core_DonB, "../data/jcsz_16s_core_DonB.csv",
+          quote = F, row.names = F)
+
+cutoff = 0.0001
+
+
+```
+
+
+## Functions
+
+```{r}
+# Make the marker data frame long
+mark_to_long = function(marker_lvl, strains) {
+    # This can be done once. It doesn't need to be repeated each time
+    # convert marker-lvl to long format and make StudyID variable to match mapfile
+    # and select only donor's strains
+    marker_lvl %>%
+        filter(Marker %in% strains) %>%
+        gather(sample, abundance, -Marker) %>%
+        mutate(Study_ID = case_when(
+            str_detect(sample,"PMCL") ~ paste(gsub("_.*", "",sample)),
+            TRUE ~ paste(sample))) -> long_markerlvl
+    return(long_markerlvl)
+}
+
+################################################################################
+# a function to detect common engraftment based on strains (metaphlan markers)
+################################################################################
+get_engraft <- function(long_markerlvl, mapfile, cutoff=cutoff, ...){
+  # complete list of engrafted
+  engraft <- (long_markerlvl 
+              %>% left_join(mapfile) 
+              %>% filter(...)
+              %>% spread(Timepoint, abundance, fill = 0) 
+              %>% filter(WK0 <= 0 & WK6 > cutoff) 
+              %>% select(Marker, Study_ID, WK6) 
+              %>% spread(Study_ID, WK6, fill = 0) 
+              %>% gather(Study_ID, WK6, -Marker)
+              %>% left_join(mapfile))
+    return(engraft)
+}
+
+count_engraft <- function(engraft, group_cols){
+  # Count how many markers engrafted in how many patients
+  g1 = group_cols
+  g2 = c('Marker', group_cols)
+  ct_df = (engraft
+           %>% group_by(.[,g2])
+           %>% summarize(n = sum(WK6 > 0))
+           %>% pivot_wider(names_from = {{ g1 }},
+                           values_from = n)
+           %>% ungroup()
+           %>% mutate(Total = rowSums(across(2:ncol(.)))))
+    # Uncomment the next bit if you want the cumulative sums, but it adds 0.8s
+    # to the run time!
+    # ct_df = (ct_df
+    #          %>% mutate(n = rev(cumsum(rev(n))))) 
+    return(ct_df)
+    
+}
+
+################################################################################
+
+
+```
+
+
+### Observed AUC: FMT vs Placebo
+
+```{r}
+
+# Remove unnecessary columns from the mapfile to speed up the loop (saves 10s per 
+# loop)
+map_mod = (mapfile
+           %>% select(Study_ID, Timepoint, Treatment, Fig_lab))
+
+# Converting the markers to long format only needs to be done once, saves 5s per
+# loop
+markers_long = mark_to_long(marker_lvl_RA, core_DonB)
+
+cts = (markers_long
+       %>% get_engraft(map_mod, cutoff, 
+                       Treatment %in% c('FMT', 'Placebo'))
+       %>% count_engraft(group_cols = 'Treatment')
+       %>% mutate(Uniqueness = 
+                    case_when(FMT == 0 & Placebo == 0 ~ 'zero',
+                              FMT == 0 ~ 'Placebo',
+                              Placebo == 0 ~ 'FMT',
+                              TRUE ~ 'Both'),
+                  it = 'observed'))
+npts_tx = rbind(
+  (cts
+   %>% count(FMT)
+   %>% rename(Npts = FMT)
+   %>% mutate(Treatment = 'FMT')),
+  (cts
+   %>% count(Placebo)
+   %>% rename(Npts = Placebo)
+   %>% mutate(Treatment = 'Placebo')))
+
+fmt_fn = with(filter(npts_tx, Treatment == 'FMT'),
+              approxfun(Npts, n))
+plc_fn = with(filter(npts_tx, Treatment == 'Placebo'),
+               approxfun(Npts, n))
+fmt_auc = with(filter(npts_tx, Treatment == 'FMT'),
+                   integrate(fmt_fn, 1, max(Npts))$value)
+plc_auc = with(filter(npts_tx, Treatment == 'Placebo'),
+                   integrate(plc_fn, 1,  max(Npts), subdivisions = 150)$value)
+
+obs_d_auc = fmt_auc - plc_auc
+
+obs_d_auc
+
+```
+
+### Get observed AUC p-value: FMT vs Placebo
+loading permuated data "auc_null"
+
+```{r}
+
+# load data:
+auc_null<- read.csv("../permut_data/16s_auc_null.txt",
+                    sep = "\t")
+
+# Get the observed FMT values
+ggplot(data.frame(auc_null), aes(x = deltaAUC)) +
+    geom_density() +
+    geom_vline(xintercept = obs_d_auc) +
+  theme_classic()
+
+# Place that difference on the null distribution of differences and get its p-value
+quant_fun = ecdf(auc_null[,1])
+auc_pval = 1 - quant_fun(obs_d_auc)
+auc_pval
+
+# merging the results together:
+plt_df = filter(npts_tx, Npts > 0)
+ribdat = plt_df %>% spread(Treatment, n, fill = 0)
+  
+cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999")
+
+f1 <- ggplot(plt_df, aes(Npts, n, color=Treatment)) +
+  geom_point() + geom_line() +
+  geom_ribbon(data = ribdat, aes(ymin=Placebo,ymax=FMT, x = Npts),
+              linetype=2, alpha=0.1, inherit.aes = FALSE)+
+  annotate("text", x=9, y=90, size=2,
+          label= paste("Permutation test,\n p=", auc_pval, sep = " ")) +
+  scale_x_continuous(breaks = seq(0, max(plt_df$Npts), 1)) +
+  scale_color_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        legend.title = element_blank(),
+        axis.title = element_blank())
+```
+
+
+## Uniqueness
+test whether the engrafted markers within FMT and Placebo are shared between
+these groups or unique to each treatment
+
+```{r}
+
+plt2_df = (cts
+           %>% count(Total, Uniqueness)
+           %>% group_by(Total))
+
+
+cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999",
+          "Both" = "#fc8d59")
+
+f2 <- ggplot(plt2_df, aes(x = Total, y = n, fill = Uniqueness)) +
+  geom_bar(stat = 'identity') +
+  scale_fill_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank()) 
+
+```
+
+### Observed AUC: Res vs No-Res
+
+```{r}
+
+# Remove unnecessary columns from the mapfile to speed up the loop (saves 10s per 
+# loop)
+map_mod = (mapfile
+           %>% filter(Treatment == 'FMT')
+           %>% select(Study_ID, Timepoint, Remission, Fig_lab))
+
+fmt_cts = (markers_long
+       %>% get_engraft(map_mod, cutoff, 
+                       Remission %in% c('Res', 'NoRes'))
+       %>% count_engraft(group_cols = 'Remission')
+       %>% mutate(Uniqueness = 
+                    case_when(Res == 0 & NoRes == 0 ~ 'zero',
+                              Res == 0 ~ 'NoRes',
+                              NoRes == 0 ~ 'Res',
+                              TRUE ~ 'Both'),
+                  it = 'observed'))
+npts_fmt = rbind(
+  (fmt_cts
+   %>% count(Res)
+   %>% rename(Npts = Res)
+   %>% mutate(Remission = 'Res')),
+  (fmt_cts
+   %>% count(NoRes)
+   %>% rename(Npts = NoRes)
+   %>% mutate(Remission = 'NoRes')))
+
+res_fn = with(filter(npts_fmt, Remission == 'Res'),
+              approxfun(Npts, n))
+nrs_fn = with(filter(npts_fmt, Remission == 'NoRes'),
+               approxfun(Npts, n))
+res_auc = with(filter(npts_fmt, Remission == 'Res'),
+               sum(integrate(res_fn, 0, 1)$value,
+                   integrate(res_fn, 1, max(Npts))$value))
+nrs_auc = with(filter(npts_fmt, Remission == 'NoRes'),
+               sum(integrate(nrs_fn, 0, 1)$value,
+                   integrate(nrs_fn, 1, max(Npts))$value))
+rm_d_auc = res_auc - nrs_auc
+
+
+```
+
+### Get observed AUC p-value: Res vs No-Res
+loading permutated data "rm_auc_null"
+
+```{r}
+
+# load data:
+rm_auc_null <- read.csv("../permut_data/16s_remission_auc_null.txt",
+                    sep = "\t")
+
+# Get the observed FMT values
+ggplot(data.frame(rm_auc_null), aes(x = deltaAUC)) +
+    geom_density() +
+    geom_vline(xintercept = rm_d_auc) +
+  theme_classic()
+
+# Place that difference on the null distribution of differences and get its p-value
+quant_fun = ecdf(rm_auc_null[,1])
+auc_pval = 1 - quant_fun(rm_d_auc)
+auc_pval
+
+# merging the results together:
+plt_df = filter(npts_fmt, Npts > 0)
+ribdat = plt_df %>% spread(Remission, n, fill = 0)
+
+
+cols <- c("Res" = "#2166ac",
+          "NoRes" = "#b2182b")
+  
+f3 <- ggplot(plt_df, aes(Npts, n, color=Remission)) +
+  geom_point() + geom_line() +
+  geom_ribbon(data = ribdat, aes(ymin=NoRes,ymax=Res, x = Npts),
+              linetype=2, alpha=0.1, inherit.aes = FALSE)+
+  scale_x_continuous(breaks = seq(0, max(plt_df$Npts), 1)) +
+  annotate("text", x=5, y=90, size=2,
+           label= paste("Permutation test,\n p=", auc_pval, sep = " ")) +
+  scale_color_manual(values = cols) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.title = element_blank())
+
+```
+
+### saving figure
+```{r}
+
+cowplot::plot_grid(f1, f2, f3, ncol = 1, hjust = T, vjust = T)
+ggsave("../figs/16s_CESasv.png",
+       width = 6, height = 12, units = "cm")
+
+```
+
+
+
+
