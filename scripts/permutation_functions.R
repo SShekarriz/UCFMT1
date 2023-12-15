@@ -232,3 +232,67 @@ get_pvals = function(stat_mat){
 	               -2*(1-pvals))
 	return(pvals)
 }
+
+
+plot_fig_13 = function(cts, txrm){
+    
+    # Check Inputs
+    if (!(txrm %in% c('Treatment', 'Remission'))){
+        stop('txrm must be one of "Treatment" or "Remission".')
+    }
+    
+    cts_tx = table(cts[,1])
+    cts_bl = table(cts[,2])
+    
+    mtx = as.numeric(names(cts_tx)[length(cts_tx)])
+    mbl = as.numeric(names(cts_bl)[length(cts_bl)])
+    maxlen = max(mtx, mbl) + 1
+    plt_mat = matrix(nrow = maxlen, ncol = 2)
+    rownames(plt_mat) = as.character(0:(maxlen - 1))
+    if (txrm == 'Treatment'){
+        colnames(plt_mat) = c('FMT', 'Placebo')
+    } else {
+        colnames(plt_mat) = c('Res', 'NoRes')
+    }
+    plt_mat[names(cts_tx),1] = cts_tx
+    plt_mat[names(cts_bl),2] = cts_bl
+    plt_mat = plt_mat[-1,]
+    plt_mat[is.na(plt_mat)] = 0
+    
+    plt_df = (plt_mat
+                  %>% data.frame()
+                  %>% rownames_to_column('Npats')
+                  %>% mutate(Npats = as.numeric(Npats))
+                  %>% pivot_longer(names_to = txrm, values_to = 'Count',
+                                   -Npats))
+    f1 = ggplot(plt_df, aes(Npats, Count, colour = .data[[txrm]])) +
+        geom_point() +
+        geom_line() +
+        scale_x_continuous(breaks = 1:max(plt_df$Npats))
+    return(f1)
+}
+
+plot_fig_2 = function(cts){
+    
+    cts_df = (data.frame(cts)
+              %>% mutate(Total = rowSums(.),
+                         Uniqueness = case_when(tx_tot > 0 & bl_tot > 0 ~
+                                                    'Both',
+                                                tx_tot == 0 & bl_tot > 0 ~
+                                                    'Placebo',
+                                                tx_tot > 0 & bl_tot == 0 ~
+                                                    'FMT',
+                                                tx_tot == 0 & bl_tot == 0 ~
+                                                    'None'))
+              %>% filter(Uniqueness != 'None')
+              %>% pivot_longer(tx_tot:bl_tot, names_to = 'names',
+                               values_to = 'Count')
+              %>% select(-names)
+              %>% filter(Count > 0))
+    
+    f2 = ggplot(cts_df, aes(x = Total, y = Count, fill = Uniqueness,
+                                        colour = Uniqueness)) +
+        geom_bar(stat = 'identity') +
+        scale_x_continuous(breaks = 1:max(cts_df$Total))
+    return(f2)
+}

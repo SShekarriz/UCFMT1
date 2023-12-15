@@ -36,7 +36,7 @@ rs_pv = pat_to_vect(filter(mapfile, Treatment == 'FMT'), 'Fig_lab',
 marker_lvl_16s <- read.csv("../data/16s_lvl_RA.csv")
 
 # Import donor B 16s ASVs and create a vector
-strains16s <- read.csv("../data/16s_core_DonB.csv")
+strains16s <- read.csv("../data/jcsz_16s_core_DonB.csv")
 strains16s %>%
   pull() -> strains16s
 
@@ -90,33 +90,21 @@ obs_16s = colMeans(obs_16s_all)
 
 cts_16s = apply(cts_16s_all, c(1,2), mean)
 
-# Create a graph to check this against Sharok's data
+#### 16S Plot FMT vs Placebo ####
+
+# I think the only sensible way to plot this is to plot the full data and just
+# talk about what we did for the statistics in the methods section.
+
+#### Fig 1 
 cts_16s_plt = count_engraft(engr_16s, tx_pv, 'Treatment')
-(cts_16s_fmt = table(cts_16s_plt[,1]))
-(cts_16s_plc = table(cts_16s_plt[,2]))
 
-plt_mat_16s = matrix(nrow = 11, ncol = 2)
-rownames(plt_mat_16s) = as.character(0:10)
-colnames(plt_mat_16s) = c('FMT', 'Placebo')
-plt_mat_16s[names(cts_16s_fmt),'FMT'] = cts_16s_fmt
-plt_mat_16s[names(cts_16s_plc),'Placebo'] = cts_16s_plc
-plt_mat_16s
-plt_mat_16s = plt_mat_16s[-1,]
-plt_mat_16s[is.na(plt_mat_16s)] = 0
+f1_16s = plot_fig_13(cts_16s_plt, 'Treatment')
+f1_16s
 
-plt_df_16s = (plt_mat_16s
-              %>% data.frame()
-              %>% rownames_to_column('Npats')
-              %>% mutate(Npats = as.numeric(Npats))
-              %>% pivot_longer(names_to = 'Treatment', values_to = 'Count',
-                               -Npats))
-plt_df_16s
-ggplot(plt_df_16s, aes(Npats, Count, colour = Treatment)) +
-    geom_point() +
-    geom_line() +
-    scale_x_continuous(breaks = 1:10)
+#### Fig 2 
 
-# This does not match Sharok's graph. Will have to track that down.
+f2_16s = plot_fig_2(cts_16s_plt)
+f2_16s
 
 #### Permute 
 print('Permute')
@@ -124,7 +112,7 @@ print('Permute')
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-nperm = 2000
+nperm = 20
 perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm, 
                        subsample = nsamp, txrm = 'Treatment')
 head(perms_16s[['stat_mat']])
@@ -136,6 +124,17 @@ save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
 
 # add the p-value to the matrix for plotting
 pvals['FMTvPl_16s',] = round(pvals_16s, 5)
+
+#### 16S Plot Res vs. NoRes ####
+
+# I think the only sensible way to plot this is to plot the full data and just
+# talk about what we did for the statistics in the methods section.
+
+#### Fig 1 
+cts_16s_plt = count_engraft(engr_16s, rs_pv, 'Remission')
+
+f3_16s = plot_fig_13(cts_16s_plt, 'Remission')
+f3_16s
 
 #### 16S Res vs NoRes ####
 print('16S Res vs NoRes')
@@ -172,41 +171,13 @@ cts_16s_rem = apply(cts_16s_rem_all, c(1,2), mean)
 # counts
 obs_16s_rem = colMeans(obs_16s_rem_all)
 
-# Create the graph to check against Sharok
-cts_16s_plt_rem = count_engraft(engr_16s, rs_pv, 'Remission')
-(cts_16s_fmt_rem = table(cts_16s_plt_rem[,1]))
-(cts_16s_plc_rem = table(cts_16s_plt_rem[,2]))
-
-plt_mat_16s_rem = matrix(nrow = 8, ncol = 2)
-rownames(plt_mat_16s_rem) = as.character(0:7)
-colnames(plt_mat_16s_rem) = c('FMT', 'Placebo')
-plt_mat_16s_rem[names(cts_16s_fmt_rem),'FMT'] = cts_16s_fmt_rem
-plt_mat_16s_rem[names(cts_16s_plc_rem),'Placebo'] = cts_16s_plc_rem
-plt_mat_16s_rem
-plt_mat_16s_rem = plt_mat_16s_rem[-1,]
-plt_mat_16s_rem[is.na(plt_mat_16s_rem)] = 0
-
-plt_df_16s_rem = (plt_mat_16s_rem
-              %>% data.frame()
-              %>% rownames_to_column('Npats')
-              %>% mutate(Npats = as.numeric(Npats))
-              %>% pivot_longer(names_to = 'Treatment', values_to = 'Count',
-                               -Npats))
-plt_df_16s_rem
-ggplot(plt_df_16s_rem, aes(Npats, Count, colour = Treatment)) +
-    geom_point() +
-    geom_line() +
-    scale_x_continuous(breaks = 1:10)
-
-# This does not match Sharok's plot
-
 #### Permute
 print('Permute')
 
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-nperm = 2000
+nperm = 20
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
                            subsample = nsamp, txrm = 'Remission')
 head(perms_16s_rem[['stat_mat']])
@@ -279,38 +250,24 @@ print('Calculate the observed test statistics')
 
 # Get the engraftment counts and calculate the test statistics
 cts_sp = count_engraft(engr_sp, tx_pv, 'Treatment')
-# Make the species graph
-tx_tab = table(cts_sp[,'tx_tot'])
-bl_tab = table(cts_sp[,'bl_tot'])
-tab_mat = matrix(nrow = 6, ncol = 2)
-rownames(tab_mat) = as.character(0:5)
-colnames(tab_mat) = c('FMT', 'Placebo')
-tab_mat[names(tx_tab),'FMT'] = tx_tab
-tab_mat[names(bl_tab),'Placebo'] = bl_tab
-tab_mat
-plt_df = (tab_mat
-          %>% data.frame()
-          %>% rownames_to_column('Npats')
-          %>% pivot_longer(names_to = 'Treatment', values_to = 'Counts',
-                           -Npats)
-          %>% filter(Npats != '0'))
-head(plt_df)
-plt_sp_jcsz = ggplot(plt_df, aes(x = as.numeric(Npats), y = Counts, colour = Treatment)) +
-    geom_point() +
-    geom_line() +
-    scale_x_continuous(breaks = 0:5) +
-    theme_bw()
-plt_sp_jcsz
-
-save(plt_sp_jcsz, file = '../debug/plt_sp_jcsz.RData')
 obs_sp = get_stats(cts_sp)
 
+#### Species Plot FMT vs Placebo ####
+
+#### Fig 1
+f1_sp = plot_fig_13(cts_sp, 'Treatment')
+f1_sp
+
+#### Fig 2 
+
+f2_sp = plot_fig_2(cts_sp)
+f2_sp
 
 ### Permute 
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
-nperm = 2000
+nperm = 20
 perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm, 
                       txrm = 'Treatment')
 head(perms_sp[['stat_mat']])
@@ -332,11 +289,16 @@ print('Calculate the observed test statistics')
 cts_sp_rem = count_engraft(engr_sp, rs_pv, txrm = 'Remission')
 obs_sp_rem = get_stats(cts_sp_rem)
 
+#### Species Plot Res vs. NoRes ####
+
+f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
+f3_sp
+
 #### Permute
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
-nperm = 2000
+nperm = 20
 perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv, nperm,
                           txrm = 'Remission')
 head(perms_sp_rem[['stat_mat']])
@@ -397,37 +359,19 @@ print('Calculate the observed test statistics')
 cts_st = count_engraft(engr_st, tx_pv, 'Treatment')
 obs_st = get_stats(cts_st)
 
-# Create a graph to check this against Sharok's data
-(cts_sp_fmt = table(cts_sp[,1]))
-(cts_sp_plc = table(cts_sp[,2]))
-plt_mat_sp = matrix(nrow = 6, ncol = 2)
-rownames(plt_mat_sp) = as.character(0:5)
-colnames(plt_mat_sp) = c('FMT', 'Placebo')
-plt_mat_sp[names(cts_sp_fmt),'FMT'] = cts_sp_fmt
-plt_mat_sp[names(cts_sp_plc),'Placebo'] = cts_sp_plc
-plt_mat_sp
-plt_mat_sp = plt_mat_sp[-1,]
-plt_mat_sp[is.na(plt_mat_sp)] = 0
+#### Strain Plot FMT vs Placebo
 
-plt_df_sp = (plt_mat_sp
-              %>% data.frame()
-              %>% rownames_to_column('Npats')
-              %>% mutate(Npats = as.numeric(Npats))
-              %>% pivot_longer(names_to = 'Treatment', values_to = 'Count',
-                               -Npats))
-plt_df_sp
-ggplot(plt_df_sp, aes(Npats, Count, colour = Treatment)) +
-    geom_point() +
-    geom_line() +
-    scale_x_continuous(breaks = 1:10)
+f1_st = plot_fig_13(cts_st, 'Treatment')
+f1_st
 
-# Does not match Sharok's plot
+f2_st = plot_fig_2(cts_st)
+f2_st
 
 #### Permute 
 print('Permute')
 
 # 1999 permutations plus the observed value go in the null distribution
-nperm = 2000
+nperm = 20
 perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv, nperm, 
                       txrm = 'Treatment')
 head(perms_st[['stat_mat']])
@@ -448,10 +392,15 @@ print('Calculate the observed test statistics')
 cts_st_rem = count_engraft(engr_st, rs_pv, txrm = 'Remission')
 obs_st_rem = get_stats(cts_st_rem)
 
+#### Strain Plot Res vs NoRes
+
+f3_st = plot_fig_13(cts_st_rem, 'Remission')
+f3_st
+
 #### Permute
 print('Permute')
 
-nperm = 2000
+nperm = 20
 perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv, nperm,
                           txrm = 'Remission')
 head(perms_st_rem[['stat_mat']])
@@ -546,10 +495,18 @@ print('Calculate the observed test statistics')
 cts_mg = count_engraft(engr_mg, tx_pv, 'Treatment')
 obs_mg = get_stats(cts_mg)
 
+#### MAGs Plot FMT vs Placebo
+
+f1_mg = plot_fig_13(cts_mg, 'Treatment')
+f1_mg
+
+f2_mg = plot_fig_2(cts_mg)
+f2_mg
+
 #### Permute 
 print('Permute')
 
-nperm = 2000
+nperm = 20
 perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm,
                       txrm = 'Treatment')
 head(perms_mg[['stat_mat']])
@@ -569,10 +526,15 @@ print('Calculate the observed test statistics')
 cts_mg_rem = count_engraft(engr_mg, rs_pv, txrm = 'Remission')
 obs_mg_rem = get_stats(cts_mg_rem)
 
+#### MAGs Plot Res Vs NoRes
+
+f3_mg = plot_fig_13(cts_mg_rem,'Remission')
+f3_mg
+
 #### Permute
 print('Permute')
 
-nperm = 2000
+nperm = 20
 perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm,
                           txrm = 'Remission')
 head(perms_mg_rem[['stat_mat']])
@@ -594,7 +556,7 @@ marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
 # Set the presence and absence cutoffs for patients. These aren't used for donor
 # B because all the genes came from the donor B assemblies.
 cutoff_pres_ge = 90
-cutoff_abs_ge = 5
+cutoff_abs_ge = 25
 
 ### Get the engraftment matrix
 
@@ -612,11 +574,19 @@ print('Calculate the observed test statistics')
 cts_ge = count_engraft(engr_ge, tx_pv, 'Treatment')
 obs_ge = get_stats(cts_ge)
 
+#### Genes Plot FMT vs Placebo ####
+
+f1_ge = plot_fig_13(cts_ge, 'Treatment')
+f1_ge
+
+f2_ge = plot_fig_2(cts_ge)
+f2_ge
+
 #### Permute 
 print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
-nperm = 2000
+nperm = 20
 perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv, nperm,
                       txrm = 'Treatment')
 head(perms_ge[['stat_mat']])
@@ -637,11 +607,15 @@ print('Calculate the observed test statistics')
 cts_ge_rem = count_engraft(engr_ge, rs_pv, txrm = 'Remission')
 obs_ge_rem = get_stats(cts_ge_rem)
 
+#### Genes Plot Res vs NoRes
+f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
+f3_ge
+
 #### Permute
 print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
-nperm = 2000
+nperm = 20
 perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm,
                           txrm = 'Remission')
 head(perms_ge_rem[['stat_mat']])
