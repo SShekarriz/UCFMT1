@@ -233,6 +233,24 @@ get_pvals = function(stat_mat){
 	return(pvals)
 }
 
+plot_permutation = function(stat_mat){
+    
+    sm_df = (as.data.frame(stat_mat)
+                 %>% pivot_longer(everything(),names_to = 'test_stat',
+                                  values_to = 'values')
+                 %>% mutate(test_stat = factor(test_stat, levels = c('fx','xfx','x2fx')))
+                 %>% arrange(test_stat)
+                 %>% mutate(obs_val = rep(stat_mat[1,],
+                                          each = nrow(stat_mat))))
+    pl_pv = ggplot(sm_df_16s, aes(x = values)) +
+        geom_histogram(fill = 'grey59') +
+        geom_vline(aes(xintercept = obs_val),
+                   colour = 'violetred4',
+                   linetype = 2) +
+        facet_wrap(~test_stat, scales = 'free_x',
+                   ncol = 1)
+    return(pl_pv)
+}
 
 plot_fig_13 = function(cts, txrm){
     
