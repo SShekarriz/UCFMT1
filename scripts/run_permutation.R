@@ -7,7 +7,7 @@ print('Setup')
 set.seed(4)
 library(tidyverse)
 theme_set(theme_bw())
-setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
+# setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
 source('./permutation_functions.R')
 
 # Create the p-value storage matrix
