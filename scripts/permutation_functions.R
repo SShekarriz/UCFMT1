@@ -242,7 +242,7 @@ plot_permutation = function(stat_mat){
                  %>% arrange(test_stat)
                  %>% mutate(obs_val = rep(stat_mat[1,],
                                           each = nrow(stat_mat))))
-    pl_pv = ggplot(sm_df_16s, aes(x = values)) +
+    pl_pv = ggplot(sm_df, aes(x = values)) +
         geom_histogram(fill = 'grey59') +
         geom_vline(aes(xintercept = obs_val),
                    colour = 'violetred4',
