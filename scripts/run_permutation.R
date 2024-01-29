@@ -116,12 +116,12 @@ print('Permute')
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
 nperm = 2000
-# perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm,
-#                        subsample = nsamp, txrm = 'Treatment')
-# head(perms_16s[['stat_mat']])
-# # Save the permuted data
-# save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
-load('../permut_data/intermed/perms_16s.RData')
+perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv, nperm,
+                       subsample = nsamp, txrm = 'Treatment')
+head(perms_16s[['stat_mat']])
+# Save the permuted data
+save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
+# load('../permut_data/intermed/perms_16s.RData')
 
 # Calculate the p-values
 (pvals_16s = get_pvals(perms_16s[['stat_mat']]))
@@ -186,12 +186,12 @@ print('Permute')
 # We are doing 2000 permutations in total. This includes 1999 permuted values
 # plus our observed value in the null distribution to which we then compare the
 # observed value.
-# nperm = 2000
-# perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
-#                            subsample = nsamp, txrm = 'Remission')
-# # Save the permuted data
-# save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
-load('../permut_data/intermed/perms_16s_rem.RData')
+nperm = 2000
+perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv, nperm,
+                           subsample = nsamp, txrm = 'Remission')
+# Save the permuted data
+save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
+# load('../permut_data/intermed/perms_16s_rem.RData')
 head(perms_16s_rem[['stat_mat']])
 
 # Calculate and store the p-values
