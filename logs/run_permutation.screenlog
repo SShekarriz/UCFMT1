@@ -1,0 +1,305 @@
+./sc[K[Krun_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25hError in count_engraft(engr, perm_pv_sub) : 
+  argument "txrm" is missing, with no default
+Calls: do_permute -> count_engraft
+Execution halted
+[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ ./run_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h[?25h  fx  xfx x2fx 
+   0    0    0 
+[?25h[?25h[1] "16S Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25hrs_pv
+NoRes   Res 
+   14     6 
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25hError: object 'perm_16s_rem' not found
+Execution halted
+[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git pull origin
+remote: Enumerating objects: 7, done.[K
+remote: Counting objects:  14% (1/7)[Kremote: Counting objects:  28% (2/7)[Kremote: Counting objects:  42% (3/7)[Kremote: Counting objects:  57% (4/7)[Kremote: Counting objects:  71% (5/7)[Kremote: Counting objects:  85% (6/7)[Kremote: Counting objects: 100% (7/7)[Kremote: Counting objects: 100% (7/7), done.[K
+remote: Compressing objects: 100% (1/1)[Kremote: Compressing objects: 100% (1/1), done.[K
+remote: Total 4 (delta 3), reused 4 (delta 3), pack-reused 0[K
+Unpacking objects:  25% (1/4)Unpacking objects:  50% (2/4)Unpacking objects:  75% (3/4)Unpacking objects: 100% (4/4)Unpacking objects: 100% (4/4), 333 bytes | 8.00 KiB/s, done.
+From github.com:SShekarriz/UCFMT1
+   66e8102..e2d2763  main       -> origin/main
+Auto-merging scripts/run_permutation.R
+hint: Waiting for your editor to close the file... [?2004h[?1049h[22;0;0t[1;49r(B[m[4l[?7h[39;49m[?1h=[?1h=[?25l[39;49m(B[m[H[2J[47;39H(B[0;7m[ Reading... ](B[m[47;38H(B[0;7m[ Read 6 lines ](B[m[H(B[0;7m  GNU nano 4.8               /home/szamosjc/UCFMT1/.git/MERGE_MSG                         [1;89H(B[m[48d(B[0;7m^G(B[m Get Help    (B[0;7m^O(B[m Write Out   (B[0;7m^W(B[m Where Is    (B[0;7m^K(B[m Cut Text    (B[0;7m^J(B[m Justify     (B[0;7m^C(B[m Cur Pos[49d(B[0;7m^X(B[m Exit[49;16H(B[0;7m^R(B[m Read File   (B[0;7m^\(B[m Replace     (B[0;7m^U(B[m Paste Text  (B[0;7m^T(B[m To Spell    (B[0;7m^_(B[m Go To Line[47d[2d[39;49m(B[mMerge branch 'main' of github.com:SShekarriz/UCFMT1 into main[3d[36m# Please enter a commit message to explain why this merge is necessary,[4d# especially if it merges an updated upstream into a topic branch.[5d#[6d# Lines starting with '#' will be ignored, and an empty message aborts[7d# the commit.[2d[39m(B[m[?12l[?25h[?25l[1;81H(B[0;7mModified(B[m[2d:Merge branch 'main' of github.com:SShekarriz/UCFMT1 into main:[?12l[?25h[?25loMerge branch 'main' of github.com:SShekarriz/UCFMT1 into main:o[?12l[?25h[?25l[1P[?12l[?25h[?25l[1P[?12l[?25h[?25l[?12l[?25h[?25l[48;16H       (B[0;7mM-D(B[m DOS Format        (B[0;7mM-A(B[m Append            (B[0;7mM-B(B[m Backup File[K[49;2H(B[0;7mC(B[m Cancel[16G       (B[0;7mM-M(B[m Mac Format        (B[0;7mM-P(B[m Prepend           (B[0;7m^T(B[m To Files[K[47d(B[0;7mFile Name to Write: /home/szamosjc/UCFMT1/.git/MERGE_MSG                                  [47;1H(B[m[47;57H[?12l[?25h[?25l[47;38H[1K (B[0;7m[ Writing... ](B[m[K[1;81H(B[0;7m        (B[m[47;37H(B[0;7m[ Wrote 6 lines ](B[m[48;16H(B[0;7m^O(B[m Write Out   (B[0;7m^W(B[m Where Is    (B[0;7m^K(B[m Cut Text    (B[0;7m^J(B[m Justify     (B[0;7m^C(B[m Cur Pos[49;2H(B[0;7mX(B[m Exit  [16G(B[0;7m^R(B[m Read File   (B[0;7m^\(B[m Replace     (B[0;7m^U(B[m Paste Text  (B[0;7m^T(B[m To Spell    (B[0;7m^_(B[m Go To Line[47d[2d[?12l[?25h[?25l[47d[J[49d[?12l[?25h[49;1H[?1049l[23;0;0t[?1l>[?2004l[KMerge made by the 'recursive' strategy.
+ scripts/run_permutation.R | 2 [32m+[m[31m-[m
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git pull origin./run_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h[?25h  fx  xfx x2fx 
+   0    0    0 
+[?25h[?25h[1] "16S Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25hrs_pv
+NoRes   Res 
+   14     6 
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h[?25h    fx    xfx   x2fx 
+0.9995 0.9995 0.9995 
+[?25h   fx   xfx  x2fx 
+1.999 1.999 1.999 
+[?25h[?25h[1] "Setup Metagenomics"
+[?25h[?25h[?25h[?25h[1] "Species Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Species FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h   fx   xfx  x2fx 
+0.049 0.040 0.021 
+[?25h[?25h[1] "Species Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h   fx   xfx  x2fx 
+0.348 0.350 0.377 
+[?25h[?25h[1] "Strains Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Strains FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h   fx   xfx  x2fx 
+0.015 0.007 0.001 
+[?25h[?25h[1] "Strains Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h   fx   xfx  x2fx 
+0.334 0.296 0.288 
+[?25h[?25h[1] "MAGs Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25hWarning message:
+[1m[22m`cols` is now required when using `unnest()`.
+[36mℹ[39m Please use `cols = c(file_contents)`. 
+[?25h[?25h[1m[22mJoining with `by = join_by(contig)`
+[1m[22m`summarise()` has grouped output by 'sample'. You can override using the `.groups`
+argument.
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "MAGs FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h   fx   xfx  x2fx 
+0.013 0.012 0.004 
+[?25h[?25h[1] "MAGs Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h   fx   xfx  x2fx 
+0.065 0.072 0.225 
+[?25h[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h  fx  xfx x2fx 
+   0    0    0 
+[?25h[?25h[1] "Genes Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h[?25h  fx  xfx x2fx 
+   1    1    1 
+[?25h[?25h[1] "Write the p-value table"
+[?25hWarning message:
+In write.csv(pvals, file = "../results/permuation_pvals.csv", row.names = TRUE,  :
+  attempt to set 'col.names' ignored
+[?25h[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ ./run_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ───────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx     xfx    x2fx
+[1,] 277.83  592.69 1744.55
+[2,] -36.90  -50.92  -52.70
+[3,]  62.86   30.78 -169.64
+[4,]  52.30  221.20  912.80
+[5,]  87.73  132.83  304.87
+[6,] -40.97 -104.83 -338.47
+[?25h[?25h   fx   xfx  x2fx 
+0.001 0.000 0.000 
+[?25h[?25h[1] "16S Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25hrs_pv
+NoRes   Res 
+   14     6 
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h          fx     xfx    x2fx
+[1,] -101.03 -115.71 -160.91
+[2,] -128.29 -162.31 -246.83
+[3,] -100.65 -130.97 -210.29
+[4,] -101.71 -154.93 -285.01
+[5,]  -39.52  -36.03  -36.89
+[6,]  -24.17  -36.42  -64.00
+[?25h[?25h    fx    xfx   x2fx 
+-0.203 -0.294 -0.400 
+[?25h[?25h[1] "Setup Metagenomics"
+[?25h[?25h[?25h[?25h[1] "Species Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Species FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h       fx  xfx x2fx
+[1,]  181  315  699
+[2,]   45   49   55
+[3,]   41   73  185
+[4,]   32   -3 -137
+[5,] -175 -259 -491
+[6,]  -40  -41  -53
+[?25h[?25h   fx   xfx  x2fx 
+0.061 0.038 0.023 
+[?25h[?25h[1] "Species Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  88 134  228
+[2,]  64 110  208
+[3,] -35 -62 -118
+[4,]  26  34   50
+[5,]  36  58  108
+[6,] -23 -42  -92
+[?25h[?25h   fx   xfx  x2fx 
+0.343 0.344 0.360 
+[?25h[?25h[1] "Strains Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Strains FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h        fx   xfx   x2fx
+[1,] 32590 56303 128533
+[2,] 32945 51027 102231
+[3,] 17974 36545  90079
+[4,]  3780 -2105 -21475
+[5,] 10764 23719  63607
+[6,] 14593 26751  61053
+[?25h^[[A^[[A^[[A^[[A^[[A^[[A^[[B^[[B^[[B^[[B^[[B^[[B[?25h   fx   xfx  x2fx 
+0.014 0.007 0.001 
+[?25h[?25h[1] "Strains Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx    xfx   x2fx
+[1,]  12390  20833  40671
+[2,]  -6825  -8335 -13129
+[3,]   3020   2747  -1439
+[4,]  -8103  -6061   -259
+[5,] -10709 -15471 -24953
+[6,] -31690 -45073 -79181
+[?25h[?25h   fx   xfx  x2fx 
+0.295 0.266 0.256 
+[?25h[?25h[1] "MAGs Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25hWarning message:
+[1m[22m`cols` is now required when using `unnest()`.
+[36mℹ[39m Please use `cols = c(file_contents)`. 
+[?25h[?25h[1m[22mJoining with `by = join_by(contig)`
+[1m[22m`summarise()` has grouped output by 'sample'. You can override using the
+`.groups` argument.
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "MAGs FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  40  56  102
+[2,] -36 -52  -92
+[3,]   3   4   12
+[4,] -24 -34  -60
+[5,]  28  42   76
+[6,] -36 -52  -92
+[?25h[?25h   fx   xfx  x2fx 
+0.013 0.010 0.005 
+[?25h[?25h[1] "MAGs Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  36  47   67
+[2,] -31 -41  -65
+[3,]   6   7    7
+[4,]  23  33   59
+[5,] -29 -41  -73
+[6,] -24 -35  -63
+[?25h[?25h   fx   xfx  x2fx 
+0.055 0.062 0.216 
+[?25h[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h          fx     xfx    x2fx
+[1,]  211802  318189  604793
+[2,]   52813   85139  166551
+[3,]  -34088  -49155  -86729
+[4,]   56368   72341  105671
+[5,] -110038 -168805 -327193
+[6,]   73236   91117  123307
+[?25h[?25h   fx   xfx  x2fx 
+0.001 0.001 0.001 
+[?25h[?25h[1] "Genes Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx    xfx   x2fx
+[1,]  12390  20833  40671
+[2,] -64387 -75348 -94922
+[3,] 133678 185708 307504
+[4,] -40946 -58036 -95126
+[5,]   3458  -3236 -18040
+[6,]  71349  86700 117512
+[?25h[?25h   fx   xfx  x2fx 
+0.858 0.862 0.836 
+[?25h[?25h[1] "Write the p-value table"
+[?25hWarning message:
+In write.csv(pvals, file = "../results/permuation_pvals.csv", row.names = TRUE,  :
+  attempt to set 'col.names' ignored
+[?25h[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ ./run_permutation.R R[Kcd scripts/git pull originsh[C[C[C[C[C[C[Co[Kush originll[C[C[C[C[C[C[C[4Pcd scripts/R[K./run_permutation.R [K
