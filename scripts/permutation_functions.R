@@ -305,12 +305,21 @@ plot_fig_2 = function(cts){
               %>% filter(Uniqueness != 'None')
               %>% pivot_longer(tx_tot:bl_tot, names_to = 'names',
                                values_to = 'Count')
-              %>% select(-names)
               %>% filter(Count > 0))
+    # this still counts the Both ones twice ^
     
-    f2 = ggplot(cts_df, aes(x = Total, y = Count, fill = Uniqueness,
+    # Get each both once:
+    cts_both = (cts_df
+                %>% filter(Uniqueness == 'Both', names == 'tx_tot'))
+    # Remove Both from the original
+    cts_df = (cts_df
+              %>% filter(Uniqueness != 'Both'))
+    cts_df = rbind(cts_df, cts_both)
+    
+    
+    f2 = ggplot(cts_df, aes(x = Total, fill = Uniqueness,
                                         colour = Uniqueness)) +
-        geom_bar(stat = 'identity') +
+        geom_bar(stat = 'count') +
         scale_x_continuous(breaks = 1:max(cts_df$Total))
     return(f2)
 }

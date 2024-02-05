@@ -139,7 +139,7 @@ ggsave('../plots/pl_pv_16s.pdf',pl_pv_16s, height = 10, width = 5.5)
 # talk about what we did for the statistics in the methods section.
 
 #### Fig 1 
-cts_16s_plt = count_engraft(engr_16s, rs_pv, 'Remission')
+cts_16s_plt_rem = count_engraft(engr_16s, rs_pv, 'Remission')
 
 f3_16s = plot_fig_13(cts_16s_plt, 'Remission')
 f3_16s
