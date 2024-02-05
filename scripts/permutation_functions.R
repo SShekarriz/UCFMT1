@@ -197,7 +197,7 @@ do_permute = function(engr, cts, obs, pv, nperm = 2000, subsample = 0,
         # Add the count matrix to its array and the test statistics to their
         # matrix
         cts_array[,,i] = engr_ct
-        perm_pvs[i,] = perm_pv
+        perm_pvs[i,] = names(perm_pv)
     }
     
     # Return a list with the full permutation information and output so it can
