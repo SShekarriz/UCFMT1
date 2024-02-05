@@ -1,0 +1,180 @@
+---
+title: "paper figs"
+author: "Sharok"
+date: "2024-02-04"
+output: html_document
+---
+
+make paper figures
+
+```{r}
+
+library(tidyverse)
+
+```
+
+Load main functions:
+```{r}
+
+source('./permutation_functions.R')
+
+```
+
+## 16s data:
+
+```{r}
+# Import 16s mapfile and create named vectors of patient IDs/groups for permuting
+mapfile <- read.csv("../data/UCFMT1_16Smap.txt")
+tx_pv = pat_to_vect(mapfile, 'Fig_lab', 'Treatment')
+rs_pv = pat_to_vect(filter(mapfile, Treatment == 'FMT'), 'Fig_lab', 
+                          'Remission')
+# Import the 16s ASV data
+marker_lvl_16s <- read.csv("../data/16s_lvl_RA.csv")
+
+# Import donor B 16s ASVs and create a vector
+strains16s <- read.csv("../data/jcsz_16s_core_DonB.csv")
+strains16s %>%
+  pull() -> strains16s
+
+# Set the cutoffs for 16s presence and absence
+cutoff_pres_16S = 0.0001
+cutoff_abs_16S = 0
+
+### Get the engraftment matrix ###
+
+# convert the 16s data to long format
+long_mark_16s = mark_to_long(marker_lvl_16s, strains16s)
+# Create a matrix of engraftment counts per patient
+engr_16s = get_engraft(long_mark_16s, mapfile, cutoff_abs_16S, cutoff_pres_16S,
+                       Treatment %in% c('FMT', 'Placebo'))
+
+```
+
+## 16s figs
+```{r}
+
+fig1_cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999")
+
+#### Fig 1 
+cts_16s_plt = count_engraft(engr_16s, tx_pv, 'Treatment')
+
+f1_16s = plot_fig_13(cts_16s_plt, 'Treatment') +
+  scale_color_manual(values = fig1_cols) +
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8),
+        legend.title = element_blank(),
+        axis.title = element_blank())
+
+fig2_cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999",
+          "Both" = "#fc8d59")
+
+#### Fig 2 
+f2_16s = plot_fig_2(cts_16s_plt) +
+  scale_fill_manual(values = fig2_cols) +
+  scale_colour_manual(values = fig2_cols) +
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8),
+        legend.title = element_blank(),
+        axis.title = element_blank())
+
+fig3_cols <- c("Res" = "#2166ac",
+          "NoRes" = "#b2182b")
+
+#### Fig 3
+cts_16s_plt = count_engraft(engr_16s, rs_pv, 'Remission')
+
+f3_16s = plot_fig_13(cts_16s_plt, 'Remission') +
+  scale_colour_manual(values = fig3_cols) +
+  theme_classic() +
+  theme(legend.position = c(0.8, 0.8),
+        legend.title = element_blank(),
+        axis.title = element_blank())
+
+cowplot::plot_grid(f1_16s, f2_16s, f3_16s, ncol = 1)
+ggsave('../plots_paper/16s.pdf',height = 9, width = 4)
+
+```
+
+
+## species data
+
+```{r}
+
+# This mapfile is used for every non-16S feature type
+mapfile <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
+
+# These patient vectors are used for every non-16S feature type
+tx_pv = pat_to_vect(mapfile, 'Fig_lab', 'Treatment')
+rs_pv = pat_to_vect(filter(mapfile, Treatment == 'FMT'), 'Fig_lab', 
+                          'Remission')
+
+#### Species Setup ####
+
+### Import the data
+
+# Read in the species-level markers
+marker_lvl_sp <- read.csv("../data/species_lvl_RA.csv")
+
+# get a vector of donor B species
+donorB_species = (marker_lvl_sp
+                  %>% gather(sample, abundance, -Marker) 
+                  #filtering donor B markers
+                  %>% filter(str_detect(sample, "DonorB_D_")) 
+                  # any marker with abundance > 0
+                  # markers that were present in at least one donor B sample
+                  %>% filter(!is.na(abundance)) 
+                  %>% filter(as.numeric(abundance) > 0) 
+                  %>% mutate(sample= gsub("DonorB_D_", "", sample)))
+
+# Set the cutoff for "presence" with species. This is used for both patient
+# samples and donor B
+cutoff_pres_sp = 0.005
+
+# Filter to only include donor B species that meet that cutoff
+donorB_species = (donorB_species 
+                  %>% filter(as.numeric(abundance) > cutoff_pres_sp))
+
+# Turn it into a vector
+donorB_species %>%
+  select(Marker) %>% distinct() %>%
+  pull() -> strains_sp
+
+# Set the species absence cutoff
+cutoff_abs_sp = 0
+
+### Get the wide matrix features engrafted (1) or not (0) in patients
+long_mark_sp = mark_to_long(marker_lvl_sp, strains_sp)
+engr_sp = get_engraft(long_mark_sp, mapfile, cutoff_abs_sp, cutoff_pres_sp,
+                       Treatment %in% c('FMT', 'Placebo'))
+
+
+```
+
+
+## species figs
+
+```{r}
+
+#### Fig 1
+f1_sp = plot_fig_13(cts_sp, 'Treatment')
+
+
+
+#### Fig 2 
+
+f2_sp = plot_fig_2(cts_sp)
+
+
+#### Species Res vs NoRes ####
+
+f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
+
+
+
+```
+
+
+
+
