@@ -452,7 +452,7 @@ f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 
 #### paper Fig
 pvals_ge=perTest %>% filter(data == "genes")
-f_paper(f1_ge, f2_mg, f3_ge, tx_pv, rs_pv, pvals_ge)
+f_paper(f1_ge, f2_ge, f3_ge, tx_pv, rs_pv, pvals_ge)
 ggsave("../plots_paper/genes.pdf", height = 15, width = 7, units = "cm")
 
 ```
