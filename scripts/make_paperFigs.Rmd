@@ -456,4 +456,102 @@ f_paper(f1_ge, f2_ge, f3_ge, tx_pv, rs_pv, pvals_ge)
 ggsave("../plots_paper/genes.pdf", height = 15, width = 7, units = "cm")
 
 ```
+A signature of genes specific to FMT responders:
+
+```{r}
+
+# select the marker that were engrafted in >= 3 patients
+data.frame(cts_ge) %>%
+  mutate(Total = rowSums(.),
+         Uniqueness = case_when(tx_tot > 0 & bl_tot > 0 ~ 'Both',
+                                tx_tot == 0 & bl_tot > 0 ~ 'Placebo',
+                                tx_tot > 0 & bl_tot == 0 ~ 'FMT',
+                                tx_tot == 0 & bl_tot == 0 ~ 'None')) %>%
+  filter(Total >= 3) %>%
+  rownames_to_column("Marker") %>%
+  pull(Marker)-> of_int_marker
+# look for these marker of interest across all patients
+data.frame(engr_ge) %>%
+  rownames_to_column("Marker") %>%
+  filter(Marker %in% of_int_marker) %>%
+  column_to_rownames("Marker") -> engr_ge_3
+
+# f1 data with only marker of int
+cts_ge_3 = count_engraft(engr_ge_3, tx_pv, 'Treatment')
+data.frame(cts_ge_3) %>%
+  rename(FMT=tx_tot,
+         Placebo=bl_tot) %>%
+  rownames_to_column("Marker") -> cts_ge_3
+# f3 data with only marker of int
+cts_ge_rem_3 = count_engraft(engr_ge_3, rs_pv, 'Remission')
+data.frame(cts_ge_rem_3 ) %>%
+  rename(Res=tx_tot,
+         NoRes=bl_tot) %>%
+  rownames_to_column("Marker") -> cts_ge_rem_3
+
+cts_ge_3 %>%
+  left_join(cts_ge_rem_3) %>%
+  mutate(tUniq = case_when(FMT > 0 & Placebo > 0 ~ 'Both',
+                                FMT == 0 & Placebo > 0 ~ 'Placebo',
+                                FMT > 0 & Placebo == 0 ~ 'FMT',
+                                FMT == 0 & Placebo == 0 ~ 'None')) %>%
+  mutate(rUniq = case_when(tUniq == "FMT" & Res > 0 & NoRes > 0 ~ 'F-Both',
+                           tUniq == "FMT" & Res == 0 & NoRes > 0 ~ 'F-NoRes',
+                           tUniq == "FMT" & Res > 0 & NoRes == 0 ~ 'F-Res',
+                           tUniq == "FMT" & Res == 0 & NoRes == 0 ~ 'F-None',
+                           tUniq == "Placebo" & Res > 0 & NoRes > 0 ~ 'P-Both',
+                           tUniq == "Placebo" & Res == 0 & NoRes > 0 ~ 'P-NoRes',
+                           tUniq == "Placebo" & Res > 0 & NoRes == 0 ~ 'P-Res',
+                           tUniq == "Placebo" & Res == 0 & NoRes == 0 ~ 'P-None',
+                           tUniq == "Both" ~ 'Both',
+                           TRUE ~ 'None')) %>%
+  select(Marker, tUniq, rUniq) -> Marker_Uniq
+
+
+data.frame(engr_ge_3) %>%
+ rownames_to_column("Marker") %>%
+ gather(Fig_lab, engraft, -Marker) %>%
+ filter(engraft > 0) %>%
+ left_join(Marker_Uniq) %>%
+ left_join(mapfile %>% select(Fig_lab, Treatment, Remission)) %>%
+ mutate(Fig_lab = case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ Fig_lab))-> table
+
+
+table$rUniq <- factor(table$rUniq, levels = c("Both", "P-None", "F-Both",
+                                              "F-NoRes", "F-Res"))
+
+fig2_cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999",
+          "Both" = "#fc8d59")
+
+ggplot(table, aes(Marker, Fig_lab, fill=tUniq)) +
+  geom_tile() +
+  facet_grid(Treatment~rUniq, space = "free", scales = "free") +
+  scale_fill_manual(values = fig2_cols) +
+  #scale_x_reordered() +
+  theme_classic() +
+  theme(strip.text.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+ggsave("../plots_paper/genes_ce.pdf",
+       width = 14, height = 8, units = "cm")
+
+# number of genes in each rUniq category (strips in x-axis)
+table %>%
+  select(Marker, rUniq) %>%
+  distinct() %>%
+  group_by(rUniq) %>% tally()
+
+# save the list of genes specific to F-Res: 1488 genes
+table %>%
+  select(Marker, rUniq) %>%
+  distinct() %>%
+  filter(rUniq == "F-Res") %>%
+  select(Marker) %>%
+  write.csv("../data/genes_FMT-Res/gene_ids.txt",
+            row.names = F, col.names = F, quote = F)
+
+```
 
