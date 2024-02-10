@@ -10,6 +10,7 @@ make paper figures
 ```{r}
 
 library(tidyverse)
+library(tidytext)
 
 ```
 
@@ -546,12 +547,130 @@ table %>%
 
 # save the list of genes specific to F-Res: 1488 genes
 table %>%
-  select(Marker, rUniq) %>%
-  distinct() %>%
   filter(rUniq == "F-Res") %>%
-  select(Marker) %>%
-  write.csv("../data/genes_FMT-Res/gene_ids.txt",
-            row.names = F, col.names = F, quote = F)
+  distinct() %>%
+  write.table("../data/genes_FMT-Res/gene_ids.txt",
+            row.names = F, quote = F, sep = "\t")
 
 ```
+
+gene signature in bins
+
+```{r}
+
+# map information for contigs and bins
+c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", header = F)
+c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", header = F)
+colnames(c_inBin) <- c("contig", "bin_id")
+colnames(c_inMAG) <- c("contig", "bin_id")
+
+c_inMAG %>% select(bin_id) %>% distinct() %>% pull() -> MAGs
+
+
+# gtdb taxonomy output for all the bins
+gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
+gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
+
+gtdb.bac %>% mutate(bin_id=user_genome) %>%
+  select(bin_id, classification) %>%
+  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
+              select(bin_id, classification)) %>%
+  mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
+
+
+# Genes and Contigs in gff
+gff_cols <- c("seqname","source","feature","start","end","score","strand",
+              "frame","attributes")
+read.delim("../data/perfect_mapping/B_db_1kb.gff3",
+           header=F, comment.char="#", ) -> gff
+colnames(gff) <- gff_cols
+
+# removing sequence info from the end of the gff file
+gff %>%
+  filter(row_number() < 1224073) %>%
+  mutate(ID= gsub(";.*", "", attributes)) %>%
+  mutate(ID=gsub("ID=", "", ID)) %>%
+  # annotated regions that have only contig info in attributes. 
+  # I don't need them
+  filter(feature!= "region")-> gff
+
+
+# Genes commonly engrafted in >= 3 responder
+int_genes_table <- read.csv("../data/genes_FMT-Res/gene_ids.txt",
+                      header = T, sep = "\t")
+
+int_genes_table %>%
+select(Marker, Fig_lab) %>%
+distinct() %>%
+rename(ID=Marker) -> int_genes
+
+int_genes %>%
+  left_join(gff) %>%
+  left_join(c_inBin %>% mutate(seqname=contig)) %>%
+  mutate(bin_id= case_when(is.na(bin_id) ~ paste("NoBin"),
+                           TRUE ~ paste(bin_id))) -> int_genes_inBins
+
+int_genes_inBins %>%
+  select(ID, bin_id, Fig_lab) %>%
+  mutate(count= 1) %>% 
+  spread(Fig_lab, count, fill = 0) %>%
+  gather(Fig_lab, count, -ID, -bin_id) %>%
+  filter(count > 0) %>%
+  group_by(Fig_lab, bin_id) %>%
+  tally() %>%
+  mutate(Type= case_when(bin_id %in% MAGs ~ paste("MAG"),
+                         bin_id == "NoBin" ~ paste("NoBin"),
+                         TRUE ~ paste("Bin"))) %>%
+ mutate(gene_num= case_when(n <= 10 ~ paste("<=10"),
+                             between(n, 10, 50) ~ paste("10-50"),
+                             between(n, 50, 250) ~ paste("50-250"),
+                             between(n, 250, 550) ~ paste("250-550"),
+                             TRUE ~ paste("other"))) -> plt_df
+
+ggplot(plt_df, aes(reorder_within(bin_id, -n, Type), 
+                   reorder_within(Fig_lab, -n, 1), fill=gene_num)) +
+  geom_tile() +
+  facet_grid(~Type, space = "free", scales = "free") +
+   scale_fill_manual(values = c("<=10" = "#bae4bc",
+                               "10-50" = "#7bccc4",
+                               "50-250" = "#43a2ca",
+                               "250-550" = "#0868ac"), na.value = "white") +
+  theme_classic() +
+  scale_x_reordered() + scale_y_reordered() +
+  theme(axis.text.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none",
+        strip.text.x = element_blank())
+ggsave("../plots_paper/genes_ce_inBins.pdf",
+       width = 12, height = 3, units = "cm")
+
+
+int_genes_inBins %>%
+  mutate(Type= case_when(bin_id %in% MAGs ~ paste("MAG"),
+                         bin_id == "NoBin" ~ paste("NoBin"),
+                         TRUE ~ paste("Bin"))) %>%
+  select(ID, bin_id, Type) %>% distinct() -> int_genes_inBins.stat
+
+int_genes_inBins.stat %>%
+  group_by(Type) %>%
+  summarize(genes=n())
+
+int_genes_inBins.stat %>%
+  group_by(Type, bin_id) %>%
+  tally() %>%
+  group_by(Type) %>%
+  summarize(bins=n())
+
+```
+
+
+
+
+
+
+
+
+
+
+
 
