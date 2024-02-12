@@ -164,6 +164,7 @@ this is the result of blastn. a local refseq db was built on May 23rd, 2023
 
 blastn_parser <- function(table1, table2, identity, coverage) {
   # table1: .fna.fai file of genes, showing genes length, start and stop
+  # samtools faidx your_file.fna
   # table2: .blastout standard blastout of genes.fna against refseq
   # identity: pident cutoff
   # coverage: query coverage cutoff
