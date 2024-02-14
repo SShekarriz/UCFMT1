@@ -12,7 +12,6 @@ make paper figures
 library(tidyverse)
 library(tidytext)
 
-
 ```
 
 Load main functions:
@@ -183,6 +182,7 @@ ggsave("../plots_paper/16s.png", height = 15, width = 7, units = "cm")
 
 ```
 
+## benchmarking function for species and strains (relative abundance%)
 
 ```{r}
 
@@ -258,13 +258,10 @@ f2 <- ggplot(hist_table, aes(x=percent, fill=sample, color=sample)) +
 
 cowplot::plot_grid(f1, f2, ncol = 1)
   
-  
 }
 
 
 ```
-
-
 
 
 
@@ -303,7 +300,7 @@ donorB_species = (marker_lvl_sp
 # benchmarking figures
 breaks_sp <- c(0.001, 0.005, 0.01, 0.1, 1, 2, 3)
 benchmark(donorB_species, breaks_sp)
-
+ggsave("../plots_paper/species_cutoff.png", height = 12, width = 10, units = "cm")
 
 # Set the cutoff for "presence" with species. This is used for both patient
 # samples and donor B
@@ -367,8 +364,10 @@ donorB_strains = (marker_lvl_st
                   %>% mutate(sample= gsub("DonorB_D_", "", sample)))
 
 # benchmarking figures
-breaks_sp <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1)
-benchmark(donorB_strains, breaks_sp)
+breaks_st <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1)
+benchmark(donorB_strains, breaks_st)
+ggsave("../plots_paper/strains_cutoff.png", height = 12, width = 10, units = "cm")
+
 
 # Set the presence cutoff used in both donor B and patient samples
 cutoff_pres_st = 0.0001
@@ -416,7 +415,7 @@ ggsave("../plots_paper/strain.png", height = 15, width = 7, units = "cm")
 ```{r}
 
 
-# a function to filter marker above cutoff based on relative abundance
+# a function to filter marker above cutoff based on genomic coverage
 benchmark2 <- function(table, cutoff){
   # total number of unqiue species in each sample
   table %>%
@@ -467,9 +466,9 @@ table %>%
   # get the 20% quantile of the data
   q05 <- round(quantile(hist_table$coverage, 0.5), 5)
   
-f2 <- ggplot(hist_table, aes(x=coverage, fill=sample, color=sample)) +
+f2 <- ggplot(hist_table, aes(x=coverage, fill = sample, color= sample)) +
     geom_histogram(position="identity", colour="grey40", alpha=0.7, bins = 10) +
-    scale_x_log10() +
+    #scale_x_log10() +
     facet_grid(. ~ sample) +
     geomtextpath::geom_textvline(label = q05, color = "red", 
                                  xintercept = q05, vjust = 1.3) +
@@ -482,13 +481,10 @@ f2 <- ggplot(hist_table, aes(x=coverage, fill=sample, color=sample)) +
 
 cowplot::plot_grid(f1, f2, ncol = 1)
   
-  
 }
 
 
 ```
-
-
 
 
 ## MAGs data
@@ -569,7 +565,7 @@ marker_lvl_mg %>%
 # benchmarking figures
 breaks_mg <- c(0, 25, 50, 75, 100)
 Genome_benchmark(donorB_mag, breaks_mg)
-
+ggsave("../plots_paper/MAGs_cutoff.png", height = 12, width = 10, units = "cm")
 
 # Keep only the patient samples, reshape the numbers, and name the Marker column
 marker_lvl_mg = (marker_lvl_mg 
@@ -580,7 +576,7 @@ marker_lvl_mg = (marker_lvl_mg
 
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
-cutoff_pres_mg = 60
+cutoff_pres_mg = 75
 cutoff_abs_mg = 25
 
 
@@ -618,7 +614,6 @@ gtdb %>%
   separate(classification, c("Kingdom", "Phylum", "Class",
                                    "Order", "Family", "Genus",
                                    "Species"), ";.__") -> gtdb_viz
-
 #select top 10 families
 gtdb_viz %>%
   rename(Marker = bin_id) %>%
@@ -788,10 +783,9 @@ marker_lvl_uhgg %>%
 breaks_mg <- c(0, 25, 50, 75, 100)
 Genome_benchmark(donorB_uhgg, breaks_mg)
 
-
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
-cutoff_pres_mg = 60
+cutoff_pres_mg = 75
 cutoff_abs_mg = 25
 
 # Keep only the donor samples samples,
@@ -801,7 +795,6 @@ marker_lvl_uhgg %>%
   select(Genome) %>% distinct() %>%
   pull(Genome) -> donorB_inUHGG
 
-
 # Keep only the patient samples, reshape the numbers, and name the Marker column
 marker_lvl_uhgg = (marker_lvl_uhgg
                  %>% filter(str_detect(sample, "PMCL")) 
@@ -809,29 +802,6 @@ marker_lvl_uhgg = (marker_lvl_uhgg
                  %>% filter(Genome %in% donorB_inUHGG)
                  %>% spread(sample, bin_coverage) 
                  %>% rename(Marker= Genome))
-
-
-### Get the engraftment matrix
-long_mark_uhgg = mark_to_long(marker_lvl_uhgg)
-engr_uhgg = get_engraft(long_mark_uhgg, mapfile, cutoff_abs_mg, cutoff_pres_mg,
-                       Treatment %in% c('FMT', 'Placebo'))
-
-##### f1
-cts_uhgg = count_engraft(engr_uhgg, tx_pv, 'Treatment')
-f1_uhgg = plot_fig_13(cts_uhgg, 'Treatment')
-
-##### f2
-f2_uhgg = plot_fig_2(cts_uhgg)
-
-#### f3
-cts_uhgg_rem = count_engraft(engr_uhgg, rs_pv, 'Remission')
-f3_uhgg = plot_fig_13(cts_uhgg_rem,'Remission')
-
-#### paper Fig
-pvals_mg=perTest %>% filter(data == "mags")
-f_paper(f1_uhgg, f2_uhgg, f3_uhgg, tx_pv, rs_pv, pvals_mg)
-ggsave("../plots_paper/UHGG.png", height = 15, width = 7, units = "cm")
-
 
 ```
 
