@@ -66,7 +66,7 @@ f2_16s
 # talk about what we did for the statistics in the methods section.
 
 #### Fig 1 
-cts_16s_plt = count_engraft(engr_16s, rs_pv, 'Remission')
+cts_16s_plt_rem = count_engraft(engr_16s, rs_pv, 'Remission')
 
 f3_16s = plot_fig_13(cts_16s_plt, 'Remission')
 f3_16s
@@ -125,6 +125,7 @@ engr_sp = get_engraft(long_mark_sp, mapfile, cutoff_abs_sp, cutoff_pres_sp,
 #### Species FMT vs Placebo ####
 
 #### Fig 1
+cts_sp = count_engraft(engr_sp, tx_pv, 'Treatment')
 f1_sp = plot_fig_13(cts_sp, 'Treatment')
 f1_sp
 ggsave('../plots/f1_sp.pdf',f1_sp, height = 5, width = 5.5)
@@ -136,7 +137,7 @@ f2_sp
 ggsave('../plots/f2_sp.pdf',f2_sp, height = 5, width = 5.5)
 
 #### Species Res vs NoRes ####
-
+cts_sp_rem = count_engraft(engr_sp, rs_pv, 'Remission')
 f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
 f3_sp
 ggsave('../plots/f3_sp.pdf',f3_sp, height = 5, width = 5.5)
@@ -182,6 +183,7 @@ engr_st = get_engraft(long_mark_st, mapfile, cutoff_abs_st, cutoff_pres_st,
 
 #### Strains FMT vs Placebo ####
 
+cts_st = count_engraft(engr_st, tx_pv, 'Treatment')
 f1_st = plot_fig_13(cts_st, 'Treatment')
 f1_st
 ggsave('../plots/f1_st.pdf',f1_st, height = 5, width = 5.5)
@@ -192,6 +194,7 @@ ggsave('../plots/f2_st.pdf',f2_st, height = 5, width = 5.5)
 
 #### Strains Res vs NoRes ####
 
+cts_st_rem = count_engraft(engr_st, rs_pv, 'Remission')
 f3_st = plot_fig_13(cts_st_rem, 'Remission')
 f3_st
 ggsave('../plots/f3_st.pdf',f3_st, height = 5, width = 5.5)
@@ -271,7 +274,7 @@ engr_mg = get_engraft(long_mark_mg, mapfile, cutoff_abs_mg, cutoff_pres_mg,
 
 
 #### MAGs FMT vs Placebo ####
-
+cts_mg = count_engraft(engr_mg, tx_pv, 'Treatment')
 f1_mg = plot_fig_13(cts_mg, 'Treatment')
 f1_mg
 ggsave('../plots/f1_mg.pdf',f1_mg, height = 5, width = 5.5)
@@ -282,6 +285,7 @@ ggsave('../plots/f2_mg.pdf',f2_mg, height = 5, width = 5.5)
 
 #### MAGs Res vs NoRes ####
 
+cts_mg_rem = count_engraft(engr_mg, rs_pv, 'Remission')
 f3_mg = plot_fig_13(cts_mg_rem,'Remission')
 f3_mg
 ggsave('../plots/f3_mg.pdf',f3_mg, height = 5, width = 5.5)
@@ -305,7 +309,7 @@ engr_ge = get_engraft(long_mark_ge, mapfile, cutoff_abs_ge, cutoff_pres_ge,
 
 
 #### Genes FMT vs Placebo ####
-
+cts_ge = count_engraft(engr_ge, tx_pv, 'Treatment')
 f1_ge = plot_fig_13(cts_ge, 'Treatment')
 f1_ge
 ggsave('../plots/f1_ge.pdf',f1_ge, height = 5, width = 5.5)
@@ -316,6 +320,7 @@ ggsave('../plots/f2_ge.pdf',f2_ge, height = 5, width = 5.5)
 
 #### Genes Res vs NoRes ####
 
+cts_ge_rem = count_engraft(engr_ge, rs_pv, 'Remission')
 f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 f3_ge
 ggsave('../plots/f3_ge.pdf',f3_ge, height = 5, width = 5.5)
