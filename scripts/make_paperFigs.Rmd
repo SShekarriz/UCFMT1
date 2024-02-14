@@ -12,6 +12,7 @@ make paper figures
 library(tidyverse)
 library(tidytext)
 
+
 ```
 
 Load main functions:
@@ -67,7 +68,7 @@ f_paper <- function(f1, f2, f3, tx_pv, rs_pv, pvals) {
  data1 <- ggplot_build(f1)$plot$data
  # re-label the color variable that include n
  labels <- setNames(i_tx$annot, i_tx$Treatment)
-  # pvalue-label
+ # pvalue-label
   p_label = pvals %>% filter(plot == "f1") %>% pull(label)
   p1 = f1 +
   scale_color_manual(values = fig1_cols,
@@ -135,8 +136,6 @@ f_paper <- function(f1, f2, f3, tx_pv, rs_pv, pvals) {
 
 ```
 
-
-
 ## 16s data:
 
 ```{r}
@@ -180,9 +179,94 @@ f3_16s = plot_fig_13(cts_16s_plt, 'Remission')
 #### paper Fig
 pvals_16s=perTest %>% filter(data == "16s")
 f_paper(f1_16s, f2_16s, f3_16s, tx_pv, rs_pv, pvals_16s)
-ggsave("../plots_paper/16s.pdf", height = 15, width = 7, units = "cm")
+ggsave("../plots_paper/16s.png", height = 15, width = 7, units = "cm")
 
 ```
+
+
+```{r}
+
+
+# a function to filter marker above cutoff based on relative abundance
+benchmark1 <- function(table, cutoff){
+  # total number of unqiue species in each sample
+  table %>%
+    group_by(sample) %>%
+    summarise(total=n()) -> total.marker
+  
+  # total number of unique marker above cutoff
+  table %>%
+    mutate(relative_abund= abundance) %>%
+    filter(relative_abund >= cutoff) %>%
+    group_by(sample) %>%
+    summarise(pos_n=n()) %>%
+    left_join(total.marker) %>%
+    mutate(pos_p=pos_n/total * 100) %>%
+    mutate(cutoff=paste(cutoff))
+}
+
+cols <- c("2013" = "#bae4b3",
+          "2016" = "#74c476", 
+          "May17" = "#31a354",
+          "Oct17" = "#006d2c")
+
+# comparison of detection cut-offs
+benchmark <- function(table, vector) {
+  
+  vector <- as.character(vector)  # Convert vector to character for proper factor levels
+  
+  res <- list()
+  for (i in vector) {
+    res[[i]] <- benchmark1(table, as.numeric(i))
+  }
+  
+  tbl <- do.call(rbind.data.frame, res)
+  tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+  
+f1 <- ggplot(tbl, aes(cutoff, pos_p, color = sample, fill=sample)) +
+    geom_line(aes(group = sample)) +
+    scale_color_manual(values = cols) +
+    scale_fill_manual(values = cols) +
+    theme_bw() +
+    theme(legend.position = c(0.8,0.7),
+          legend.title = element_blank()) +
+    xlab("percentage") +
+    ylab("% of unique marker")
+  
+  
+  table %>%
+  ungroup() %>%
+  group_by(sample) %>%
+  summarise(percent=as.numeric(abundance)
+            /sum(as.numeric(abundance)) * 100) -> hist_table
+  
+  # get the 20% quantile of the data
+  q05 <- round(quantile(hist_table$percent, 0.20), 5)
+  
+f2 <- ggplot(hist_table, aes(x=percent, fill=sample, color=sample)) +
+    geom_histogram(position="identity", colour="grey40", alpha=0.7, bins = 10) +
+    scale_x_log10() +
+    facet_grid(. ~ sample) +
+    geomtextpath::geom_textvline(label = q05, color = "red", 
+                                 xintercept = q05, vjust = 1.3) +
+    scale_fill_manual(values = cols) +
+    theme_classic() +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 90)) +
+  xlab("(%)") +
+  ylab("# of marker")
+
+cowplot::plot_grid(f1, f2, ncol = 1)
+  
+  
+}
+
+
+```
+
+
+
+
 
 ## species data
 
@@ -215,6 +299,11 @@ donorB_species = (marker_lvl_sp
                   %>% filter(!is.na(abundance)) 
                   %>% filter(as.numeric(abundance) > 0) 
                   %>% mutate(sample= gsub("DonorB_D_", "", sample)))
+
+# benchmarking figures
+breaks_sp <- c(0.001, 0.005, 0.01, 0.1, 1, 2, 3)
+benchmark(donorB_species, breaks_sp)
+
 
 # Set the cutoff for "presence" with species. This is used for both patient
 # samples and donor B
@@ -253,7 +342,7 @@ f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
 #### paper Fig
 pvals_sp=perTest %>% filter(data == "species")
 f_paper(f1_sp, f2_sp, f3_sp, tx_pv, rs_pv, pvals_sp)
-ggsave("../plots_paper/species.pdf", height = 15, width = 7, units = "cm")
+ggsave("../plots_paper/species.png", height = 15, width = 7, units = "cm")
 
 ```
 
@@ -277,6 +366,10 @@ donorB_strains = (marker_lvl_st
                   %>% filter(as.numeric(abundance) > 0) 
                   %>% mutate(sample= gsub("DonorB_D_", "", sample)))
 
+# benchmarking figures
+breaks_sp <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1)
+benchmark(donorB_strains, breaks_sp)
+
 # Set the presence cutoff used in both donor B and patient samples
 cutoff_pres_st = 0.0001
 
@@ -299,7 +392,6 @@ long_mark_st = mark_to_long(select(marker_lvl_st, -sp_marker, -st_marker),
 engr_st = get_engraft(long_mark_st, mapfile, cutoff_abs_st, cutoff_pres_st,
                        Treatment %in% c('FMT', 'Placebo'))
 
-
 #### Strains FMT vs Placebo ####
 ###### f1
 cts_st = count_engraft(engr_st, tx_pv, 'Treatment')
@@ -315,9 +407,89 @@ f3_st = plot_fig_13(cts_st_rem, 'Remission')
 #### paper Fig
 pvals_st=perTest %>% filter(data == "strain")
 f_paper(f1_st, f2_st, f3_st, tx_pv, rs_pv, pvals_st)
-ggsave("../plots_paper/strain.pdf", height = 15, width = 7, units = "cm")
+ggsave("../plots_paper/strain.png", height = 15, width = 7, units = "cm")
 
 ```
+
+
+
+```{r}
+
+
+# a function to filter marker above cutoff based on relative abundance
+benchmark2 <- function(table, cutoff){
+  # total number of unqiue species in each sample
+  table %>%
+    group_by(sample) %>%
+    summarise(total=n()) -> total.marker
+  
+  # total number of unique marker above cutoff
+  table %>%
+    filter(coverage >= cutoff) %>%
+    group_by(sample) %>%
+    summarise(pos_n=n()) %>%
+    left_join(total.marker) %>%
+    mutate(pos_p=pos_n/total * 100) %>%
+    mutate(cutoff=paste(cutoff))
+}
+
+cols <- c("2013" = "#bae4b3",
+          "2016" = "#74c476", 
+          "May17" = "#31a354",
+          "Oct17" = "#006d2c")
+
+# comparison of detection cut-offs
+Genome_benchmark <- function(table, vector) {
+  
+  vector <- as.character(vector)  # Convert vector to character for proper factor levels
+  
+  res <- list()
+  for (i in vector) {
+    res[[i]] <- benchmark2(table, as.numeric(i))
+  }
+  
+  tbl <- do.call(rbind.data.frame, res)
+  tbl$cutoff <- factor(tbl$cutoff, levels = vector)
+  
+f1 <- ggplot(tbl, aes(cutoff, pos_p, color = sample, fill=sample)) +
+    geom_line(aes(group = sample)) +
+    scale_color_manual(values = cols) +
+    scale_fill_manual(values = cols) +
+    theme_bw() +
+    theme(legend.position = c(0.8,0.7),
+          legend.title = element_blank()) +
+    xlab("percentage") +
+    ylab("% of unique Genome")
+  
+table %>%
+   select(sample, coverage) -> hist_table
+  
+  # get the 20% quantile of the data
+  q05 <- round(quantile(hist_table$coverage, 0.5), 5)
+  
+f2 <- ggplot(hist_table, aes(x=coverage, fill=sample, color=sample)) +
+    geom_histogram(position="identity", colour="grey40", alpha=0.7, bins = 10) +
+    scale_x_log10() +
+    facet_grid(. ~ sample) +
+    geomtextpath::geom_textvline(label = q05, color = "red", 
+                                 xintercept = q05, vjust = 1.3) +
+    scale_fill_manual(values = cols) +
+    theme_classic() +
+    theme(legend.position = "none",
+          axis.text.x = element_text(angle = 90)) +
+  xlab("(%)") +
+  ylab("# of Genome")
+
+cowplot::plot_grid(f1, f2, ncol = 1)
+  
+  
+}
+
+
+```
+
+
+
 
 ## MAGs data
 
@@ -338,6 +510,17 @@ MAGs = (c_inMAG
         %>% select(bin_id) 
         %>% distinct() 
         %>% pull())
+
+# gtdb taxonomy output for all the bins
+gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
+gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
+
+gtdb.bac %>% mutate(bin_id=user_genome) %>%
+  select(bin_id, classification) %>%
+  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
+              select(bin_id, classification)) %>%
+  mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
+
 
 
 ## read in the MAG coverage
@@ -376,6 +559,18 @@ marker_lvl_mg = (marker_lvl_mg
                                bin_numreads=sum(numreads),
                                bin_coverage=bin_covbases/bin_len*100))
 
+marker_lvl_mg %>%
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  select(sample, bin_id, bin_coverage) %>%
+  rename(Genome=bin_id, coverage=bin_coverage) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample))-> donorB_mag
+
+
+# benchmarking figures
+breaks_mg <- c(0, 25, 50, 75, 100)
+Genome_benchmark(donorB_mag, breaks_mg)
+
+
 # Keep only the patient samples, reshape the numbers, and name the Marker column
 marker_lvl_mg = (marker_lvl_mg 
                  %>% filter(str_detect(sample, "PMCL")) 
@@ -385,7 +580,7 @@ marker_lvl_mg = (marker_lvl_mg
 
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
-cutoff_pres_mg = 90
+cutoff_pres_mg = 60
 cutoff_abs_mg = 25
 
 
@@ -410,10 +605,237 @@ f3_mg = plot_fig_13(cts_mg_rem,'Remission')
 #### paper Fig
 pvals_mg=perTest %>% filter(data == "mags")
 f_paper(f1_mg, f2_mg, f3_mg, tx_pv, rs_pv, pvals_mg)
-ggsave("../plots_paper/MAGs.pdf", height = 15, width = 7, units = "cm")
+ggsave("../plots_paper/MAGs.png", height = 15, width = 7, units = "cm")
 
 
 ```
+
+Is there a signature of MAGs specific to responder?
+
+```{r}
+
+gtdb %>%
+  separate(classification, c("Kingdom", "Phylum", "Class",
+                                   "Order", "Family", "Genus",
+                                   "Species"), ";.__") -> gtdb_viz
+
+#select top 10 families
+gtdb_viz %>%
+  rename(Marker = bin_id) %>%
+  filter(Marker %in% MAGs) %>%
+  select(Marker, Family) %>%
+  group_by(Family) %>%
+  summarise(n= n()) %>%
+  arrange(-n) %>% pull(Family) -> tfam
+tfam10 <- tfam[1:10]
+
+##############################################################################
+## 1. summary of taxonomy of donor B MAGs
+##############################################################################
+family_col= c(
+"Lachnospiraceae" = "#6a3d9a",
+"Ruminococcaceae" = "#33a02c",
+"Bacteroidaceae" = "#1f78b4",
+"Oscillospiraceae" = "#ff7f00",
+"CAG-508" = "#b2df8a",
+"Acutalibacteraceae" = "#fdbf6f",
+"Streptococcaceae" = "#ffff99",
+"CAG-822" =  "#a6cee3",
+"Lactobacillaceae" = "#fb9a99",
+"Butyricicoccaceae" = "#f781bf",
+"Other" = "#808080"
+)
+
+family_order <- c("Lachnospiraceae", "Oscillospiraceae",
+                  "Ruminococcaceae", "CAG-508", "Bacteroidaceae", 
+                  "Acutalibacteraceae", "Lactobacillaceae",
+                  "Streptococcaceae", "Butyricicoccaceae",
+                  "CAG-822", "Other")
+
+gtdb_viz %>%
+mutate(Family_lab= case_when(Family %in% tfam10 ~ paste(Family),
+                               TRUE ~ paste("Other"))) -> gtdb_viz
+
+
+# select the marker that were engrafted in >= 3 patients
+data.frame(cts_mg) %>%
+  mutate(Total = rowSums(.),
+         Uniqueness = case_when(tx_tot > 0 & bl_tot > 0 ~ 'Both',
+                                tx_tot == 0 & bl_tot > 0 ~ 'Placebo',
+                                tx_tot > 0 & bl_tot == 0 ~ 'FMT',
+                                tx_tot == 0 & bl_tot == 0 ~ 'None')) %>%
+  filter(Total >= 1) %>%
+  rownames_to_column("Marker") %>%
+  pull(Marker)-> of_int_marker
+# look for these marker of interest across all patients
+data.frame(engr_mg) %>%
+  rownames_to_column("Marker") %>%
+  filter(Marker %in% of_int_marker) %>%
+  column_to_rownames("Marker") -> engr_mg_2
+
+# f1 data with only marker of int
+cts_mg_2 = count_engraft(engr_mg_2, tx_pv, 'Treatment')
+data.frame(cts_mg_2) %>%
+  rename(FMT=tx_tot,
+         Placebo=bl_tot) %>%
+  rownames_to_column("Marker") -> cts_mg_2
+# f3 data with only marker of int
+cts_mg_rem_2 = count_engraft(engr_mg_2, rs_pv, 'Remission')
+data.frame(cts_mg_rem_2) %>%
+  rename(Res=tx_tot,
+         NoRes=bl_tot) %>%
+  rownames_to_column("Marker") -> cts_mg_rem_2
+
+cts_mg_2 %>%
+  left_join(cts_mg_rem_2) %>%
+  mutate(tUniq = case_when(FMT > 0 & Placebo > 0 ~ 'Both',
+                                FMT == 0 & Placebo > 0 ~ 'Placebo',
+                                FMT > 0 & Placebo == 0 ~ 'FMT',
+                                FMT == 0 & Placebo == 0 ~ 'None')) %>%
+  mutate(rUniq = case_when(tUniq == "FMT" & Res > 0 & NoRes > 0 ~ 'F-Both',
+                           tUniq == "FMT" & Res == 0 & NoRes > 0 ~ 'F-NoRes',
+                           tUniq == "FMT" & Res > 0 & NoRes == 0 ~ 'F-Res',
+                           tUniq == "FMT" & Res == 0 & NoRes == 0 ~ 'F-None',
+                           tUniq == "Placebo" & Res > 0 & NoRes > 0 ~ 'P-Both',
+                           tUniq == "Placebo" & Res == 0 & NoRes > 0 ~ 'P-NoRes',
+                           tUniq == "Placebo" & Res > 0 & NoRes == 0 ~ 'P-Res',
+                           tUniq == "Placebo" & Res == 0 & NoRes == 0 ~ 'P-None',
+                           tUniq == "Both" ~ 'Both',
+                           TRUE ~ 'None')) %>%
+  select(Marker, tUniq, rUniq) -> Marker_Uniq
+
+
+data.frame(engr_mg_2) %>%
+ rownames_to_column("Marker") %>%
+ gather(Fig_lab, engraft, -Marker) %>%
+ filter(engraft > 0) %>%
+ left_join(Marker_Uniq) %>%
+ left_join(mapfile %>% select(Fig_lab, Treatment, Remission)) %>%
+ mutate(Fig_lab = case_when(Remission == "Res" ~ paste("*", Fig_lab, sep = ""),
+                            TRUE ~ Fig_lab))-> table
+
+# adding MAGs taxonomy:
+table %>%
+  left_join(gtdb_viz %>% rename(Marker = bin_id)) %>%
+  mutate(FamLab= paste(Family, Marker, sep = "-")) -> table
+
+
+table$rUniq <- factor(table$rUniq, levels = c("Both", "P-None", "F-Both",
+                                              "F-NoRes", "F-Res"))
+
+fig2_cols <- c("FMT" = "#1b7837",
+          "Placebo" = "#999999",
+          "Both" = "#fc8d59")
+
+ggplot(table, aes(Marker, Fig_lab, fill=tUniq)) +
+  geom_tile() +
+  facet_grid(Treatment~rUniq, space = "free", scales = "free") +
+  scale_fill_manual(values = fig2_cols) +
+  #scale_x_reordered() +
+  theme_classic() +
+  theme(strip.text.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+ggsave("../plots_paper/mags_ce.png",
+       width = 14, height = 6, units = "cm")
+
+
+ggplot(table, aes(engraft, Fig_lab, fill=Family_lab)) +
+  geom_bar(stat = "identity") +
+  facet_grid(Treatment~rUniq, space = "free", scales = "free") +
+  scale_fill_manual(values = family_col) +
+  #scale_x_reordered() +
+  theme_classic() +
+  theme(strip.text.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks = element_blank(),
+        axis.title = element_blank(),
+        legend.position = "none")
+ggsave("../plots_paper/mags_ce_taxa.png",
+       width = 14, height = 6, units = "cm")
+
+
+table %>%
+  select(Marker, rUniq) %>%
+  distinct() %>%
+  group_by(rUniq) %>%
+  tally()
+
+```
+
+
+## UHGG MAGs
+
+```{r}
+
+marker_lvl_uhgg <- read.csv("../data/perfect_mapping/UHGG/UHGG_1x_cover_perfect_subset_reads.csv")
+
+marker_lvl_uhgg %>%
+  mutate(bin_coverage=bin_covbases/bin_len*100) %>%
+  rename(sample=sample.id) %>%
+  mutate(sample= gsub("_perfect_UHGG.cover", "", sample)) %>%
+  mutate(sample = gsub("sub_", "", sample))-> marker_lvl_uhgg
+
+
+marker_lvl_uhgg %>%
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  select(sample, Genome, bin_coverage) %>%
+  rename(coverage=bin_coverage) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample))-> donorB_uhgg
+
+# benchmarking figures
+breaks_mg <- c(0, 25, 50, 75, 100)
+Genome_benchmark(donorB_uhgg, breaks_mg)
+
+
+# Set the presence and absence cutoffs for patients. DonorB doesn't need these
+# because all the MAGs come from donor B
+cutoff_pres_mg = 60
+cutoff_abs_mg = 25
+
+# Keep only the donor samples samples,
+marker_lvl_uhgg %>%
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  filter(bin_coverage >= cutoff_pres_mg) %>%
+  select(Genome) %>% distinct() %>%
+  pull(Genome) -> donorB_inUHGG
+
+
+# Keep only the patient samples, reshape the numbers, and name the Marker column
+marker_lvl_uhgg = (marker_lvl_uhgg
+                 %>% filter(str_detect(sample, "PMCL")) 
+                 %>% select(sample, Genome, bin_coverage)
+                 %>% filter(Genome %in% donorB_inUHGG)
+                 %>% spread(sample, bin_coverage) 
+                 %>% rename(Marker= Genome))
+
+
+### Get the engraftment matrix
+long_mark_uhgg = mark_to_long(marker_lvl_uhgg)
+engr_uhgg = get_engraft(long_mark_uhgg, mapfile, cutoff_abs_mg, cutoff_pres_mg,
+                       Treatment %in% c('FMT', 'Placebo'))
+
+##### f1
+cts_uhgg = count_engraft(engr_uhgg, tx_pv, 'Treatment')
+f1_uhgg = plot_fig_13(cts_uhgg, 'Treatment')
+
+##### f2
+f2_uhgg = plot_fig_2(cts_uhgg)
+
+#### f3
+cts_uhgg_rem = count_engraft(engr_uhgg, rs_pv, 'Remission')
+f3_uhgg = plot_fig_13(cts_uhgg_rem,'Remission')
+
+#### paper Fig
+pvals_mg=perTest %>% filter(data == "mags")
+f_paper(f1_uhgg, f2_uhgg, f3_uhgg, tx_pv, rs_pv, pvals_mg)
+ggsave("../plots_paper/UHGG.png", height = 15, width = 7, units = "cm")
+
+
+```
+
+
 
 ## Gene data
 
@@ -454,7 +876,7 @@ f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 #### paper Fig
 pvals_ge=perTest %>% filter(data == "genes")
 f_paper(f1_ge, f2_ge, f3_ge, tx_pv, rs_pv, pvals_ge)
-ggsave("../plots_paper/genes.pdf", height = 15, width = 7, units = "cm")
+ggsave("../plots_paper/genes.png", height = 15, width = 7, units = "cm")
 
 ```
 A signature of genes specific to FMT responders:
@@ -536,7 +958,7 @@ ggplot(table, aes(Marker, Fig_lab, fill=tUniq)) +
         axis.text.x = element_blank(),
         axis.title = element_blank(),
         legend.position = "none")
-ggsave("../plots_paper/genes_ce.pdf",
+ggsave("../plots_paper/genes_ce.png",
        width = 14, height = 8, units = "cm")
 
 # number of genes in each rUniq category (strips in x-axis)
@@ -648,7 +1070,7 @@ ggplot(plt_df, aes(reorder_within(bin_id, -n, Type),
         axis.title = element_blank(),
         legend.position = "none",
         strip.text.x = element_blank())
-ggsave("../plots_paper/genes_ce_inBins.pdf",
+ggsave("../plots_paper/genes_ce_inBins.png",
        width = 12, height = 3, units = "cm")
 
 
@@ -765,10 +1187,10 @@ ggplot(aes(genes, reorder_within(spID, genes, Family), fill="CEGs")) +
   theme_classic() +
   theme(strip.text.y = element_blank(),
         legend.position = "none",
-        #axis.text.x = element_blank(),
+        axis.text.x = element_blank(),
         axis.text.y = element_text(size=5),
         axis.title = element_blank())
-ggsave("../plots_paper/genes_ce_inRefSeq.pdf",
+ggsave("../plots_paper/genes_ce_inRefSeq.png",
        width = 6, height = 12, units = "cm")
 
 
@@ -808,7 +1230,7 @@ ggplot(aes(qseqid, reorder_within(sseqid, genes, Species), fill="CEGs")) +
         legend.position = "none",
         axis.text = element_blank(),
         axis.title = element_blank())
-ggsave("../plots_paper/genes_ce_inRefSeq_hm.pdf",
+ggsave("../plots_paper/genes_ce_inRefSeq_hm.png",
        width = 6, height = 12, units = "cm")
 
 ```
@@ -908,17 +1330,13 @@ ggplot(tbl1, aes(Diagnosis, n)) +
   scale_fill_manual(values = c("Control" = "#1a9641",
                                 "UC" = "#d7191c",
                                 "CD" = "#d7191c")) +
-  ggpubr::geom_signif(comparisons = list(c("Control", "UC"),
-                                         c("Control", "CD")),
-              map_signif_level = TRUE,
-              step_increase = 0.08) +
   theme_classic() +
   theme(axis.title = element_blank(),
-        #axis.text.x = element_blank(),
+        axis.text.x = element_blank(),
         legend.position = "none")
   #ylab("# of unique CEGs / sample")
-ggsave("../plots_paper/genes_ce_inPublicMeta_uniq.pdf",
-       width = 7, height = 8, units = "cm")
+ggsave("../plots_paper/genes_ce_inPublicMeta_uniq.png",
+       width = 5, height = 5, units = "cm")
 
 ############################################################################
 
@@ -941,17 +1359,13 @@ ggplot(tbl2, aes(Diagnosis, relativeAbund)) +
   scale_fill_manual(values = c("Control" = "#1a9641",
                                 "UC" = "#d7191c",
                                 "CD" = "#d7191c")) +
-  ggpubr::geom_signif(comparisons = list(c("Control", "UC"),
-                                         c("Control", "CD")),
-              map_signif_level = TRUE,
-              step_increase = 0.08) +
   theme_classic() +
   theme(axis.title = element_blank(),
-        #axis.text.x = element_blank(),
+        axis.text.x = element_blank(),
         legend.position = "none")
   #ylab("% of CEGs reads / sample")
-ggsave("../plots_paper/genes_ce_inPublicMeta_abund.pdf",
-       width = 7, height = 8, units = "cm")
+ggsave("../plots_paper/genes_ce_inPublicMeta_abund.png",
+       width = 5, height = 5, units = "cm")
 
 
 
