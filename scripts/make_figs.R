@@ -5,7 +5,7 @@
 # Import packages, set working directory, source functions
 library(tidyverse)
 theme_set(theme_bw())
-# setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
+setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
 source('./permutation_functions.R')
 
 # Create the p-value storage matrix
