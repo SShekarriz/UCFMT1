@@ -287,7 +287,7 @@ nperm = 2000
 # perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv, nperm, 
 #                       txrm = 'Treatment')
 # head(perms_sp[['stat_mat']])
-# 
+
 # # Save the permuted data so we don't have to do this all again
 # save(perms_sp, file = '../permut_data/intermed/perms_sp.RData')
 load('../permut_data/intermed/perms_sp.RData')
@@ -325,7 +325,7 @@ nperm = 2000
 # perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv, nperm,
 #                           txrm = 'Remission')
 # head(perms_sp_rem[['stat_mat']])
-# 
+
 # # Save the permuted values
 # save(perms_sp_rem, file = '../permut_data/intermed/perms_sp_rem.RData')
 load('../permut_data/intermed/perms_sp_rem.RData')
@@ -406,7 +406,7 @@ nperm = 2000
 # perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv, nperm, 
 #                       txrm = 'Treatment')
 # head(perms_st[['stat_mat']])
-# 
+
 # # Save the permuted values
 # save(perms_st, file = '../permut_data/intermed/perms_st.RData')
 load('../permut_data/intermed/perms_st.RData')
@@ -519,7 +519,7 @@ marker_lvl_mg = (marker_lvl_mg
 
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
-cutoff_pres_mg = 90
+cutoff_pres_mg = 75
 cutoff_abs_mg = 25
 
 
@@ -553,12 +553,12 @@ ggsave('../plots/f2_mg.pdf',f2_mg, height = 5, width = 5.5)
 print('Permute')
 
 nperm = 2000
-# perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm,
-#                       txrm = 'Treatment')
-# head(perms_mg[['stat_mat']])
-# # save the permuted data
-# save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
-load('../permut_data/intermed/perms_mg.RData')
+perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv, nperm,
+                      txrm = 'Treatment')
+head(perms_mg[['stat_mat']])
+# save the permuted data
+save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
+# load('../permut_data/intermed/perms_mg.RData')
 
 # calculate, double, and store the p-values
 (pvals_mg = get_pvals(perms_mg[['stat_mat']]))
@@ -588,12 +588,12 @@ ggsave('../plots/f3_mg.pdf',f3_mg, height = 5, width = 5.5)
 print('Permute')
 
 nperm = 2000
-# perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm,
-#                           txrm = 'Remission')
-# head(perms_mg_rem[['stat_mat']])
-# # save the permutations
-# save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
-load('../permut_data/intermed/perms_mg_rem.RData')
+perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv, nperm,
+                          txrm = 'Remission')
+head(perms_mg_rem[['stat_mat']])
+# save the permutations
+save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
+# load('../permut_data/intermed/perms_mg_rem.RData')
 
 # calculate, double, and store the p-values
 (pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']]))
@@ -684,11 +684,12 @@ print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 2000
-perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm,
-                          txrm = 'Remission')
-head(perms_ge_rem[['stat_mat']])
-# save the permutations
-save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
+# perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv, nperm,
+#                           txrm = 'Remission')
+# head(perms_ge_rem[['stat_mat']])
+# # save the permutations
+# save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
+load('../permut_data/intermed/perms_ge_rem.RData')
 # calculated, double, and store the p-values
 (pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']]))
 pvals['ResvNoRes_genes',] = round(pvals_ge_rem, 5)
