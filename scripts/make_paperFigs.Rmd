@@ -135,6 +135,66 @@ f_paper <- function(f1, f2, f3, tx_pv, rs_pv, pvals) {
 
 ```
 
+function to make engraftment profiles; Profiling donor's markers in patients
+
+```{r}
+
+p_paper <- function(profile, mapfile) {
+  
+  cols <- c("Engraft" = "#1a9641",
+            "Other" = "#a6d96a",
+            "SharedWithDonor" = "#2b83ba",
+            "UniqueToDonor" = "#abd9e9")
+  
+  mapfile %>%
+   select(Fig_lab, Treatment, Remission) %>%
+   distinct()-> map
+  
+  # donor markers:
+  donor_markers = nrow(profile)
+  # profile number of markers in each Treatment
+  profile %>%
+    rownames_to_column("Marker") %>%
+    gather(Fig_lab, engrafted, -Marker) %>%
+    group_by(Fig_lab, engrafted) %>%
+    summarise(Marker_n= n()) %>%
+    #mutate(proportion= Marker_n / donor_markers * 100) %>%
+    left_join(map) %>%
+    mutate(Fig_lab = case_when(Remission == "Res" ~ paste("*", Fig_lab,
+                                                          sep = ""),
+                               TRUE ~ paste(Fig_lab))) -> p1
+  
+p1 %>%
+  ungroup() %>%
+  group_by(Treatment, engrafted) %>%
+  summarise(Mean_marker= mean(Marker_n) / donor_markers * 100) -> p2
+
+f1 <- ggplot(p1, aes(Marker_n, Fig_lab, fill=engrafted)) +
+    geom_bar(stat = "identity") +
+    facet_grid(Treatment~., scales = "free", space = "free") +
+    scale_fill_manual(values = cols) +
+    theme_classic() +
+    theme(legend.position = "none") +
+    xlab("# of donor features") +
+    ylab("Patients")
+  
+f2 <- ggplot(p2, aes(Treatment, Mean_marker, fill=engrafted)) +
+    geom_bar(stat = "identity") +
+    scale_fill_manual(values = cols) +
+    geom_text(aes(label = round(Mean_marker, 1)),
+              position = position_stack(vjust = .5)) +
+    theme_classic() +
+    theme(legend.position = "rig") +
+    ylab("Mean of feature type (%)")
+
+cowplot::plot_grid(f2, f1)
+ 
+}
+
+```
+
+
+
 ## 16s data:
 
 ```{r}
@@ -163,6 +223,12 @@ long_mark_16s = mark_to_long(marker_lvl_16s, strains16s)
 engr_16s = get_engraft(long_mark_16s, mapfile, cutoff_abs_16S, cutoff_pres_16S,
                        Treatment %in% c('FMT', 'Placebo'))
 
+# profile the feature types:
+profile_16s = get_profile(long_mark_16s, mapfile, cutoff_abs_16S, cutoff_pres_16S,
+                       Treatment %in% c('FMT', 'Placebo'))
+p_paper(profile_16s, mapfile)
+ggsave("../plots_paper/16s_profile.png", height = 15, width = 15, units = "cm")
+
 #### Fig 1 
 cts_16s_plt = count_engraft(engr_16s, tx_pv, 'Treatment')
 f1_16s = plot_fig_13(cts_16s_plt, 'Treatment')
@@ -181,6 +247,8 @@ f_paper(f1_16s, f2_16s, f3_16s, tx_pv, rs_pv, pvals_16s)
 ggsave("../plots_paper/16s.png", height = 15, width = 7, units = "cm")
 
 ```
+
+
 
 ## benchmarking function for species and strains (relative abundance%)
 
@@ -229,6 +297,7 @@ f1 <- ggplot(tbl, aes(cutoff, pos_p, color = sample, fill=sample)) +
     scale_fill_manual(values = cols) +
     theme_bw() +
     theme(legend.position = c(0.8,0.7),
+          axis.title = element_text(size=7),
           legend.title = element_blank()) +
     xlab("relative abundance cutoff (%)") +
     ylab("proportion of unique markers kept")
@@ -252,6 +321,7 @@ f2 <- ggplot(hist_table, aes(x=percent, fill=sample, color=sample)) +
     scale_fill_manual(values = cols) +
     theme_classic() +
     theme(legend.position = "none",
+          axis.title = element_text(size=7),
           axis.text.x = element_text(angle = 90)) +
   xlab("relative abundance") +
   ylab("# of markers present at a given relative abundance")
@@ -322,6 +392,13 @@ cutoff_abs_sp = 0
 long_mark_sp = mark_to_long(marker_lvl_sp, strains_sp)
 engr_sp = get_engraft(long_mark_sp, mapfile, cutoff_abs_sp, cutoff_pres_sp,
                        Treatment %in% c('FMT', 'Placebo'))
+
+# profile the feature types:
+profile_sp = get_profile(long_mark_sp, mapfile, cutoff_abs_sp, cutoff_pres_sp,
+                       Treatment %in% c('FMT', 'Placebo'))
+p_paper(profile_sp, mapfile)
+ggsave("../plots_paper/species_profile.png", height = 15, width = 15, units = "cm")
+
 #### Species FMT vs Placebo ####
 
 #### Fig 1
@@ -334,7 +411,6 @@ f2_sp = plot_fig_2(cts_sp)
 #### Species Res vs NoRes ####
 cts_sp_rem = count_engraft(engr_sp, rs_pv, 'Remission')
 f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
-
 
 #### paper Fig
 pvals_sp=perTest %>% filter(data == "species")
@@ -390,6 +466,12 @@ long_mark_st = mark_to_long(select(marker_lvl_st, -sp_marker, -st_marker),
                             strains_st)
 engr_st = get_engraft(long_mark_st, mapfile, cutoff_abs_st, cutoff_pres_st,
                        Treatment %in% c('FMT', 'Placebo'))
+
+# profile the feature types:
+profile_st = get_profile(long_mark_st, mapfile, cutoff_abs_st, cutoff_pres_st,
+                       Treatment %in% c('FMT', 'Placebo'))
+p_paper(profile_st, mapfile)
+ggsave("../plots_paper/strains_profile.png", height = 15, width = 15, units = "cm")
 
 #### Strains FMT vs Placebo ####
 ###### f1
@@ -456,9 +538,10 @@ f1 <- ggplot(tbl, aes(cutoff, pos_p, color = sample, fill=sample)) +
     scale_fill_manual(values = cols) +
     theme_bw() +
     theme(legend.position = c(0.8,0.7),
+          axis.title = element_text(size=7),
           legend.title = element_blank()) +
-    xlab("percentage") +
-    ylab("% of unique Genome")
+    xlab("1x genome coverage cutoff (%)") +
+    ylab("proportion of unique genome kept")
   
 table %>%
    select(sample, coverage) -> hist_table
@@ -475,9 +558,10 @@ f2 <- ggplot(hist_table, aes(x=coverage, fill = sample, color= sample)) +
     scale_fill_manual(values = cols) +
     theme_classic() +
     theme(legend.position = "none",
+          axis.title = element_text(size=7),
           axis.text.x = element_text(angle = 90)) +
-  xlab("(%)") +
-  ylab("# of Genome")
+  xlab("1x genome coverage (%)") +
+  ylab("# of genome present at a given coverage")
 
 cowplot::plot_grid(f1, f2, ncol = 1)
   
@@ -583,6 +667,12 @@ cutoff_abs_mg = 25
 long_mark_mg = mark_to_long(marker_lvl_mg)
 engr_mg = get_engraft(long_mark_mg, mapfile, cutoff_abs_mg, cutoff_pres_mg,
                        Treatment %in% c('FMT', 'Placebo'))
+
+# profile the feature types:
+profile_mg = get_profile(long_mark_mg, mapfile, cutoff_abs_mg, cutoff_pres_mg,
+                       Treatment %in% c('FMT', 'Placebo'))
+p_paper(profile_mg, mapfile)
+ggsave("../plots_paper/MAGs_profile.png", height = 15, width = 15, units = "cm")
 
 
 ##### f1
@@ -780,6 +870,7 @@ marker_lvl_uhgg %>%
 # benchmarking figures
 breaks_mg <- c(0, 25, 50, 75, 100)
 Genome_benchmark(donorB_uhgg, breaks_mg)
+ggsave("../plots_paper/uhgg_cutoff.png", height = 12, width = 10, units = "cm")
 
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
@@ -826,6 +917,11 @@ long_mark_ge = mark_to_long(marker_lvl_ge)
 engr_ge = get_engraft(long_mark_ge, mapfile, cutoff_abs_ge, cutoff_pres_ge,
                        Treatment %in% c('FMT', 'Placebo'))
 
+# profile the feature types:
+profile_ge = get_profile(long_mark_ge, mapfile, cutoff_abs_ge, cutoff_pres_ge,
+                       Treatment %in% c('FMT', 'Placebo'))
+p_paper(profile_ge, mapfile)
+ggsave("../plots_paper/genes_profile.png", height = 15, width = 15, units = "cm")
 
 #### f1
 cts_ge = count_engraft(engr_ge, tx_pv, 'Treatment')
@@ -845,6 +941,7 @@ f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 pvals_ge=perTest %>% filter(data == "genes")
 f_paper(f1_ge, f2_ge, f3_ge, tx_pv, rs_pv, pvals_ge)
 ggsave("../plots_paper/genes.png", height = 15, width = 7, units = "cm")
+
 
 ```
 A signature of genes specific to FMT responders:
