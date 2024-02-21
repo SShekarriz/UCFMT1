@@ -53,26 +53,64 @@ get_engraft = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,  ...){
 
 ## Profile the type of donor Marker in patients:
 # 1. Engraft, 2. UniqueToDonor, 3. SharedWithDonor, 4. Other events
-get_profile = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,  ...){
-  
-  long_markerlvl %>%
-    # Join the feature count/coverage data with the metadata and
-    # filter to the desired groups
-    left_join(mapfile, by = c('sample' = 'Study_ID')) %>%
-    filter(...) %>%
-    select(Marker, Timepoint, abundance, Fig_lab) %>%
-    spread(Timepoint, abundance, fill = 0) %>%
-    mutate(engrafted = case_when(WK0 <= cutoff_abs & WK6 >= cutoff_pres ~ "Engraft",
-                                 WK0 <= cutoff_abs & WK6 <= cutoff_abs  ~ "UniqueToDonor",
-                                 WK0 >= cutoff_pres & WK6 >= cutoff_pres ~ "SharedWithDonor",
-                                 TRUE ~ "Other")) %>%
-    select(Marker, Fig_lab,  engrafted) %>%
-    pivot_wider(names_from = Fig_lab, values_from = engrafted,
-                values_fill = NA) %>%
-    # Make the Marker column the rownames
-    column_to_rownames('Marker')
+get_profile_pat = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,  ...){
+    
+    tst = (long_markerlvl 
+           %>% prep_profile(mapfile, cutoff_abs, cutoff_pres,
+                            Treatment %in% c('FMT','Placebo')) 
+           %>% select(Marker, Fig_lab,  engrafted)
+           %>% pivot_wider(names_from = Fig_lab, values_from = engrafted,
+                           values_fill = NA)
+           # Make the Marker column the rownames
+           %>% column_to_rownames('Marker'))
+    return(tst)
 }
 
+get_profile_don = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,
+                           ...){
+    tst = (long_markerlvl
+           %>% prep_profile(mapfile, cutoff_abs, cutoff_pres, ...)
+           %>% group_by(Marker, Treatment)
+           %>% summarize(status = get_status(engrafted))
+           )
+    shr = (tst
+           %>% filter(status == 'Both')
+           %>% mutate(status = 'SharedWithDonor'))
+    tst = (tst
+           %>% mutate(status = case_when(status == 'Both' ~ 'Engraft',
+                                         TRUE ~ status)))
+    tst = (rbind(tst,shr)
+           %>% mutate(status = factor(status, levels = c('UniqueToDonor',
+                                                         'SharedWithDonor',
+                                                         'Engraft','Other'))))
+    return(tst)
+}
+
+get_status = function(engrafted){
+    status = case_when(all(engrafted == 'AbsentFromPatient') ~ 'UniqueToDonor',
+                       any(engrafted == 'Engraft') & 
+                           any(engrafted == 'SharedWithDonor') ~ 'Both',
+                       any(engrafted == 'Engraft') ~ 'Engraft',
+                       any(engrafted == 'SharedWithDonor') ~ 'SharedWithDonor',
+                       TRUE ~ 'Other')
+    return(status)
+}
+
+prep_profile = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres, ...){
+    tst = (long_markerlvl
+           %>% left_join(mapfile, by = c('sample' = 'Study_ID'))
+           %>% filter(...)
+           %>% select(Marker, Timepoint, abundance, Fig_lab, Treatment)
+           %>% spread(Timepoint, abundance, fill = 0)
+           %>% mutate(engrafted = 
+                          case_when(WK0 <= cutoff_abs & WK6 >= cutoff_pres ~ 
+                                        "Engraft",
+                                    WK0 <= cutoff_abs & WK6 <= cutoff_abs  ~ 
+                                        "AbsentFromPatient",
+                                    WK0 >= cutoff_pres ~ "SharedWithDonor",
+                                    TRUE ~ "Other")))
+    return(tst)
+}
 
 ## Make a vector of patient IDs/treatment group correspondences
 pat_to_vect = function(mapfile, patcol, catcol){
