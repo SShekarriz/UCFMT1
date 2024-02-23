@@ -203,7 +203,7 @@ f3 <- ggplot(profile_don, aes(x = Treatment)) +
     theme(legend.position = "none") +
     ylab('# of donor features')
 
-cowplot::plot_grid(f2, f1, f3, nrow = 1)
+cowplot::plot_grid(f1, f2, f3, nrow = 1)
  
 }
 
