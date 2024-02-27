@@ -41,7 +41,7 @@ strains16s %>%
   pull() -> strains16s
 
 # Set the cutoffs for 16s presence and absence
-cutoff_pres_16S = 0.0001
+cutoff_pres_16S = 0.00013
 cutoff_abs_16S = 0
 
 
@@ -236,7 +236,7 @@ donorB_species = (marker_lvl_sp
 
 # Set the cutoff for "presence" with species. This is used for both patient
 # samples and donor B
-cutoff_pres_sp = 0.005
+cutoff_pres_sp = 0.0073
 
 # Filter to only include donor B species that meet that cutoff
 donorB_species = (donorB_species 
@@ -357,7 +357,7 @@ donorB_strains = (marker_lvl_st
                   %>% mutate(sample= gsub("DonorB_D_", "", sample)))
 
 # Set the presence cutoff used in both donor B and patient samples
-cutoff_pres_st = 0.0001
+cutoff_pres_st = 0.00013
 
 # Filter donor B to only the strains that meet the cutoff
 donorB_strains = (donorB_strains
@@ -520,7 +520,7 @@ marker_lvl_mg = (marker_lvl_mg
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
 cutoff_pres_mg = 75
-cutoff_abs_mg = 25
+cutoff_abs_mg = 20
 
 
 ### Get the engraftment matrix
