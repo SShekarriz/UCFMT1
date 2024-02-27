@@ -1175,7 +1175,9 @@ ggsave("../plots_paper/genes_ce.svg",
 table %>%
   select(Marker, rUniq) %>%
   distinct() %>%
-  group_by(rUniq) %>% tally()
+  group_by(rUniq) %>% tally() %>%
+  ungroup() %>%
+  mutate(percent= round(n/sum(n)*100, 1))
 
 # save the list of genes specific to F-Res: 1488 genes
 table %>%
