@@ -1179,6 +1179,174 @@ ggplot(tbl2, aes(Diagnosis, relativeAbund)) +
 ggsave("../plots_paper/genes_ce_inPublicMeta_abund.svg",
        width = 5, height = 5, units = "cm")
 
+```
+
+
+## KEGG parser
+a list of function to parse KEGGs from eggnot outputs
+```{r}
+
+library(KEGGREST)
+
+###################################################
+# function to parse eggnog output fot KEGG pathway:
+egg_KEGGpathway <- function(file.path) {
+  
+  # get all the list of all pathways:
+  data.frame(keggList(database = "PATHWAY")) -> KEGG.PATHWAY
+  colnames(KEGG.PATHWAY) <- c("name")
+  KEGG.PATHWAY %>%
+  rownames_to_column("KEGG_Pathway") -> KEGG.PATHWAY
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_Pathway) %>% filter(!grepl("-", KEGG_Pathway)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_Pathway) %>% tally() %>%
+  # only pathways
+  filter(grepl("map", KEGG_Pathway)) %>%
+  left_join(KEGG.PATHWAY) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG ko:
+egg_KEGGko <- function(file.path) {
+  
+  # get the list of all ko:
+  data.frame(keggList(database = "KO")) -> KEGG.KO
+  colnames(KEGG.KO) <- c("name")
+  KEGG.KO %>%
+  rownames_to_column("KEGG_ko") -> KEGG.KO
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_ko) %>%
+  filter(!grepl("-", KEGG_ko)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_ko) %>% tally() %>%
+  mutate(KEGG_ko= gsub("ko:", "", KEGG_ko)) %>%
+  left_join(KEGG.KO) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG Module:
+egg_KEGGmodule <- function(file.path) {
+  
+  # get the list of all MODULE:
+  data.frame(keggList(database = "MODULE")) -> KEGG.MODULE
+  colnames(KEGG.MODULE) <- c("name")
+  KEGG.MODULE %>%
+  rownames_to_column("KEGG_Module") -> KEGG.MODULE
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_Module) %>%
+  filter(!grepl("-", KEGG_Module)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_Module) %>% tally() %>%
+  left_join(KEGG.MODULE) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG BRITE:
+egg_KEGGbrite <- function(file.path) {
+  
+  # get the list of all BRITE:
+  data.frame(keggList(database = "BRITE")) -> KEGG.BRITE
+  colnames(KEGG.BRITE) <- c("name")
+  KEGG.BRITE %>%
+  rownames_to_column("BRITE") -> KEGG.BRITE
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(BRITE) %>%
+  filter(!grepl("-", BRITE)) %>%
+  separate_rows(1,sep = ",") %>% group_by(BRITE) %>% tally() %>%
+  left_join(KEGG.BRITE) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+###################################################
+# function to parse eggnog output for KEGG Reaction:
+egg_KEGGreaction <- function(file.path) {
+  
+  # get the list of all REACTION:
+  data.frame(keggList(database = "REACTION")) -> KEGG.REACTION
+  colnames(KEGG.REACTION) <- c("name")
+  KEGG.REACTION %>%
+  rownames_to_column("KEGG_Reaction") -> KEGG.REACTION
+  
+  eggnog <- read.csv(file.path, sep = "\t")
+  eggnog %>%
+  select(KEGG_Reaction) %>%
+  filter(!grepl("-", KEGG_Reaction)) %>%
+  separate_rows(1,sep = ",") %>% group_by(KEGG_Reaction) %>% tally() %>%
+  left_join(KEGG.REACTION) %>%
+  group_by(name) %>%
+  summarise(n=sum(n))
+}
+
+##################################################
+# A function to parse all KEGG categories together
+egg_KEGGwraper <- function(file.path) {
+  
+  egg_KEGGbrite(file.path) %>%
+    mutate(Category=paste("BRITE")) -> tb1
+  egg_KEGGpathway(file.path) %>%
+    mutate(Category=paste("PATHWAY")) -> tb2
+  egg_KEGGmodule(file.path) %>%
+    mutate(Category=paste("MODULE")) -> tb3
+  egg_KEGGko(file.path) %>%
+    mutate(Category=paste("KO")) -> tb4
+  egg_KEGGreaction(file.path) %>%
+    mutate(Category=paste("REACTION")) -> tb5
+  rbind(tb1, tb2, tb3, tb4, tb5) %>%
+    arrange(Category, -n)
+}
+
+
+```
+
+
+Functional profile of the genes engrafted in responders pts
+
+```{r}
+
+# Commonly engrafted genes in >= 3 pts only responder patients:
+input <- "../data/genes_FMT-Res/eggnog/gene_ids_90c.emapper.annotations"
+eggnog <- read.csv(input, sep = "\t")
+egg_KEGGwraper(input) -> tbl
+
+eggnog %>%
+  select(EC) %>%
+  mutate(type=case_when(EC == "-" ~ paste("unknown EC"),
+                        TRUE ~ paste("known EC"))) %>%
+  group_by(type) %>% tally()
+
+eggnog %>%
+  select(KEGG_ko) %>%
+  mutate(type=case_when(KEGG_ko == "-" ~ paste("unknown KEGG_ko"),
+                        TRUE ~ paste("known KEGG_ko"))) %>%
+  group_by(type) %>% tally()
+
+
+tbl %>%
+  filter(Category == "BRITE") %>%
+  mutate(total_n= sum(n)) %>%
+  mutate(percent= n/sum(n) * 100) -> test
+
+tbl %>%
+  filter(Category == "PATHWAY") %>%
+  mutate(total_n= sum(n)) %>%
+  mutate(percent= n/sum(n) * 100) %>%
+  mutate(class= case_when(is.na(name) ~ paste("Unknown"),
+                          percent >= 2 ~ paste("top2%"),
+                          TRUE ~ paste("Other")
+                          )) -> tbl2
 
 
 ```
