@@ -81,6 +81,7 @@ transform_sample_counts(function(x) {x/sum(x)} )# Transform to rel. abundance
 
 ps_DonB_rel
 
+
 ```
 
 ##Description of DonorB 16S data:
@@ -112,7 +113,7 @@ onlyDonB
 # Instead, we can just get the taxon names directly
 
 # # Now we can melt it
-# psmelt(onlyDonB) -> df_DonB
+#psmelt(onlyDonB) -> df_DonB
 # head(df_DonB)
 # 
 # 
@@ -206,6 +207,17 @@ core_DonB = taxa_names(onlyDonB_core)
 ## a standard input data for the functions
 
 ```{r}
+
+ps_DonB_rel %>%
+  psmelt() %>%
+  #only DonB samples
+  filter(Fig_lab == "DonB") %>%
+  mutate(Study_ID= paste("PMCL", Sample, sep = "")) %>%
+  select(OTU, Study_ID, Abundance) %>%
+  rename(Marker=OTU) %>%
+  spread(Study_ID, Abundance) %>%
+write.csv("../data/16s_lvl_RA_donorB_samples.csv",
+          quote = F, row.names = F)
 
 ps_DonB_rel %>%
   psmelt() %>%
