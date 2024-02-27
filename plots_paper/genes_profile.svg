@@ -242,49 +242,6 @@
 <g clip-path='url(#cpMC4wMHw2MzcuODB8MC4wMHw0MjUuMjA=)'>
 </g>
 <defs>
-<<<<<<< HEAD
-  <clipPath id='cpMjUyLjk3fDQxOS43Mnw1LjQ4fDM5My4yMQ=='>
-    <rect x='252.97' y='5.48' width='166.74' height='387.73' />
-  </clipPath>
-</defs>
-<g clip-path='url(#cpMjUyLjk3fDQxOS43Mnw1LjQ4fDM5My4yMQ==)'>
-<rect x='252.97' y='5.48' width='166.74' height='387.73' style='stroke-width: 1.07; stroke: none; fill: #FFFFFF;' />
-<rect x='264.34' y='23.10' width='68.21' height='39.71' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #A6D96A;' />
-<rect x='264.34' y='62.81' width='68.21' height='16.84' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #1A9641;' />
-<rect x='264.34' y='79.66' width='68.21' height='34.86' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #2B83BA;' />
-<rect x='264.34' y='114.52' width='68.21' height='261.06' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #ABD9E9;' />
-<rect x='340.13' y='23.10' width='68.21' height='21.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #A6D96A;' />
-<rect x='340.13' y='44.42' width='68.21' height='4.35' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #1A9641;' />
-<rect x='340.13' y='48.77' width='68.21' height='18.30' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #2B83BA;' />
-<rect x='340.13' y='67.07' width='68.21' height='308.51' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: #ABD9E9;' />
-<text x='298.45' y='46.98' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='24.57px' lengthAdjust='spacingAndGlyphs'>11.3</text>
-<text x='298.45' y='75.26' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='17.55px' lengthAdjust='spacingAndGlyphs'>4.8</text>
-<text x='298.45' y='101.11' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='17.55px' lengthAdjust='spacingAndGlyphs'>9.9</text>
-<text x='298.45' y='249.07' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='24.57px' lengthAdjust='spacingAndGlyphs'>74.1</text>
-<text x='374.24' y='37.78' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='7.02px' lengthAdjust='spacingAndGlyphs'>6</text>
-<text x='374.24' y='50.62' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='17.55px' lengthAdjust='spacingAndGlyphs'>1.2</text>
-<text x='374.24' y='61.94' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='17.55px' lengthAdjust='spacingAndGlyphs'>5.2</text>
-<text x='374.24' y='225.35' text-anchor='middle' style='font-size: 11.04px; font-family: "Liberation Sans";' textLength='24.57px' lengthAdjust='spacingAndGlyphs'>87.5</text>
-</g>
-<g clip-path='url(#cpMC4wMHw2MzcuODB8MC4wMHw0MjUuMjA=)'>
-<polyline points='252.97,393.21 252.97,5.48 ' style='stroke-width: 1.07; stroke-linecap: butt;' />
-<text x='248.04' y='378.79' text-anchor='end' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='5.59px' lengthAdjust='spacingAndGlyphs'>0</text>
-<text x='248.04' y='290.67' text-anchor='end' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='11.19px' lengthAdjust='spacingAndGlyphs'>25</text>
-<text x='248.04' y='202.55' text-anchor='end' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='11.19px' lengthAdjust='spacingAndGlyphs'>50</text>
-<text x='248.04' y='114.43' text-anchor='end' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='11.19px' lengthAdjust='spacingAndGlyphs'>75</text>
-<text x='248.04' y='26.31' text-anchor='end' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='16.78px' lengthAdjust='spacingAndGlyphs'>100</text>
-<polyline points='250.23,375.59 252.97,375.59 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<polyline points='250.23,287.47 252.97,287.47 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<polyline points='250.23,199.34 252.97,199.34 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<polyline points='250.23,111.22 252.97,111.22 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<polyline points='250.23,23.10 252.97,23.10 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<polyline points='252.97,393.21 419.72,393.21 ' style='stroke-width: 1.07; stroke-linecap: butt;' />
-<polyline points='298.45,395.95 298.45,393.21 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<polyline points='374.24,395.95 374.24,393.21 ' style='stroke-width: 1.07; stroke: #333333; stroke-linecap: butt;' />
-<text x='298.45' y='404.56' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='18.02px' lengthAdjust='spacingAndGlyphs'>FMT</text>
-<text x='374.24' y='404.56' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='34.37px' lengthAdjust='spacingAndGlyphs'>Placebo</text>
-<text x='336.35' y='417.30' text-anchor='middle' style='font-size: 11.00px; font-family: "Liberation Sans";' textLength='55.96px' lengthAdjust='spacingAndGlyphs'>Treatment</text>
-=======
   <clipPath id='cpMjU1Ljc3fDQxOS43Mnw1LjQ4fDM5My4yMQ=='>
     <rect x='255.77' y='5.48' width='163.95' height='387.73' />
   </clipPath>
@@ -326,7 +283,6 @@
 <text x='300.48' y='404.56' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='18.02px' lengthAdjust='spacingAndGlyphs'>FMT</text>
 <text x='375.00' y='404.56' text-anchor='middle' style='font-size: 8.80px;fill: #4D4D4D; font-family: "Liberation Sans";' textLength='34.37px' lengthAdjust='spacingAndGlyphs'>Placebo</text>
 <text x='337.74' y='417.30' text-anchor='middle' style='font-size: 11.00px; font-family: "Liberation Sans";' textLength='55.96px' lengthAdjust='spacingAndGlyphs'>Treatment</text>
->>>>>>> ca268888973a8ea400f4c8534277ba280ccd5af0
 <text transform='translate(226.10,199.34) rotate(-90)' text-anchor='middle' style='font-size: 11.00px; font-family: "Liberation Sans";' textLength='216.80px' lengthAdjust='spacingAndGlyphs'>Mean proportion across all patients (%)</text>
 </g>
 <defs>
