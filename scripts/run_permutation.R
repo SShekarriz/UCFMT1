@@ -184,8 +184,8 @@ load('../processed_data/mgm_setup.rds')
 #### Species Setup ####
 print('Species Setup')
 
-### Import the data
 
+### Import the data
 load('../processed_data/eng_sp.rds')
 
 #### Species FMT vs Placebo ####
@@ -357,7 +357,6 @@ print('MAGs Setup')
 
 ### Import the data
 
-load('../processed_data/marker_lvl_mg.rds')
 load('../processed_data/eng_mg.rds')
 
 #### MAGs FMT vs Placebo ####

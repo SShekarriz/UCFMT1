@@ -59,8 +59,7 @@ Moved to paperfig_functions.R
 ## 16s data:
 
 ```{r}
-load('../processed_data/bm_16s.rds')
-load('../processed_data/eng_16s.rds')
+load('../processed_data/fig_16s.rds')
 
 # Pick 4 random samples
 set.seed(5)
@@ -74,12 +73,6 @@ bs_4 = (donorB_16s_samples
 breaks_sp <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1)
 benchmark(donorB_16s_samples, breaks_sp, f_type = '16s', bs_4)
 ggsave("../plots_paper/16s_cutoff.svg", height = 12, width = 10, units = "cm")
-
-# profile the feature types:
-profile_16s = get_profile_pat(long_mark_16s, mapfile_16s, cutoff_abs_16S, cutoff_pres_16S,
-                       Treatment %in% c('FMT', 'Placebo'))
-profile_16s_don = get_profile_don(long_mark_16s, mapfile_16s, cutoff_abs_16S,
-                                  cutoff_pres_16S, Treatment %in% c('FMT', 'Placebo'))
 
 p_paper(profile_16s, profile_16s_don, mapfile_16s)
 ggsave("../plots_paper/16s_profile.svg", height = 15, width = 22.5, units = "cm")
@@ -101,17 +94,11 @@ ggsave("../plots_paper/16s.svg", height = 15, width = 7, units = "cm")
 
 ```
 
-
-
-## benchmarking function for species and strains (relative abundance%) moved to
-paperfig_functions.R
-
 ## species data
 
 ```{r}
 
 #### Setup Metagenomics ####
-
 load('../processed_data/mgm_setup.rds')
 
 #### Species Setup ####
@@ -121,9 +108,6 @@ load('../processed_data/mgm_setup.rds')
 load('../processed_data/eng_sp.rds')
 donorB_species_all = (donorB_species_all
                   %>% mutate(abundance = abundance / 100))
-donorB_species = (donorB_species
-                  %>% mutate(abundance = abundance / 100))
-cutoff_pres_sp = cutoff_pres_sp/100
 
 # Read in the species-level markers
 # benchmarking figures
@@ -131,11 +115,6 @@ breaks_sp <- c(0.00001, 0.00005, 0.0001, 0.001, 0.01, 0.02, 0.03)
 benchmark(donorB_species_all, breaks_sp, f_type = 'sp')
 ggsave("../plots_paper/species_cutoff.svg", height = 12, width = 10, units = "cm")
 
-# profile the feature types:
-profile_sp = get_profile_pat(long_mark_sp, mapfile_mgm, cutoff_abs_sp, cutoff_pres_sp,
-                       Treatment %in% c('FMT', 'Placebo'))
-profile_sp_don = get_profile_don(long_mark_sp, mapfile_mgm, cutoff_abs_sp,
-                                  cutoff_pres_sp, Treatment %in% c('FMT', 'Placebo'))
 
 p_paper(profile_sp, profile_sp_don, mapfile_mgm)
 ggsave("../plots_paper/species_profile.svg", height = 15, width = 22.5, 
@@ -170,21 +149,12 @@ ggsave("../plots_paper/species.svg", height = 15, width = 7, units = "cm")
 load('../processed_data/eng_st.rds')
 donorB_strains_all = (donorB_strains_all
                   %>% mutate(abundance = abundance/100))
-donorB_strains = (donorB_strains
-                  %>% mutate(abundance = abundance/100))
-cutoff_pres_st = cutoff_pres_st/100
 
 # benchmarking figures
 breaks_st <- c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01)
-benchmark(donorB_strains, breaks_st, f_type = 'sp')
+benchmark(donorB_strains_all, breaks_st, f_type = 'sp')
 ggsave("../plots_paper/strains_cutoff.svg", height = 12, width = 10, units = "cm")
 
-
-# profile the feature types:
-profile_st = get_profile_pat(long_mark_st, mapfile_mgm, cutoff_abs_st, cutoff_pres_st,
-                       Treatment %in% c('FMT', 'Placebo'))
-profile_st_don = get_profile_don(long_mark_st, mapfile_mgm, cutoff_abs_st,
-                                  cutoff_pres_st, Treatment %in% c('FMT', 'Placebo'))
 
 p_paper(profile_st, profile_st_don, mapfile_mgm)
 ggsave("../plots_paper/strains_profile.svg", height = 15, width = 22.5, units = "cm")
@@ -215,23 +185,9 @@ ggsave("../plots_paper/strain.svg", height = 15, width = 7, units = "cm")
 
 ### Import the data
 
-load('../processed_data/eng_mg.rds')
+load('../processed_data/fig_mg.rds')
 marker_lvl_mg_all = (marker_lvl_mg_all
                  %>% mutate(bin_coverage = bin_coverage/100))
-long_mark_mg = (long_mark_mg
-                %>% mutate(abundance = abundance/100))
-cutoff_pres_mg = cutoff_pres_mg/100
-cutoff_abs_mg = cutoff_abs_mg/100
-
-# gtdb taxonomy output for all the bins
-gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
-gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
-
-gtdb.bac %>% mutate(bin_id=user_genome) %>%
-  select(bin_id, classification) %>%
-  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
-              select(bin_id, classification)) %>%
-  mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
 
 
 marker_lvl_mg_all %>%
@@ -246,11 +202,6 @@ breaks_mg <- c(0, 0.25, 0.50, 0.75, 1)
 Genome_benchmark(donorB_mag, breaks_mg, 'MAG')
 ggsave("../plots_paper/MAGs_cutoff.svg", height = 12, width = 10, units = "cm")
 
-# profile the feature types:
-profile_mg = get_profile_pat(long_mark_mg, mapfile_mgm, cutoff_abs_mg, cutoff_pres_mg,
-                       Treatment %in% c('FMT', 'Placebo'))
-profile_mg_don = get_profile_don(long_mark_mg, mapfile_mgm, cutoff_abs_mg, cutoff_pres_mg,
-                                 Treatment %in% c('FMT', 'Placebo'))
 p_paper(profile_mg, profile_mg_don, mapfile_mgm)
 ggsave("../plots_paper/MAGs_profile.svg", height = 15, width = 22.5, units = "cm")
 
@@ -268,6 +219,16 @@ f3_mg = plot_fig_13(cts_mg_rem,'Remission')
 pvals_mg=perTest %>% filter(data == "mags")
 f_paper(f1_mg, f2_mg, f3_mg, tx_pv_mgm, rs_pv_mgm, pvals_mg)
 ggsave("../plots_paper/MAGs.svg", height = 15, width = 7, units = "cm")
+
+# gtdb taxonomy output for all the bins
+gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
+gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
+
+gtdb.bac %>% mutate(bin_id=user_genome) %>%
+  select(bin_id, classification) %>%
+  bind_rows(gtdb.arc %>% mutate(bin_id=user_genome) %>%
+              select(bin_id, classification)) %>%
+  mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
 
 
 ```
@@ -435,17 +396,8 @@ table %>%
 
 ### Import the data
 
-load('../processed_data/eng_ge.rds')
-long_mark_ge = (long_mark_ge
-                %>% mutate(abundance = abundance/100))
-cutoff_pres_ge = cutoff_pres_ge/100
-cutoff_abs_ge = cutoff_abs_ge/100
+load('../processed_data/fig_ge.rds')
 
-# profile the feature types:
-profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
-                       Treatment %in% c('FMT', 'Placebo'))
-profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
-                                 Treatment %in% c('FMT','Placebo'))
 p_paper(profile_ge, profile_ge_don, mapfile_mgm)
 ggsave("../plots_paper/genes_profile.svg", height = 15, width = 22.5, units = "cm")
 

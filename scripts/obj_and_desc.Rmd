@@ -13,6 +13,7 @@ Setup
 ```{r}
 library(tidyverse)
 source('paperfig_functions.R')
+source('permutation_functions.R')
 ```
 
 
@@ -25,7 +26,7 @@ This includes the mapfiles and marker_lvl files.
 ### Mapfiles
 
 ```{r}
-mapfile_16s <- read.csv("../data/UCFMT1_16Smap.txt")
+load('../processed_data/setup_16s.rds')
 dim(mapfile_16s)
 table(select(mapfile_16s, Treatment, Remission))
 mapfile_16s %>% filter(!startsWith(Study_ID, 'PMC'))
@@ -38,7 +39,7 @@ mapfile.
 
 
 ```{r}
-mapfile_mgm <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
+load('../processed_data/mgm_setup.rds')
 dim(mapfile_mgm)
 table(select(mapfile_mgm, Treatment, Remission))
 mapfile_mgm %>% filter(!startsWith(Study_ID, 'PMC'))
@@ -54,7 +55,11 @@ samples, including 12 NoRes and 12 Res. There are 24 Placebo samples, including
 #### 16S
 
 ```{r}
-marker_lvl_16s <- read.csv("../data/16s_lvl_RA.csv")
+load('../processed_data/all_objs_16s.rds')
+```
+
+
+```{r}
 dim(marker_lvl_16s)
 ```
 
@@ -62,22 +67,21 @@ There are 2945 total 16s markers. This dataframe has 103 columns, which makes
 sense. There are 102 samples, plus the marker column.
 
 ```{r}
-strains16s <- read.csv("../data/jcsz_16s_core_DonB.csv")
-dim(strains16s)
+length(strains16s)
 head(strains16s)
 n_distinct(strains16s)
 ```
 
-This appears to be a single-column data frame of 16s sequences that appear in
-Donor B samples. It has my initials in the file name, but I have no memory of
-creating it. I am extremely curious how it was produced. There 457 rows, and
+This appears to be a vector of 16s sequences that appear in
+Donor B samples. It had my initials in the file name, but I have no memory of
+creating it. I am extremely curious how it was produced. There 457 items, and
 they are unique.
 
 ```{r}
-donorB_16s_samples <- read.csv("../data/16s_lvl_RA_donorB_samples.csv")
-dim(donorB_16s_samples)
-colnames(donorB_16s_samples)
-any(colnames(donorB_16s_samples)[-1] %in% colnames(marker_lvl_16s))
+donorB_16s_samples_1 <- read.csv("../data/16s_lvl_RA_donorB_samples.csv")
+dim(donorB_16s_samples_1)
+colnames(donorB_16s_samples_1)
+any(colnames(donorB_16s_samples_1)[-1] %in% colnames(marker_lvl_16s))
 ```
 
 This is a data frame of Donor B sample relative abundances. The DonorB samples
@@ -86,13 +90,24 @@ are in the sample names of the `marker_lvl_16s` data frame.
 
 There are 2945 markers, just like `marker_lvl_16s`, and 35 Donor B samples.
 
-This is used for visualization and benchmarking. It does not come up in the
+```{r}
+n_distinct(donorB_16s_samples$Marker)
+```
+
+Once this data frame is processed, it is in long format and contains 832 unique
+markers that are present (abundance > 0) in donor B.
+
+These are used for visualization and benchmarking. It does not come up in the
 permutation scripts.
 
 #### Species
 
 ```{r}
-marker_lvl_sp <- read.csv("../data/species_lvl_RA.csv")
+load('../processed_data/all_objs_sp.rds')
+```
+
+
+```{r}
 dim(marker_lvl_sp)
 colnames(marker_lvl_sp)
 ```
@@ -103,7 +118,11 @@ sense. There are 65 samples, plus the marker column.
 ##### Strain
 
 ```{r}
-marker_lvl_st <- read.csv("../data/marker_lvl_RA.csv")
+load('../processed_data/all_objs_st.rds')
+```
+
+```{r}
+# marker_lvl_st <- read.csv("../data/marker_lvl_RA.csv")
 dim(marker_lvl_st)
 colnames(marker_lvl_st)
 marker_lvl_st %>% select(ends_with('arker')) %>% head()
@@ -120,13 +139,18 @@ contains the merged values from `sp_marker` and `st_marker`.
 
 ##### MAGs
 
+```{r}
+load('../processed_data/all_objs_mg.rds')
+```
+
+
 MAGs were not previously fully processed into a marker_lvl data frame. These are
 the input files that were used to do that processing.
 
 ```{r}
-c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", 
+c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t",
                     header = FALSE)
-c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", 
+c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t",
                     header = FALSE)
 
 dim(c_inBin)
@@ -147,12 +171,9 @@ The `c_inBin` and `c_inMAG` data frames have two columns each and 46,318 and
 column identifies which bin the contig was grouped into. `c_inMAG` is a proper
 subset of `c_inBin`.
 
-I have moved the processing to [prep_data.R](./prep_data.R). The marker_lvl data
-frame is saved in
-[../processed_data/marker_lvl_mg.rds](../processed_data/marker_lvl_mg.rds).
+I have moved the processing to [data_processing.Rmd](./data_processing.Rmd).
 
 ```{r}
-load('../processed_data/marker_lvl_mg.rds')
 dim(marker_lvl_mg)
 colnames(marker_lvl_mg)
 ```
@@ -163,7 +184,12 @@ columns, plus the Marker column. Donor B samples are not included.
 ##### Genes
 
 ```{r}
-marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
+load('../processed_data/all_objs_ge.rds')
+```
+
+
+```{r}
+# marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
 dim(marker_lvl_ge)
 colnames(marker_lvl_ge)
 ```
@@ -182,7 +208,6 @@ Engraftment Objects
 ### 16S
 
 ```{r}
-load('../processed_data/eng_16s.rds')
 dim(engr_16s)
 length(strains16s)
 ```
@@ -194,9 +219,6 @@ thrilled about that.
 There are 457 ASVs that are in the donorB samples.
 
 ```{r}
-profile_16s = get_profile_pat(long_mark_16s, mapfile_16s, cutoff_abs_16S, cutoff_pres_16S,
-                       Treatment %in% c('FMT', 'Placebo'))
-# Count the number of rows of this data frame contain the word "Engraft"
 ct_eng_16s = apply(profile_16s, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_16s)
 dim(profile_16s)
@@ -205,8 +227,6 @@ dim(profile_16s)
 There are 311 engrafted ASVs, and 457 total ASVs in donor B, which matches
 
 ```{r}
-profile_16s_don = get_profile_don(long_mark_16s, mapfile_16s, cutoff_abs_16S,
-                                  cutoff_pres_16S, Treatment %in% c('FMT', 'Placebo'))
 sum(profile_16s_don$status == 'Engraft')
 n_distinct(profile_16s_don$Marker)
 ```
@@ -216,7 +236,6 @@ Stil 311 and 457. Great.
 ### Species
 
 ```{r}
-load('../processed_data/eng_sp.rds')
 dim(engr_sp)
 length(strains_sp)
 ```
@@ -225,8 +244,6 @@ According to the engraftment functions, there are 284 engrafted species, and 439
 species found in donor B.
 
 ```{r}
-profile_sp = get_profile_pat(long_mark_sp, mapfile_mgm, cutoff_abs_sp, cutoff_pres_sp,
-                       Treatment %in% c('FMT', 'Placebo'))
 ct_eng_sp = apply(profile_sp, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_sp)
 dim(profile_sp)
@@ -236,8 +253,6 @@ dim(profile_sp)
 engraftment functions
 
 ```{r}
-profile_sp_don = get_profile_don(long_mark_sp, mapfile_mgm, cutoff_abs_sp,
-                                  cutoff_pres_sp, Treatment %in% c('FMT', 'Placebo'))
 sum(profile_sp_don$status == 'Engraft')
 n_distinct(profile_sp_don$Marker)
 ```
@@ -247,7 +262,6 @@ Still 284 and 439. Good.
 ### Strains
 
 ```{r}
-load('../processed_data/eng_st.rds')
 dim(engr_st)
 length(strains_st)
 ```
@@ -256,8 +270,6 @@ According to the engraftment functions, there are 43,924 engrafted strains, and
 a total of 68,162 strains in Donor B samples.
 
 ```{r}
-profile_st = get_profile_pat(long_mark_st, mapfile_mgm, cutoff_abs_st, cutoff_pres_st,
-                       Treatment %in% c('FMT', 'Placebo'))
 ct_eng_st = apply(profile_st, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_st)
 dim(profile_st)
@@ -266,8 +278,6 @@ dim(profile_st)
 43,924 and 68,162 matches the engraftment functions.
 
 ```{r}
-profile_st_don = get_profile_don(long_mark_st, mapfile_mgm, cutoff_abs_st,
-                                  cutoff_pres_st, Treatment %in% c('FMT', 'Placebo'))
 sum(profile_st_don$status == 'Engraft')
 n_distinct(profile_st_don$Marker)
 ```
@@ -277,7 +287,6 @@ Still 43,924 and 68,162. Good.
 ### MAGs
 
 ```{r}
-load('../processed_data/eng_mg.rds')
 dim(engr_mg)
 n_distinct(marker_lvl_mg_all$bin_id)
 ```
@@ -286,12 +295,6 @@ According to the engraftment functions, 74 MAGs were engrafted anywhere, and
 209 MAGs in Donor B.
 
 ```{r}
-long_mark_mg = (long_mark_mg
-                %>% mutate(abundance = abundance/100))
-cutoff_pres_mg = cutoff_pres_mg/100
-cutoff_abs_mg = cutoff_abs_mg/100
-profile_mg = get_profile_pat(long_mark_mg, mapfile_mgm, cutoff_abs_mg, cutoff_pres_mg,
-                       Treatment %in% c('FMT', 'Placebo'))
 ct_eng_mg = apply(profile_mg, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_mg)
 dim(profile_mg)
@@ -320,12 +323,6 @@ According to engraftment functions, there are 354,728 engrafted genes, and
 755,662 total genes in Donor B.
 
 ```{r}
-long_mark_ge = (long_mark_ge
-                %>% mutate(abundance = abundance/100))
-cutoff_pres_ge = cutoff_pres_ge/100
-cutoff_abs_ge = cutoff_abs_ge/100
-profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
-                       Treatment %in% c('FMT', 'Placebo'))
 ct_eng_ge = apply(profile_ge, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_ge)
 dim(profile_ge)
@@ -334,8 +331,6 @@ dim(profile_ge)
 This is 354,728 and 755,662, which matches. Good.
 
 ```{r}
-profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
-                                 Treatment %in% c('FMT','Placebo'))
 sum(profile_ge_don$status == 'Engraft')
 n_distinct(profile_ge_don$Marker)
 ```
