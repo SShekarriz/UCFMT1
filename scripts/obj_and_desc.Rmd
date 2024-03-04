@@ -184,11 +184,14 @@ Engraftment Objects
 ```{r}
 load('../processed_data/eng_16s.rds')
 dim(engr_16s)
+length(strains16s)
 ```
 
 According to the engraftment functions, there are 311 engrafted 16s ASVs, which
 is not the same as the 313 we saw when we were first working on this. I'm not
 thrilled about that.
+
+There are 457 ASVs that are in the donorB samples.
 
 ```{r}
 profile_16s = get_profile_pat(long_mark_16s, mapfile_16s, cutoff_abs_16S, cutoff_pres_16S,
@@ -196,90 +199,91 @@ profile_16s = get_profile_pat(long_mark_16s, mapfile_16s, cutoff_abs_16S, cutoff
 # Count the number of rows of this data frame contain the word "Engraft"
 ct_eng_16s = apply(profile_16s, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_16s)
+dim(profile_16s)
 ```
 
-It is 311, the same as the nrow of engr_16s. Excellent news.
+There are 311 engrafted ASVs, and 457 total ASVs in donor B, which matches
 
 ```{r}
 profile_16s_don = get_profile_don(long_mark_16s, mapfile_16s, cutoff_abs_16S,
                                   cutoff_pres_16S, Treatment %in% c('FMT', 'Placebo'))
 sum(profile_16s_don$status == 'Engraft')
+n_distinct(profile_16s_don$Marker)
 ```
 
-Stil 311.
-
-```{r}
-p_paper(profile_16s, profile_16s_don, mapfile_16s)
-```
+Stil 311 and 457. Great.
 
 ### Species
 
 ```{r}
 load('../processed_data/eng_sp.rds')
 dim(engr_sp)
+length(strains_sp)
 ```
 
-According to the engraftment functions, there are 284 engrafted species.
+According to the engraftment functions, there are 284 engrafted species, and 439
+species found in donor B.
 
 ```{r}
 profile_sp = get_profile_pat(long_mark_sp, mapfile_mgm, cutoff_abs_sp, cutoff_pres_sp,
                        Treatment %in% c('FMT', 'Placebo'))
 ct_eng_sp = apply(profile_sp, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_sp)
+dim(profile_sp)
 ```
 
-284 engrafted species agrees with the engraftment functions
+284 engrafted species and 439 total species in donor B. This agrees with the
+engraftment functions
 
 ```{r}
 profile_sp_don = get_profile_don(long_mark_sp, mapfile_mgm, cutoff_abs_sp,
                                   cutoff_pres_sp, Treatment %in% c('FMT', 'Placebo'))
 sum(profile_sp_don$status == 'Engraft')
+n_distinct(profile_sp_don$Marker)
 ```
 
-284. Good.
-
-```{r}
-p_paper(profile_sp, profile_sp_don, mapfile_mgm)
-```
+Still 284 and 439. Good.
 
 ### Strains
 
 ```{r}
 load('../processed_data/eng_st.rds')
 dim(engr_st)
+length(strains_st)
 ```
 
-According to the engraftment functions, there are 43,924 engrafted strains
+According to the engraftment functions, there are 43,924 engrafted strains, and
+a total of 68,162 strains in Donor B samples.
 
 ```{r}
 profile_st = get_profile_pat(long_mark_st, mapfile_mgm, cutoff_abs_st, cutoff_pres_st,
                        Treatment %in% c('FMT', 'Placebo'))
 ct_eng_st = apply(profile_st, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_st)
+dim(profile_st)
 ```
 
-43,924 matches the engraftment functions.
+43,924 and 68,162 matches the engraftment functions.
 
 ```{r}
 profile_st_don = get_profile_don(long_mark_st, mapfile_mgm, cutoff_abs_st,
                                   cutoff_pres_st, Treatment %in% c('FMT', 'Placebo'))
 sum(profile_st_don$status == 'Engraft')
+n_distinct(profile_st_don$Marker)
 ```
 
-43,924. Good.
-
-```{r}
-p_paper(profile_st, profile_st_don, mapfile_mgm)
-```
+Still 43,924 and 68,162. Good.
 
 ### MAGs
 
 ```{r}
 load('../processed_data/eng_mg.rds')
 dim(engr_mg)
+n_distinct(marker_lvl_mg_all$bin_id)
 ```
 
-According to the engraftment functions, 74 MAGs were engrafted anywhere.
+According to the engraftment functions, 74 MAGs were engrafted anywhere, and
+209 MAGs in Donor B.
 
 ```{r}
 long_mark_mg = (long_mark_mg
@@ -290,30 +294,30 @@ profile_mg = get_profile_pat(long_mark_mg, mapfile_mgm, cutoff_abs_mg, cutoff_pr
                        Treatment %in% c('FMT', 'Placebo'))
 ct_eng_mg = apply(profile_mg, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_mg)
+dim(profile_mg)
 ```
 
-This is 74, agrees with engraftment functions. 
+74 and 209 matches engraftment functions. Good.
 
 ```{r}
 profile_mg_don = get_profile_don(long_mark_mg, mapfile_mgm, cutoff_abs_mg, cutoff_pres_mg,
                                  Treatment %in% c('FMT', 'Placebo'))
 sum(profile_mg_don$status == 'Engraft')
+n_distinct(profile_mg_don$Marker)
 ```
 
-Also 74. Great.
-
-```{r}
-p_paper(profile_mg, profile_mg_don, mapfile_mgm)
-```
+Still 74 and 209. Great.
 
 ### Genes
 
 ```{r}
 load('../processed_data/eng_ge.rds')
 dim(engr_ge)
+n_distinct((long_mark_ge$Marker))
 ```
 
-According to engraftment functions, there are 354,728 engrafted genes.
+According to engraftment functions, there are 354,728 engrafted genes, and
+755,662 total genes in Donor B.
 
 ```{r}
 long_mark_ge = (long_mark_ge
@@ -324,19 +328,16 @@ profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pr
                        Treatment %in% c('FMT', 'Placebo'))
 ct_eng_ge = apply(profile_ge, 1, function(x) 'Engraft' %in% x)
 sum(ct_eng_ge)
+dim(profile_ge)
 ```
 
-This is 354,728, which matches. Good.
+This is 354,728 and 755,662, which matches. Good.
 
 ```{r}
 profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
                                  Treatment %in% c('FMT','Placebo'))
 sum(profile_ge_don$status == 'Engraft')
+n_distinct(profile_ge_don$Marker)
 ```
 
-354,728 still.
-
-```{r}
-p_paper(profile_ge, profile_ge_don, mapfile_mgm)
-```
-
+Still 354,728 and 755,662. Good.
