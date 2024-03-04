@@ -199,7 +199,7 @@
 <polyline points='50.75,334.47 84.61,391.20 118.46,399.92 152.32,401.01 186.17,401.05 ' style='stroke-width: 1.07; stroke: #B2182B; stroke-linecap: butt;' />
 <polyline points='50.75,294.28 84.61,372.30 118.46,398.78 152.32,400.90 186.17,401.05 ' style='stroke-width: 1.07; stroke: #2166AC; stroke-linecap: butt;' />
 <text x='160.78' y='355.82' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='61.90px' lengthAdjust='spacingAndGlyphs'>Permutation Test </text>
-<text x='160.78' y='366.06' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='54.86px' lengthAdjust='spacingAndGlyphs'> p-value=0.859</text>
+<text x='160.78' y='366.06' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='45.81px' lengthAdjust='spacingAndGlyphs'> p-value=0.5</text>
 </g>
 <g clip-path='url(#cpMC4wMHwxOTguNDN8MC4wMHw0MjUuMjA=)'>
 <polyline points='43.98,406.39 43.98,288.94 ' style='stroke-width: 1.07; stroke-linecap: butt;' />

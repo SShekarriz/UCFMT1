@@ -62,7 +62,7 @@
 <polyline points='29.39,10.82 46.70,40.20 64.00,78.41 81.31,93.10 98.62,107.79 115.93,115.63 133.23,117.59 150.54,116.61 167.85,117.59 185.16,117.59 ' style='stroke-width: 1.07; stroke: #1B7837; stroke-linecap: butt;' />
 <polyline points='29.39,38.25 46.70,83.30 64.00,89.18 81.31,106.81 98.62,113.67 115.93,114.65 133.23,116.61 150.54,117.59 167.85,117.59 185.16,116.61 ' style='stroke-width: 1.07; stroke: #999999; stroke-linecap: butt;' />
 <text x='159.20' y='72.35' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='61.90px' lengthAdjust='spacingAndGlyphs'>Permutation Test </text>
-<text x='159.20' y='82.59' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='39.03px' lengthAdjust='spacingAndGlyphs'> p-value=0</text>
+<text x='159.20' y='82.59' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='44.68px' lengthAdjust='spacingAndGlyphs'> p-value=NA</text>
 </g>
 <g clip-path='url(#cpMC4wMHwxOTguNDN8MC4wMHw0MjUuMjA=)'>
 <polyline points='21.60,122.93 21.60,5.48 ' style='stroke-width: 1.07; stroke-linecap: butt;' />
@@ -221,7 +221,7 @@
 <polyline points='34.73,294.28 59.84,349.48 84.96,371.19 110.07,392.91 135.18,398.34 160.30,401.05 185.41,400.15 ' style='stroke-width: 1.07; stroke: #B2182B; stroke-linecap: butt;' />
 <polyline points='34.73,314.19 59.84,371.19 84.96,399.24 110.07,401.05 135.18,401.05 160.30,401.05 185.41,401.05 ' style='stroke-width: 1.07; stroke: #2166AC; stroke-linecap: butt;' />
 <text x='159.04' y='355.81' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='61.90px' lengthAdjust='spacingAndGlyphs'>Permutation Test </text>
-<text x='159.04' y='366.06' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='54.86px' lengthAdjust='spacingAndGlyphs'> p-value=0.917</text>
+<text x='159.04' y='366.06' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='44.68px' lengthAdjust='spacingAndGlyphs'> p-value=NA</text>
 </g>
 <g clip-path='url(#cpMC4wMHwxOTguNDN8MC4wMHw0MjUuMjA=)'>
 <polyline points='27.19,406.39 27.19,288.94 ' style='stroke-width: 1.07; stroke-linecap: butt;' />
