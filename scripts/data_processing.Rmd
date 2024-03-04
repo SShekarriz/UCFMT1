@@ -89,7 +89,8 @@ eng_16s = c('engr_16s', 'cts_16s_plt', 'cts_16s_plt_rem')
             
 save(list = eng_16s, file = '../processed_data/eng_16s.rds')
 
-fig_16s = c('donorB_16s_samples','profile_16s', 'profile_16s_don')
+fig_16s = c('donorB_16s_samples','profile_16s', 'profile_16s_don','cts_16s_plt',
+            'cts_16s_plt_rem')
 save(list = fig_16s, file = '../processed_data/fig_16s.rds')
 
 oth_16s = c('marker_lvl_16s', 'strains16s', 'long_mark_16s','cutoff_abs_16S', 
@@ -175,7 +176,7 @@ profile_sp_don = get_profile_don(long_mark_sp, mapfile_mgm, cutoff_abs_sp,
 eng_sp = c('cts_sp', 'engr_sp', 'cts_sp_rem')
 save(list = eng_sp, file = '../processed_data/eng_sp.rds')
 fig_sp = c('donorB_species_all', 'profile_sp',
-           'profile_sp_don')
+           'profile_sp_don', 'cts_sp', 'cts_sp_rem')
 save(list = fig_sp, file = '../processed_data/fig_sp.rds')
 oth_sp = c('marker_lvl_sp', 'cutoff_abs_sp', 'strains_sp', 'long_mark_sp', 
            'cutoff_pres_sp', 'donorB_species')
@@ -239,7 +240,7 @@ profile_st_don = get_profile_don(long_mark_st, mapfile_mgm, cutoff_abs_st,
 ```{r}
 eng_st = c('cts_st', 'engr_st', 'cts_st_rem')
 save(list = eng_st, file = '../processed_data/eng_st.rds')
-fig_st = c('donorB_strains_all', 'profile_st',
+fig_st = c('donorB_strains_all', 'profile_st', 'cts_st', 'cts_st_rem',
            'profile_st_don')
 save(list = fig_st, file = '../processed_data/fig_st.rds')
 oth_st = c('marker_lvl_st', 'strains_st', 'cutoff_pres_st', 'cutoff_abs_st', 
@@ -342,10 +343,11 @@ profile_mg_don = get_profile_don(long_mark_mg, mapfile_mgm, cutoff_abs_mg,
 ```{r}
 eng_mg = c('cts_mg', 'engr_mg', 'cts_mg_rem')
 save(list = eng_mg, file = '../processed_data/eng_mg.rds')
-fig_mg = c('marker_lvl_mg_all', 'profile_mg', 'profile_mg_don')
+fig_mg = c('marker_lvl_mg_all', 'profile_mg', 'profile_mg_don', 'cts_mg',
+           'cts_mg_rem', 'MAGs', 'engr_mg')
 save(list = fig_mg, file = '../processed_data/fig_mg.rds')
 oft_mg = c('marker_lvl_mg', 'cutoff_pres_mg', 
-           'cutoff_abs_mg', 'long_mark_mg', 'MAGs')
+           'cutoff_abs_mg', 'long_mark_mg')
 save(list = unique(c(eng_mg, fig_mg, oft_mg)), 
      file = '../processed_data/all_objs_mg.rds')
 ```
@@ -388,7 +390,7 @@ profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutof
 ```{r}
 eng_ge = c('cts_ge', 'engr_ge', 'cts_ge_rem')
 save(list = eng_ge, file = '../processed_data/eng_ge.rds')
-fig_ge = c('profile_ge', 'profile_ge_don')
+fig_ge = c('profile_ge', 'profile_ge_don', 'cts_ge', 'cts_ge_rem', 'engr_ge')
 save(list = fig_ge, file = '../processed_data/fig_ge.rds')
 oth_ge = c('marker_lvl_ge', 'cutoff_pres_ge', 'cutoff_abs_ge', 'long_mark_ge')
 save(list = unique(c(eng_ge, fig_ge, oth_ge)), 

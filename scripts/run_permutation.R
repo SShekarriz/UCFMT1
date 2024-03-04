@@ -23,6 +23,7 @@ rownames(pvals) = c('FMTvPl_16s','ResvNoRes_16s',
 
 ##### 16S Setup #####
 print('16S Setup')
+load('../processed_data/setup_16s.rds')
 
 ### Import the data ###
 

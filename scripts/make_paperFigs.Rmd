@@ -49,16 +49,11 @@ function to make the main engraftment figure (f) moved to paperfig_functions.R
 function to make engraftment profiles; Profiling donor's markers in patients.
 Moved to paperfig_functions.R
 
-## benchmarking function for 16s (relative abundance%)
-notes to Jake: this function is exactly same as species/strain but just removed
-the colors so that we don't have to have the same names for samples etc.
-we can decide to maybe keep one function with no color for any of them
-
-Moved to paperfig_functions.R
 
 ## 16s data:
 
 ```{r}
+load('../processed_data/setup_16s.rds')
 load('../processed_data/fig_16s.rds')
 
 # Pick 4 random samples
@@ -105,7 +100,7 @@ load('../processed_data/mgm_setup.rds')
 
 ### Import the data
 
-load('../processed_data/eng_sp.rds')
+load('../processed_data/fig_sp.rds')
 donorB_species_all = (donorB_species_all
                   %>% mutate(abundance = abundance / 100))
 
@@ -146,7 +141,7 @@ ggsave("../plots_paper/species.svg", height = 15, width = 7, units = "cm")
 
 ### Import the data
 
-load('../processed_data/eng_st.rds')
+load('../processed_data/fig_st.rds')
 donorB_strains_all = (donorB_strains_all
                   %>% mutate(abundance = abundance/100))
 
@@ -220,6 +215,12 @@ pvals_mg=perTest %>% filter(data == "mags")
 f_paper(f1_mg, f2_mg, f3_mg, tx_pv_mgm, rs_pv_mgm, pvals_mg)
 ggsave("../plots_paper/MAGs.svg", height = 15, width = 7, units = "cm")
 
+```
+
+Is there a signature of MAGs specific to responder?
+
+```{r}
+
 # gtdb taxonomy output for all the bins
 gtdb.bac <- read.csv("../data/Assembly/gtdbtk.bac120.summary.tsv", sep = "\t")
 gtdb.arc <- read.csv("../data/Assembly/gtdbtk.ar122.summary.tsv", sep = "\t")
@@ -230,12 +231,6 @@ gtdb.bac %>% mutate(bin_id=user_genome) %>%
               select(bin_id, classification)) %>%
   mutate(bin_id=gsub("bin.", "bin_", bin_id)) -> gtdb
 
-
-```
-
-Is there a signature of MAGs specific to responder?
-
-```{r}
 
 gtdb %>%
   separate(classification, c("Kingdom", "Phylum", "Class",
