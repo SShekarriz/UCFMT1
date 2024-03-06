@@ -461,13 +461,13 @@ print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 2000
-# perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv_mgm, nperm,
-#                       txrm = 'Treatment')
-# head(perms_ge[['stat_mat']])
-# 
-# # Save the permutations
-# save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
-load('../permut_data/intermed/perms_ge.RData')
+perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv_mgm, nperm,
+                      txrm = 'Treatment')
+head(perms_ge[['stat_mat']])
+
+# Save the permutations
+save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
+# load('../permut_data/intermed/perms_ge.RData')
 
 # Calculate, double, and store the p-values
 (pvals_ge = get_pvals(perms_ge[['stat_mat']]))
@@ -496,12 +496,12 @@ print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
 nperm = 2000
-# perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv_mgm, nperm,
-#                           txrm = 'Remission')
-# head(perms_ge_rem[['stat_mat']])
-# # save the permutations
-# save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
-load('../permut_data/intermed/perms_ge_rem.RData')
+perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv_mgm, nperm,
+                          txrm = 'Remission')
+head(perms_ge_rem[['stat_mat']])
+# save the permutations
+save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
+# load('../permut_data/intermed/perms_ge_rem.RData')
 # calculated, double, and store the p-values
 (pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']]))
 pvals['ResvNoRes_genes',] = round(pvals_ge_rem, 5)
