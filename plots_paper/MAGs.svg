@@ -52,7 +52,7 @@
 <polyline points='29.39,10.82 68.33,77.25 107.27,110.47 146.22,117.59 185.16,115.21 ' style='stroke-width: 1.07; stroke: #1B7837; stroke-linecap: butt;' />
 <polyline points='29.39,84.37 68.33,112.84 107.27,117.59 146.22,117.59 185.16,117.59 ' style='stroke-width: 1.07; stroke: #999999; stroke-linecap: butt;' />
 <text x='155.95' y='72.35' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='61.90px' lengthAdjust='spacingAndGlyphs'>Permutation Test </text>
-<text x='155.95' y='82.59' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='54.86px' lengthAdjust='spacingAndGlyphs'> p-value=0.007</text>
+<text x='155.95' y='82.59' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='59.38px' lengthAdjust='spacingAndGlyphs'> p-value = 0.008</text>
 </g>
 <g clip-path='url(#cpMC4wMHwxOTguNDN8MC4wMHw0MjUuMjA=)'>
 <polyline points='21.60,122.93 21.60,5.48 ' style='stroke-width: 1.07; stroke-linecap: butt;' />
@@ -165,7 +165,7 @@
 <polyline points='29.39,351.77 107.27,401.05 185.16,398.31 ' style='stroke-width: 1.07; stroke: #B2182B; stroke-linecap: butt;' />
 <polyline points='29.39,294.28 107.27,359.99 185.16,398.31 ' style='stroke-width: 1.07; stroke: #2166AC; stroke-linecap: butt;' />
 <text x='150.11' y='355.81' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='61.90px' lengthAdjust='spacingAndGlyphs'>Permutation Test </text>
-<text x='150.11' y='366.06' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='54.86px' lengthAdjust='spacingAndGlyphs'> p-value=0.261</text>
+<text x='150.11' y='366.06' text-anchor='middle' style='font-size: 7.11px; font-family: "Liberation Sans";' textLength='59.38px' lengthAdjust='spacingAndGlyphs'> p-value = 0.239</text>
 </g>
 <g clip-path='url(#cpMC4wMHwxOTguNDN8MC4wMHw0MjUuMjA=)'>
 <polyline points='21.60,406.39 21.60,288.94 ' style='stroke-width: 1.07; stroke-linecap: butt;' />
