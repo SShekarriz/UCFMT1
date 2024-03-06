@@ -33,7 +33,7 @@ mapfile_16s %>% filter(!startsWith(Study_ID, 'PMC'))
 ```
 
 The 16s mapfile should have 102 rows and 5 columns. There are 40 FMT samples,
-including 28 NoRes and 1 Res. There are 62 Placebo samples, including 58 NoRes
+including 28 NoRes and 12 Res. There are 62 Placebo samples, including 58 NoRes
 and 4 Res. This is 102 patient samples. No DonorB samples are included in this
 mapfile.
 
@@ -75,7 +75,7 @@ n_distinct(strains16s)
 This appears to be a vector of 16s sequences that appear in
 Donor B samples. It had my initials in the file name, but I have no memory of
 creating it. I am extremely curious how it was produced. There 457 items, and
-they are unique.
+they are unique. These the the ones above the presence cutoff.
 
 ```{r}
 donorB_16s_samples_1 <- read.csv("../data/16s_lvl_RA_donorB_samples.csv")
@@ -88,7 +88,8 @@ This is a data frame of Donor B sample relative abundances. The DonorB samples
 have PMCL sample IDs; however, they are not patient samples because none of them
 are in the sample names of the `marker_lvl_16s` data frame.
 
-There are 2945 markers, just like `marker_lvl_16s`, and 35 Donor B samples.
+There are 2945 markers, just like `marker_lvl_16s`, and 34 Donor B samples, plus
+the marker column
 
 ```{r}
 n_distinct(donorB_16s_samples$Marker)
@@ -227,11 +228,14 @@ dim(profile_16s)
 There are 311 engrafted ASVs, and 457 total ASVs in donor B, which matches
 
 ```{r}
-sum(profile_16s_don$status == 'Engraft')
+(profile_16s_don
+    %>% select(Marker, status)
+    %>% filter(status == 'Engraft')
+    %>% n_distinct(.$Marker))
 n_distinct(profile_16s_don$Marker)
 ```
 
-Stil 311 and 457. Great.
+Still 311 and 457. Great.
 
 ### Species
 
@@ -253,7 +257,10 @@ dim(profile_sp)
 engraftment functions
 
 ```{r}
-sum(profile_sp_don$status == 'Engraft')
+(profile_sp_don
+    %>% select(Marker, status)
+    %>% filter(status == 'Engraft')
+    %>% n_distinct(.$Marker))
 n_distinct(profile_sp_don$Marker)
 ```
 
@@ -278,7 +285,10 @@ dim(profile_st)
 43,924 and 68,162 matches the engraftment functions.
 
 ```{r}
-sum(profile_st_don$status == 'Engraft')
+(profile_st_don
+    %>% select(Marker, status)
+    %>% filter(status == 'Engraft')
+    %>% n_distinct(.$Marker))
 n_distinct(profile_st_don$Marker)
 ```
 
@@ -303,9 +313,10 @@ dim(profile_mg)
 74 and 209 matches engraftment functions. Good.
 
 ```{r}
-profile_mg_don = get_profile_don(long_mark_mg, mapfile_mgm, cutoff_abs_mg, cutoff_pres_mg,
-                                 Treatment %in% c('FMT', 'Placebo'))
-sum(profile_mg_don$status == 'Engraft')
+(profile_mg_don
+    %>% select(Marker, status)
+    %>% filter(status == 'Engraft')
+    %>% n_distinct(.$Marker))
 n_distinct(profile_mg_don$Marker)
 ```
 
@@ -331,7 +342,10 @@ dim(profile_ge)
 This is 354,728 and 755,662, which matches. Good.
 
 ```{r}
-sum(profile_ge_don$status == 'Engraft')
+(profile_ge_don
+    %>% select(Marker, status)
+    %>% filter(status == 'Engraft')
+    %>% n_distinct(.$Marker))
 n_distinct(profile_ge_don$Marker)
 ```
 

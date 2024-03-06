@@ -77,7 +77,7 @@ benchmark <- function(table, vector, f_type, bs_4 = NULL) {
                        alpha=0.7, bins = 10) +
         scale_x_log10() +
         facet_grid(. ~ sample) +
-        geomtextpath::geom_textvline(label = q05, color = "red", 
+        geomtextpath::geom_textvline(label = q05, color = "black", 
                                      xintercept = as.numeric(q05), vjust = 1.3) +
         theme_classic() +
         theme(legend.position = "none",
@@ -155,7 +155,7 @@ Genome_benchmark <- function(table, vector, feature = 'UHGG') {
         geom_histogram(position="identity", colour="grey40", alpha=0.7, bins = 10) +
         #scale_x_log10() +
         facet_grid(. ~ sample) +
-        geomtextpath::geom_textvline(label = '0.75', color = "red", 
+        geomtextpath::geom_textvline(label = '0.75', color = "black", 
                                      xintercept = 0.75, vjust = 1.3) +
         scale_fill_manual(values = cols) +
         theme_classic() +
@@ -167,7 +167,7 @@ Genome_benchmark <- function(table, vector, feature = 'UHGG') {
     
     if(feature == 'MAG'){
         f2 = f2 +
-            geomtextpath::geom_textvline(label = '0.20', color = "red",
+            geomtextpath::geom_textvline(label = '0.20', color = "black",
                                          xintercept = 0.20, 
                                          vjust = 1.3)
     }
@@ -293,13 +293,25 @@ p_paper <- function(profile_pat, profile_don, mapfile) {
               "Shared" = "#2b83ba",
               "Donor" = "#abd9e9")
     
+    # profile number of markers in each Treatment
+    p1 = p_paper_p1(profile_pat, mapfile)
+    
+    f1 = p_paper_f1(p1, cols)
+    
+    p2 = p_paper_p2(p1, profile_pat)
+    
+    f2 <- p_paper_f2(p2, cols)
+    f3 <- p_paper_f3(profile_don, cols)
+    fig = cowplot::plot_grid(f1, f2, f3, nrow = 1)
+    return(fig)
+}
+
+p_paper_p1 = function(profile_pat, mapfile){
+    
     mapfile %>%
         select(Fig_lab, Treatment, Remission) %>%
         distinct()-> map
     
-    # donor markers:
-    donor_markers = nrow(profile_pat)
-    # profile number of markers in each Treatment
     profile_pat %>%
         rownames_to_column("Marker") %>%
         gather(Fig_lab, engrafted, -Marker) %>%
@@ -314,7 +326,12 @@ p_paper <- function(profile_pat, profile_don, mapfile) {
                                                             'Shared',
                                                             'Engraft',
                                                             'Other')))) -> p1
-    f1 = p_paper_f1(p1, cols)
+    return(p1)
+}
+
+p_paper_p2 = function(p1, profile_pat){
+    
+    donor_markers = nrow(profile_pat)
     p1 %>%
         ungroup() %>%
         group_by(Treatment, engrafted) %>%
@@ -323,10 +340,7 @@ p_paper <- function(profile_pat, profile_don, mapfile) {
                                                             'Shared',
                                                             'Engraft',
                                                             'Other')))) -> p2
-    f2 <- p_paper_f2(p2, cols)
-    f3 <- p_paper_f3(profile_don, cols)
-    fig = cowplot::plot_grid(f1, f2, f3, nrow = 1)
-    return(fig)
+    return(p2)
 }
 
 p_paper_f1 = function(p1, cols){
@@ -347,7 +361,7 @@ p_paper_f2 = function(p2, cols){
     f2 <- ggplot(p2, aes(Treatment, Mean_marker, fill=engrafted)) +
         geom_bar(stat = "identity") +
         scale_fill_manual(values = cols) +
-        geom_text(aes(label = round(Mean_marker, 1)),
+        geom_text(aes(label = format(Mean_marker, format = 'e', digits = 1)),
                   position = position_stack(vjust = .5)) +
         theme_classic() +
         theme(legend.position = "rig") +
@@ -362,6 +376,7 @@ p_paper_f3 = function(profile_don, cols){
         scale_fill_manual(values = cols) +
         theme_classic() +
         theme(legend.position = "none") +
+        facet_grid(Treatment~.) +
         ylab('# of donor features')
     return(f3)
 }
@@ -385,8 +400,9 @@ get_profile_pat = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,  ..
 get_profile_don = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,
                            ...){
     tst = (long_markerlvl
-           %>% prep_profile(mapfile, cutoff_abs, cutoff_pres, ...)
-           %>% group_by(Marker)
+           %>% prep_profile(mapfile, cutoff_abs, cutoff_pres, 
+                            Treatment %in% c('FMT', 'Placebo'))
+           %>% group_by(Marker, Treatment)
            %>% summarize(status = get_status(engrafted))
     )
     shr = (tst

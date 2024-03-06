@@ -1,0 +1,47 @@
+
+## UHGG MAGs
+
+```{r}
+
+marker_lvl_uhgg <- read.csv("../data/perfect_mapping/UHGG/UHGG_1x_cover_perfect_subset_reads.csv")
+
+marker_lvl_uhgg %>%
+  mutate(bin_coverage=bin_covbases/bin_len*100) %>%
+  rename(sample=sample.id) %>%
+  mutate(sample= gsub("_perfect_UHGG.cover", "", sample)) %>%
+  mutate(sample = gsub("sub_", "", sample))-> marker_lvl_uhgg
+
+
+marker_lvl_uhgg %>%
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  select(sample, Genome, bin_coverage) %>%
+  rename(coverage=bin_coverage) %>%
+  mutate(sample= gsub("DonorB_D_", "", sample))-> donorB_uhgg
+
+# benchmarking figures
+breaks_mg <- c(0, 25, 50, 75, 100)
+Genome_benchmark(donorB_uhgg, breaks_mg)
+ggsave("../plots_paper/uhgg_cutoff.svg", height = 12, width = 10, units = "cm")
+
+# Set the presence and absence cutoffs for patients. DonorB doesn't need these
+# because all the MAGs come from donor B
+cutoff_pres_mg = 75
+cutoff_abs_mg = 25
+
+# Keep only the donor samples samples,
+marker_lvl_uhgg %>%
+  filter(str_detect(sample, "DonorB_D_")) %>%
+  filter(bin_coverage >= cutoff_pres_mg) %>%
+  select(Genome) %>% distinct() %>%
+  pull(Genome) -> donorB_inUHGG
+
+# Keep only the patient samples, reshape the numbers, and name the Marker column
+marker_lvl_uhgg = (marker_lvl_uhgg
+                 %>% filter(str_detect(sample, "PMCL")) 
+                 %>% select(sample, Genome, bin_coverage)
+                 %>% filter(Genome %in% donorB_inUHGG)
+                 %>% spread(sample, bin_coverage) 
+                 %>% rename(Marker= Genome))
+
+```
+

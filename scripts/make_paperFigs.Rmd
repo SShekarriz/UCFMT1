@@ -5,6 +5,8 @@ date: "2024-02-04"
 output: html_document
 ---
 
+## Setup
+
 make paper figures
 
 ```{r}
@@ -36,8 +38,14 @@ perTest %>%
                          str_detect(X, "mags") ~ paste("mags"),
                          str_detect(X, "genes") ~ paste("genes"),
                          )) %>%
-  mutate(label= paste("Permutation Test \n p-value=", 
-                      PWeightedEvents, sep = "")) -> perTest
+  mutate(label= case_when(PWeightedEvents != 0 ~ 
+                              paste("Permutation Test \n p-value = ", 
+                                    format(abs(PWeightedEvents), format = 'e', 
+                                           digit = 1), sep = ""),
+                          PWeightedEvents == 0 ~
+                              paste("Permutation Test \n p-value < ",
+                                    format(1/2000, format = 'e', digit = 1),
+                                    sep = ''))) -> perTest
 
 ```
 
@@ -66,11 +74,13 @@ bs_4 = (donorB_16s_samples
 
 # benchmarking figures
 breaks_sp <- c(0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1)
-benchmark(donorB_16s_samples, breaks_sp, f_type = '16s', bs_4)
-ggsave("../plots_paper/16s_cutoff.svg", height = 12, width = 10, units = "cm")
+(b_16s = benchmark(donorB_16s_samples, breaks_sp, f_type = '16s', bs_4))
+ggsave(b_16s, file = "../plots_paper/16s_cutoff.svg", height = 12, width = 10,
+       units = "cm")
 
-p_paper(profile_16s, profile_16s_don, mapfile_16s)
-ggsave("../plots_paper/16s_profile.svg", height = 15, width = 22.5, units = "cm")
+(p_16s = p_paper(profile_16s, profile_16s_don, mapfile_16s))
+ggsave(p_16s, file = "../plots_paper/16s_profile.svg", height = 15,
+       width = 22.5, units = "cm")
 
 #### Fig 1 
 f1_16s = plot_fig_13(cts_16s_plt, 'Treatment')
@@ -84,8 +94,9 @@ f3_16s = plot_fig_13(cts_16s_plt_rem, 'Remission')
 
 #### paper Fig
 pvals_16s=perTest %>% filter(data == "16s")
-f_paper(f1_16s, f2_16s, f3_16s, tx_pv_16s, rs_pv_16s, pvals_16s)
-ggsave("../plots_paper/16s.svg", height = 15, width = 7, units = "cm")
+(f_16s = f_paper(f1_16s, f2_16s, f3_16s, tx_pv_16s, rs_pv_16s, pvals_16s))
+ggsave(f_16s, file = "../plots_paper/16s.svg", height = 15, width = 7,
+       units = "cm")
 
 ```
 
@@ -107,13 +118,14 @@ donorB_species_all = (donorB_species_all
 # Read in the species-level markers
 # benchmarking figures
 breaks_sp <- c(0.00001, 0.00005, 0.0001, 0.001, 0.01, 0.02, 0.03)
-benchmark(donorB_species_all, breaks_sp, f_type = 'sp')
-ggsave("../plots_paper/species_cutoff.svg", height = 12, width = 10, units = "cm")
+(b_sp = benchmark(donorB_species_all, breaks_sp, f_type = 'sp'))
+ggsave(b_sp, file = "../plots_paper/species_cutoff.svg", height = 12, 
+       width = 10, units = "cm")
 
 
-p_paper(profile_sp, profile_sp_don, mapfile_mgm)
-ggsave("../plots_paper/species_profile.svg", height = 15, width = 22.5, 
-       units = "cm")
+(p_sp = p_paper(profile_sp, profile_sp_don, mapfile_mgm))
+ggsave(p_sp, file = "../plots_paper/species_profile.svg", height = 15,
+       width = 22.5, units = "cm")
 
 #### Species FMT vs Placebo ####
 
@@ -128,8 +140,9 @@ f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
 
 #### paper Fig
 pvals_sp=perTest %>% filter(data == "species")
-f_paper(f1_sp, f2_sp, f3_sp, tx_pv_mgm, rs_pv_mgm, pvals_sp)
-ggsave("../plots_paper/species.svg", height = 15, width = 7, units = "cm")
+(f_sp = f_paper(f1_sp, f2_sp, f3_sp, tx_pv_mgm, rs_pv_mgm, pvals_sp))
+ggsave(f_sp, file = "../plots_paper/species.svg", height = 15, width = 7,
+       units = "cm")
 
 ```
 
@@ -147,12 +160,14 @@ donorB_strains_all = (donorB_strains_all
 
 # benchmarking figures
 breaks_st <- c(0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01)
-benchmark(donorB_strains_all, breaks_st, f_type = 'sp')
-ggsave("../plots_paper/strains_cutoff.svg", height = 12, width = 10, units = "cm")
+(b_st = benchmark(donorB_strains_all, breaks_st, f_type = 'sp'))
+ggsave(b_st, file = "../plots_paper/strains_cutoff.svg", height = 12,
+       width = 10, units = "cm")
 
 
-p_paper(profile_st, profile_st_don, mapfile_mgm)
-ggsave("../plots_paper/strains_profile.svg", height = 15, width = 22.5, units = "cm")
+(p_st = p_paper(profile_st, profile_st_don, mapfile_mgm))
+ggsave(p_st, file = "../plots_paper/strains_profile.svg", height = 15,
+       width = 22.5, units = "cm")
 
 #### Strains FMT vs Placebo ####
 ###### f1
@@ -166,8 +181,9 @@ f3_st = plot_fig_13(cts_st_rem, 'Remission')
 
 #### paper Fig
 pvals_st=perTest %>% filter(data == "strain")
-f_paper(f1_st, f2_st, f3_st, tx_pv_mgm, rs_pv_mgm, pvals_st)
-ggsave("../plots_paper/strain.svg", height = 15, width = 7, units = "cm")
+(f_st = f_paper(f1_st, f2_st, f3_st, tx_pv_mgm, rs_pv_mgm, pvals_st))
+ggsave(f_st, file = "../plots_paper/strain.svg", height = 15, width = 7,
+       units = "cm")
 
 ```
 
@@ -194,11 +210,13 @@ marker_lvl_mg_all %>%
 
 # benchmarking figures
 breaks_mg <- c(0, 0.25, 0.50, 0.75, 1)
-Genome_benchmark(donorB_mag, breaks_mg, 'MAG')
-ggsave("../plots_paper/MAGs_cutoff.svg", height = 12, width = 10, units = "cm")
+(b_mg = Genome_benchmark(donorB_mag, breaks_mg, 'MAG'))
+ggsave(b_mg, file = "../plots_paper/MAGs_cutoff.svg", height = 12, width = 10,
+       units = "cm")
 
-p_paper(profile_mg, profile_mg_don, mapfile_mgm)
-ggsave("../plots_paper/MAGs_profile.svg", height = 15, width = 22.5, units = "cm")
+(p_mg = p_paper(profile_mg, profile_mg_don, mapfile_mgm))
+ggsave(p_mg, file = "../plots_paper/MAGs_profile.svg", height = 15,
+       width = 22.5, units = "cm")
 
 
 ##### f1
@@ -212,8 +230,9 @@ f3_mg = plot_fig_13(cts_mg_rem,'Remission')
 
 #### paper Fig
 pvals_mg=perTest %>% filter(data == "mags")
-f_paper(f1_mg, f2_mg, f3_mg, tx_pv_mgm, rs_pv_mgm, pvals_mg)
-ggsave("../plots_paper/MAGs.svg", height = 15, width = 7, units = "cm")
+(f_mg = f_paper(f1_mg, f2_mg, f3_mg, tx_pv_mgm, rs_pv_mgm, pvals_mg))
+ggsave(f_mg, file = "../plots_paper/MAGs.svg", height = 15, width = 7,
+       units = "cm")
 
 ```
 
@@ -393,8 +412,9 @@ table %>%
 
 load('../processed_data/fig_ge.rds')
 
-p_paper(profile_ge, profile_ge_don, mapfile_mgm)
-ggsave("../plots_paper/genes_profile.svg", height = 15, width = 22.5, units = "cm")
+(p_ge = p_paper(profile_ge, profile_ge_don, mapfile_mgm))
+ggsave(p_ge, file = "../plots_paper/genes_profile.svg", height = 15,
+       width = 22.5, units = "cm")
 
 #### f1
 f1_ge = plot_fig_13(cts_ge, 'Treatment')
@@ -410,8 +430,9 @@ f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 
 #### paper Fig
 pvals_ge=perTest %>% filter(data == "genes")
-f_paper(f1_ge, f2_ge, f3_ge, tx_pv_mgm, rs_pv_mgm, pvals_ge)
-ggsave("../plots_paper/genes.svg", height = 15, width = 7, units = "cm")
+(f_ge = f_paper(f1_ge, f2_ge, f3_ge, tx_pv_mgm, rs_pv_mgm, pvals_ge))
+ggsave(f_ge, file = "../plots_paper/genes.svg", height = 15, width = 7,
+       units = "cm")
 
 
 ```
