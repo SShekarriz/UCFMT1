@@ -50,7 +50,6 @@ perTest %>%
 ```
 
 
-
 function to make the main engraftment figure (f) moved to paperfig_functions.R
 
 
@@ -83,14 +82,22 @@ ggsave(p_16s, file = "../plots_paper/16s_profile.svg", height = 15,
        width = 22.5, units = "cm")
 
 #### Fig 1 
-f1_16s = plot_fig_13(cts_16s_plt, 'Treatment')
+f1_lst_16s = plot_fig_13(cts_16s_plt, 'Treatment')
+(f1_16s = f1_lst_16s[['fig']])
+npat_tab = cbind(f1_lst_16s[['df']], Feat = '16S')
+colnames(npat_tab)[2] = 'Condition'
 
 #### Fig 2 
-f2_16s = plot_fig_2(cts_16s_plt)
+f2_lst_16s = plot_fig_2(cts_16s_plt)
+(f2_16s = f2_lst_16s[['fig']])
+uniq_tab = cbind(f2_lst_16s[['df']], Feat = '16S')
 
 #### Fig 3
-f3_16s = plot_fig_13(cts_16s_plt_rem, 'Remission')
-
+f3_lst_16s = plot_fig_13(cts_16s_plt_rem, 'Remission')
+(f3_16s = f3_lst_16s[['fig']])
+tmp = cbind(f3_lst_16s[['df']], Feat = '16S')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
 #### paper Fig
 pvals_16s=perTest %>% filter(data == "16s")
@@ -129,14 +136,27 @@ ggsave(p_sp, file = "../plots_paper/species_profile.svg", height = 15,
 
 #### Species FMT vs Placebo ####
 
-#### Fig 1
-f1_sp = plot_fig_13(cts_sp, 'Treatment')
+#### Fig 1 
+f1_lst_sp = plot_fig_13(cts_sp, 'Treatment')
+(f1_sp = f1_lst_sp[['fig']])
+tmp = cbind(f1_lst_sp[['df']], Feat = 'species')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
 #### Fig 2 
 f2_sp = plot_fig_2(cts_sp)
+f2_lst_sp = plot_fig_2(cts_sp)
+(f2_sp = f2_lst_sp[['fig']])
+uniq_tab = rbind(uniq_tab,
+                 cbind(f2_lst_sp[['df']], Feat = 'species'))
 
-#### Species Res vs NoRes ####
-f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
+#### Fig 3
+f3_lst_sp = plot_fig_13(cts_sp_rem, 'Remission')
+(f3_sp = f3_lst_sp[['fig']])
+tmp = cbind(f3_lst_sp[['df']], Feat = 'species')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
+
 
 #### paper Fig
 pvals_sp=perTest %>% filter(data == "species")
@@ -170,14 +190,27 @@ ggsave(p_st, file = "../plots_paper/strains_profile.svg", height = 15,
        width = 22.5, units = "cm")
 
 #### Strains FMT vs Placebo ####
-###### f1
-f1_st = plot_fig_13(cts_st, 'Treatment')
 
-##### f2
+#### Fig 1 
+f1_lst_st = plot_fig_13(cts_st, 'Treatment')
+(f1_st = f1_lst_st[['fig']])
+tmp = cbind(f1_lst_st[['df']], Feat = 'strain')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
+
+#### Fig 2 
 f2_st = plot_fig_2(cts_st)
+f2_lst_st = plot_fig_2(cts_st)
+(f2_st = f2_lst_st[['fig']])
+uniq_tab = rbind(uniq_tab,
+                 cbind(f2_lst_st[['df']], Feat = 'strain'))
 
-#### f3 
-f3_st = plot_fig_13(cts_st_rem, 'Remission')
+#### Fig 3
+f3_lst_st = plot_fig_13(cts_st_rem, 'Remission')
+(f3_st = f3_lst_st[['fig']])
+tmp = cbind(f3_lst_st[['df']], Feat = 'strain')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
 #### paper Fig
 pvals_st=perTest %>% filter(data == "strain")
@@ -219,14 +252,26 @@ ggsave(p_mg, file = "../plots_paper/MAGs_profile.svg", height = 15,
        width = 22.5, units = "cm")
 
 
-##### f1
-f1_mg = plot_fig_13(cts_mg, 'Treatment')
+#### Fig 1 
+f1_lst_mg = plot_fig_13(cts_mg, 'Treatment')
+(f1_mg = f1_lst_mg[['fig']])
+tmp = cbind(f1_lst_mg[['df']], Feat = 'MAGs')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
-##### f2
+#### Fig 2 
 f2_mg = plot_fig_2(cts_mg)
+f2_lst_mg = plot_fig_2(cts_mg)
+(f2_mg = f2_lst_mg[['fig']])
+uniq_tab = rbind(uniq_tab,
+                 cbind(f2_lst_mg[['df']], Feat = 'MAGs'))
 
-#### f3
-f3_mg = plot_fig_13(cts_mg_rem,'Remission')
+#### Fig 3
+f3_lst_mg = plot_fig_13(cts_mg_rem, 'Remission')
+(f3_mg = f3_lst_mg[['fig']])
+tmp = cbind(f3_lst_mg[['df']], Feat = 'MAGs')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
 #### paper Fig
 pvals_mg=perTest %>% filter(data == "mags")
@@ -416,17 +461,29 @@ load('../processed_data/fig_ge.rds')
 ggsave(p_ge, file = "../plots_paper/genes_profile.svg", height = 15,
        width = 22.5, units = "cm")
 
-#### f1
-f1_ge = plot_fig_13(cts_ge, 'Treatment')
+#### Fig 1 
+f1_lst_ge = plot_fig_13(cts_ge, 'Treatment')
+(f1_ge = f1_lst_ge[['fig']])
+tmp = cbind(f1_lst_ge[['df']], Feat = 'genes')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
-##### f2
+#### Fig 2 
 f2_ge = plot_fig_2(cts_ge)
+f2_lst_ge = plot_fig_2(cts_ge)
+(f2_ge = f2_lst_ge[['fig']])
+uniq_tab = rbind(uniq_tab,
+                 cbind(f2_lst_ge[['df']], Feat = 'genes'))
+
+#### Fig 3
+f3_lst_ge = plot_fig_13(cts_ge_rem, 'Remission')
+(f3_ge = f3_lst_ge[['fig']])
+tmp = cbind(f3_lst_ge[['df']], Feat = 'genes')
+colnames(tmp)[2] = 'Condition'
+npat_tab = rbind(npat_tab, tmp)
 
 #investigate second figure later
 #ggplot_build(f2_ge)$plot$data -> test
-
-#### f3
-f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 
 #### paper Fig
 pvals_ge=perTest %>% filter(data == "genes")
@@ -434,7 +491,8 @@ pvals_ge=perTest %>% filter(data == "genes")
 ggsave(f_ge, file = "../plots_paper/genes.svg", height = 15, width = 7,
        units = "cm")
 
-
+write.csv(npat_tab, file = '../results/npat_tab.csv')
+write.csv(uniq_tab, file = '../results/uniq_tab.csv')
 ```
 A signature of genes specific to FMT responders:
 

@@ -288,7 +288,7 @@ plot_fig_13 = function(cts, txrm){
         geom_point() +
         geom_line() +
         scale_x_continuous(breaks = 1:max(plt_df$Npats))
-    return(f1)
+    return(list(fig = f1, df = plt_df))
 }
 
 plot_fig_2 = function(cts){
@@ -322,6 +322,11 @@ plot_fig_2 = function(cts){
                                         colour = Uniqueness)) +
         geom_bar(stat = 'count') +
         scale_x_continuous(breaks = 1:max(cts_df$Total))
-    return(f2)
+    return(list(fig = f2, df = sum_uniq(cts_df)))
 }
 
+sum_uniq = function(cts_df){
+    sum_df = cts_df %>% count(Total, Uniqueness)
+    colnames(sum_df) = c('Npat', 'Uniqueness', 'Count')
+    return(sum_df)
+}
