@@ -625,6 +625,10 @@ gff %>%
 int_genes_table <- read.csv("../data/genes_FMT-Res/gene_table.txt",
                       header = T, sep = "\t")
 
+c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t",
+                    header = F)
+colnames(c_inBin) <- c("contig", "bin_id")
+
 int_genes_table %>%
 select(Marker, Fig_lab) %>%
 distinct() %>%
@@ -652,6 +656,8 @@ int_genes_inBins %>%
                              between(n, 50, 250) ~ paste("50-250"),
                              between(n, 250, 550) ~ paste("250-550"),
                              TRUE ~ paste("other"))) -> plt_df
+
+plt_df$Type <- factor(plt_df$Type, levels = c("MAG", "Bin", "NoBin"))
 
 ggplot(plt_df, aes(reorder_within(bin_id, -n, Type), 
                    reorder_within(Fig_lab, -n, 1), fill=gene_num)) +
