@@ -1,11 +1,35 @@
-Data Processing
-===============
+Sensitivity Analysis
+====================
 
-This script is to do all data wrangling, organization, etc. to create the data
-structures that will be used by run_permutation.R, make_paperFigs.R, and any
-other analysis or visualizing in the UCFMT1 metagenomics project.
+This script is for running the sensitivity analysis on genes, and possibly other
+features as well, to determine if the cutoffs we chose materially effect our
+results.
+
+Before running the analysis, I will look at the gene results and decide what I
+think it means for them to be "materially affected".
+
+Our gene results:
+
+- The number of apparently engrafted genes in FMT is greater than apparently
+  engrafted genes in Placebo, p <= 0.001. This p-value should remain low (say <=
+  0.01), and the sign of the effect should be unchanged
+- The current number of genes engrafted in 3 or more individuals is 45,419. This
+  number should be stable within an order of magnitude (I don't feel super
+  strongly about this. I think it's okay if it changes quite a bit, and it's the
+  thing that is going to be the most sensitive to the cutoffs)
+- The following proportions should be pretty stable (certainly within an order
+  of magnitude, ideally within a factor of 2):
+  - Proportion present in both FMT and Placebo: 56.9%
+  - Proportion exclusive to FMT: 37.9%
+  - Proportion exclusive to Placebo: 5.2%
+  - Proportion unique to FMT responders: 3.3%
+  - Proportion unique to FMT non-responders: 0.6%
+  - It's the ratios that matter here. The number unique to placebo is much
+	smaller than the number unique to FMT, and the number unique to responders
+	is much smaller than the number unique to non-responders.
 
 ```{r}
+knitr::opts_chunk$set(eval = FALSE)
 library(tidyverse)
 source('./permutation_functions.R')
 source('./paperfig_functions.R')
@@ -16,93 +40,93 @@ source('./paperfig_functions.R')
 ### Setup
 
 ```{r}
-# Import 16s mapfile and create named vectors of patient IDs/groups for 
-# permuting
-mapfile_16s <- read.csv("../data/UCFMT1_16Smap.txt")
-tx_pv_16s = pat_to_vect(mapfile_16s, 'Fig_lab', 'Treatment')
-rs_pv_16s = pat_to_vect(filter(mapfile_16s, Treatment == 'FMT'), 'Fig_lab', 
-                        'Remission')
+# # Import 16s mapfile and create named vectors of patient IDs/groups for
+# # permuting
+# mapfile_16s <- read.csv("../data/UCFMT1_16Smap.txt")
+# tx_pv_16s = pat_to_vect(mapfile_16s, 'Fig_lab', 'Treatment')
+# rs_pv_16s = pat_to_vect(filter(mapfile_16s, Treatment == 'FMT'), 'Fig_lab',
+#                         'Remission')
 ```
 
 ### Save Setup
 
 ```{r}
-setup_16s = c('mapfile_16s', 'tx_pv_16s', 'rs_pv_16s')
-save(list = setup_16s, file = '../processed_data/setup_16s.rds')
+# setup_16s = c('mapfile_16s', 'tx_pv_16s', 'rs_pv_16s')
+# save(list = setup_16s, file = '../processed_data/setup_16s.rds')
 ```
 
 
 ### Run Engraftment Analysis
 
 ```{r}
-# Import the 16s ASV data
-marker_lvl_16s <- read.csv("../data/16s_lvl_RA.csv")
-
-# Import donor B 16s ASVs and create a vector
-strains16s <- read.csv("../data/jcsz_16s_core_DonB.csv")
-strains16s %>%
-    pull() -> strains16s
-
-# Set the cutoffs for 16s presence and absence
-cutoff_pres_16S = 0.00013
-cutoff_abs_16S = 0
-
-
-### Get the engraftment matrix 
-
-# convert the 16s data to long format
-long_mark_16s = mark_to_long(marker_lvl_16s, strains16s)
-# Create a matrix of engraftment counts per patient
-engr_16s = get_engraft(long_mark_16s, mapfile_16s, cutoff_abs_16S, 
-                       cutoff_pres_16S, Treatment %in% c('FMT', 'Placebo'))
-
-# Count engraftments per group
-cts_16s_plt = count_engraft(engr_16s, tx_pv_16s, 'Treatment')
-cts_16s_plt_rem = count_engraft(engr_16s, rs_pv_16s, 'Remission')
+# # Import the 16s ASV data
+# marker_lvl_16s <- read.csv("../data/16s_lvl_RA.csv")
+# 
+# # Import donor B 16s ASVs and create a vector
+# strains16s <- read.csv("../data/jcsz_16s_core_DonB.csv")
+# strains16s %>%
+#     pull() -> strains16s
+# 
+# # Set the cutoffs for 16s presence and absence
+# cutoff_pres_16S = 0.00013
+# cutoff_abs_16S = 0
+# 
+# 
+# ### Get the engraftment matrix 
+# 
+# # convert the 16s data to long format
+# long_mark_16s = mark_to_long(marker_lvl_16s, strains16s)
+# # Create a matrix of engraftment counts per patient
+# engr_16s = get_engraft(long_mark_16s, mapfile_16s, cutoff_abs_16S, 
+#                        cutoff_pres_16S, Treatment %in% c('FMT', 'Placebo'))
+# 
+# # Count engraftments per group
+# cts_16s_plt = count_engraft(engr_16s, tx_pv_16s, 'Treatment')
+# cts_16s_plt_rem = count_engraft(engr_16s, rs_pv_16s, 'Remission')
 ```
 
 ### Process Data for Visualization
 Benchmarking and profiling.
 
 ```{r}
-# Using the same core DonorB ASVs as the engraftment uses: strains16s
-donorB_16s_samples <- read.csv("../data/16s_lvl_RA_donorB_samples.csv")
-donorB_16s_samples %>%
-    gather(sample, abundance, -Marker) %>%
-    # any marker with abundance > 0
-    # markers that were present in at least one donor B sample
-    filter(!is.na(abundance)) %>%
-    filter(as.numeric(abundance) > 0) -> donorB_16s_samples
-
-# profile the feature types:
-profile_16s = get_profile_pat(long_mark_16s, mapfile_16s, cutoff_abs_16S, 
-                              cutoff_pres_16S,
-                              Treatment %in% c('FMT', 'Placebo'))
-profile_16s_don = get_profile_don(long_mark_16s, mapfile_16s, cutoff_abs_16S,
-                                  cutoff_pres_16S,
-                                  Treatment %in% c('FMT', 'Placebo'))
+# # Using the same core DonorB ASVs as the engraftment uses: strains16s
+# donorB_16s_samples <- read.csv("../data/16s_lvl_RA_donorB_samples.csv")
+# donorB_16s_samples %>%
+#     gather(sample, abundance, -Marker) %>%
+#     # any marker with abundance > 0
+#     # markers that were present in at least one donor B sample
+#     filter(!is.na(abundance)) %>%
+#     filter(as.numeric(abundance) > 0) -> donorB_16s_samples
+# 
+# # profile the feature types:
+# profile_16s = get_profile_pat(long_mark_16s, mapfile_16s, cutoff_abs_16S, 
+#                               cutoff_pres_16S,
+#                               Treatment %in% c('FMT', 'Placebo'))
+# profile_16s_don = get_profile_don(long_mark_16s, mapfile_16s, cutoff_abs_16S,
+#                                   cutoff_pres_16S,
+#                                   Treatment %in% c('FMT', 'Placebo'))
 ```
 
 ### Save 16S Objects
 
 ```{r}
-eng_16s = c('engr_16s', 'cts_16s_plt', 'cts_16s_plt_rem')
-            
-save(list = eng_16s, file = '../processed_data/eng_16s.rds')
-
-fig_16s = c('donorB_16s_samples','profile_16s', 'profile_16s_don','cts_16s_plt',
-            'cts_16s_plt_rem')
-save(list = fig_16s, file = '../processed_data/fig_16s.rds')
-
-oth_16s = c('marker_lvl_16s', 'strains16s', 'long_mark_16s','cutoff_abs_16S', 
-            'cutoff_pres_16S', 'long_mark_16s')
-save(list = unique(c(eng_16s, fig_16s, oth_16s)),
-     file = '../processed_data/all_objs_16s.rds')
+# eng_16s = c('engr_16s', 'cts_16s_plt', 'cts_16s_plt_rem')
+#             
+# save(list = eng_16s, file = '../processed_data/eng_16s.rds')
+# 
+# fig_16s = c('donorB_16s_samples','profile_16s', 'profile_16s_don','cts_16s_plt',
+#             'cts_16s_plt_rem')
+# save(list = fig_16s, file = '../processed_data/fig_16s.rds')
+# 
+# oth_16s = c('marker_lvl_16s', 'strains16s', 'long_mark_16s','cutoff_abs_16S', 
+#             'cutoff_pres_16S', 'long_mark_16s')
+# save(list = unique(c(eng_16s, fig_16s, oth_16s)),
+#      file = '../processed_data/all_objs_16s.rds')
 ```
 
 ## Setup Metagenomics
 
-```{r}
+```{r, eval = TRUE}
 # This mapfile is used for every non-16S feature type
 mapfile_mgm <- read.csv("../data/UCFMT1_METAmap.txt", sep = "\t")
 
@@ -115,8 +139,8 @@ rs_pv_mgm = pat_to_vect(filter(mapfile_mgm, Treatment == 'FMT'), 'Fig_lab',
 ### Save Metagenomics Objects
 
 ```{r}
-mgm_setup = c('mapfile_mgm', 'tx_pv_mgm','rs_pv_mgm')
-save(list = mgm_setup, file = '../processed_data/mgm_setup.rds')
+# mgm_setup = c('mapfile_mgm', 'tx_pv_mgm','rs_pv_mgm')
+# save(list = mgm_setup, file = '../processed_data/mgm_setup.rds')
 ```
 
 ## Species
@@ -357,33 +381,87 @@ save(list = unique(c(eng_mg, fig_mg, oft_mg)),
 
 ### Run Engraftment Functions
 
-```{r}
+```{r, eval = TRUE}
 ### Import the data
 
 marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
 
 # Set the presence and absence cutoffs for patients. These aren't used for donor
 # B because all the genes came from the donor B assemblies.
-cutoff_pres_ge = 90
-cutoff_abs_ge = 25
+cutoff_abs_ge = seq(0, 40, 5)
+cutoff_pres_ge = seq(70, 100, 5)
+
+all_cutoff = expand.grid(cutoff_abs_ge, cutoff_pres_ge)
+colnames(all_cutoff) = c('abs', 'pres')
 
 ### Get the engraftment matrix
 
 long_mark_ge = mark_to_long(marker_lvl_ge)
-engr_ge = get_engraft(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
-                      Treatment %in% c('FMT', 'Placebo'))
-cts_ge = count_engraft(engr_ge, tx_pv_mgm, 'Treatment')
-cts_ge_rem = count_engraft(engr_ge, rs_pv_mgm, 'Remission')
+engr_ge = get_engraft(long_mark_ge, mapfile_mgm, 25,
+                      90, Treatment %in% c('FMT', 'Placebo'))
+engr_arr = array(dim = c(nrow(all_cutoff), 755662, 24),
+                 dimnames = list('replicate' = paste('abs', all_cutoff$abs,
+                                                     'pres', all_cutoff$pres,
+                                                     sep = '_'),
+                                 'genes' = rownames(engr_ge),
+                                 'samples' = colnames(engr_ge)))
+# for (i in 1:nrow(all_cutoff)){
+#     cp = all_cutoff$pres[i]
+#     ca = all_cutoff$abs[i]
+#     print(i)
+#     engr_arr[i,,] = get_engraft(long_mark_ge, mapfile_mgm, ca, cp,
+#                                Treatment %in% c('FMT', 'Placebo'))
+# }
+
+# save(engr_arr, file = '../sensitivity/intermed/engr_arr.RData')
+load('../sensitivity/intermed/engr_arr.RData')
+
+# cts_ge = count_engraft(engr_ge, tx_pv_mgm, 'Treatment')
+# cts_ge_rem = count_engraft(engr_ge, rs_pv_mgm, 'Remission')
+# arr_cts = array(dim = c(nrow(all_cutoff), 755662, 2),
+#                 dimnames = list('replicate' = dimnames(engr_arr)$replicate,
+#                                 'genes' = dimnames(engr_arr)$genes,
+#                                 'groups' = colnames(cts_ge)))
+# arr_cts_rem = array(dim = c(nrow(all_cutoff), 755662, 2),
+#                 dimnames = list('replicate' = dimnames(engr_arr)$replicate,
+#                                 'genes' = dimnames(engr_arr)$genes,
+#                                 'groups' = colnames(cts_ge_rem)))
+# for (i in 1:nrow(all_cutoff)){
+#     arr_cts[i,,] = count_engraft(engr_arr[i,,], tx_pv_mgm, 'Treatment')
+#     arr_cts_rem[i,,] = count_engraft(engr_arr[i,,], rs_pv_mgm, 'Remission')
+# }
+# save(arr_cts, arr_cts_rem, file = '../sensitivity/intermed/cts_arrs.RData')
+load('../sensitivity/intermed/cts_arrs.RData')
 ```
+
+THIS IS WHERE I STOPPED. I STILL NEED TO:
+
+- RUN PERMUTATION TESTS ON ALL MATRICES
+- GET THE OBSERVED TEST STATISTIC ON ALL MATRICES
+- DRAW GRAPHS FOR ALL MATRICES
 
 ### Process Data for Visualization
 
 ```{r}
 # profile the feature types:
-profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
+profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, 25, 90,
                              Treatment %in% c('FMT', 'Placebo'))
-profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, cutoff_abs_ge, cutoff_pres_ge,
+profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, 25, 90,
                                  Treatment %in% c('FMT','Placebo'))
+
+arr_prof = array(dim = c(nrow(all_cutoff), 755662, 24),
+                 dimnames = list('replicate' = dimnames(engr_arr)$replicate,
+                                 'genes' = rownames(profile_ge),
+                                 'samples' = colnames(profile_ge)))
+# tst = get_profile_pat(long_mark_ge, mapfile_mgm, all_cutoff$abs[2],
+#                       all_cutoff$pres[2], Treatment %in% c('FMT', 'Placebo'))
+
+for (i in 1:nrow(all_cutoff)){
+    print(i)
+    arr_prof[i,,] = get_profile_pat(long_mark_ge, mapfile_mgm, 
+                                    all_cutoff$abs[i], all_cutoff$pres[i],
+                                    Treatment %in% c('FMT', 'Placebo'))
+}
 ```
 
 ### Save Gene Engraftment

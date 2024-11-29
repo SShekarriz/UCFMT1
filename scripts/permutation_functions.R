@@ -47,7 +47,7 @@ get_engraft = function(long_markerlvl, mapfile, cutoff_abs, cutoff_pres,  ...){
     # Turn it into a matrix and remove all rows that are 0 everywhere. This
     # removal has no effect on the test statistic, it's just tidier
     engraft = as.matrix(engraft)
-    engraft = engraft[rowSums(engraft) > 0,]
+    # engraft = engraft[rowSums(engraft) > 0,]
     return(engraft)
 }
 
