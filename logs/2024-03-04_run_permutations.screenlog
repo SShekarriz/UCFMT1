@@ -1,0 +1,169 @@
+./sc[Kr[K[Krun_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ───────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv_16s
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx    xfx    x2fx
+[1,] 134.35 338.93 1074.65
+[2,]   0.15  24.30  168.38
+[3,]   3.33 -55.67 -320.03
+[4,]  48.37 150.21  592.15
+[5,]  32.15  73.63  241.69
+[6,]  -8.32 -30.57 -115.47
+[?25h[?25h  fx  xfx x2fx 
+   0    0    0 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?25h[?25h[?25h[1] "16S Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25hrs_pv_16s
+NoRes   Res 
+   14     6 
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h         fx     xfx    x2fx
+[1,]   1.40    1.74   -8.54
+[2,] -52.26  -72.34 -120.64
+[3,] -22.78  -36.47  -78.01
+[4,] -74.45 -111.16 -201.84
+[5,]  -4.63    4.57   19.03
+[6,] -25.72  -35.59  -52.69
+[?25h    fx    xfx   x2fx 
+ 0.961  0.957 -0.996 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Setup Metagenomics"
+[?25h[?25h[1] "Species Setup"
+[?25h[?25h[1] "Species FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h       fx  xfx x2fx
+[1,]  155  272  620
+[2,]   31   30   14
+[3,]   27   58  168
+[4,]    4  -36 -182
+[5,] -141 -210 -408
+[6,]  -22  -20  -28
+[?25h[?25h   fx   xfx  x2fx 
+0.025 0.021 0.014 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Species Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  92 129  205
+[2,]  75 111  189
+[3,] -41 -69 -127
+[4,]  39  47   63
+[5,]  12  31   75
+[6,] -27 -45  -93
+[?25h[?25h   fx   xfx  x2fx 
+0.323 0.336 0.357 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Strains Setup"
+[?25h[?25h[1] "Strains FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h        fx   xfx   x2fx
+[1,] 21901 41111 100961
+[2,] 16929 29675  67119
+[3,] 18381 36229  88043
+[4,]  1716 -2529 -17099
+[5,]  6325 18061  54621
+[6,] 14409 25317  56241
+[?25h[?25h   fx   xfx  x2fx 
+0.010 0.005 0.005 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Strains Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx    xfx   x2fx
+[1,]  11711  17877  32511
+[2,]  -2771  -3903  -7839
+[3,]  -1505  -2473  -7583
+[4,]   1414   5247  14989
+[5,]  -7675 -10799 -16951
+[6,] -20963 -31929 -60501
+[?25h[?25h   fx   xfx  x2fx 
+0.296 0.290 0.296 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "MAGs Setup"
+[?25h[?25h[1] "MAGs FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  50  75  143
+[2,] -37 -55 -101
+[3,]  18  19   27
+[4,] -29 -41  -79
+[5,]  36  63  133
+[6,] -40 -57 -101
+[?25h[?25h   fx   xfx  x2fx 
+0.007 0.010 0.008 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "MAGs Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  36  51   81
+[2,] -27 -37  -61
+[3,]   1  -1   -7
+[4,]  27  37   63
+[5,] -39 -57 -103
+[6,] -30 -41  -71
+[?25h[?25h   fx   xfx  x2fx 
+0.176 0.189 0.239 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Genes Setup"
+[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h          fx     xfx    x2fx
+[1,]  213297  321465  613797
+[2,]   53362   86153  168809
+[3,]  -34872  -50321  -88717
+[4,]   56493   72625  106273
+[5,] -111084 -170937 -332707
+[6,]   73579   91413  123435
+[?25h[?25h   fx   xfx  x2fx 
+0.001 0.001 0.001 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Genes Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx    xfx   x2fx
+[1,]  11711  17877  32511
+[2,] -64817 -75866 -95598
+[3,] 134836 187812 312150
+[4,] -41568 -58926 -96660
+[5,]   3767  -2914 -17724
+[6,]  71779  87258 118362
+[?25h[?25h   fx   xfx  x2fx 
+0.870 0.879 0.877 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Write the p-value table"
+[?25hWarning message:
+In write.csv(pvals, file = "../results/permuation_pvals.csv", row.names = TRUE,  :
+  attempt to set 'col.names' ignored
+[?25h[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ 

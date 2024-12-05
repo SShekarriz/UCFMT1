@@ -69,6 +69,7 @@ print('Permute')
 # Iterate through the replicates to do the permutations
 nperm = 2000
 perm_lst = rep_perms(engr_arr, arr_cts, nperm, tx_pv_mgm, 'Treatment')
+save(perm_lst, file = '../sensitivity/intermed/perm_lst.RData')
 perm_df = sens_perm_df(perm_lst[['stat_arr']])
 perm_fx = sens_perm_plot(perm_df, 'fx')
 perm_xfx = sens_perm_plot(perm_df, 'xfx')
@@ -85,7 +86,6 @@ ggsave('../sensitivity/intermed/perm_xfx.png', perm_xfx,
 ggsave('../sensitivity/intermed/perm_x2fx.png', perm_x2fx, 
        height = 10, width = 12)
 
-save(perm_lst, '../sensitivity/intermed/perm_lst.RData')
 
 # PICK UP HERE
 

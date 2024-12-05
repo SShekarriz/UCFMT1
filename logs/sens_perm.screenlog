@@ -1,0 +1,755 @@
+Rscript sensitivity/[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[K[Kcd scripts/
+(base) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript sensitivity_permutations.R 
+[1] "Setup"
+Error in library(tidyverse) : there is no package called ‘tidyverse’
+Execution halted
+(base) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ conda activate UCFMT1
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ conda activate UCFMT1Rscript sensitivity_permutations.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25hError in setwd("~/Projects/Favours/Sharok/UCFMT1/scripts/") : 
+  cannot change working directory
+Execution halted
+[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git pull origin 
+remote: Enumerating objects: 7, done.[K
+remote: Counting objects:  14% (1/7)[Kremote: Counting objects:  28% (2/7)[Kremote: Counting objects:  42% (3/7)[Kremote: Counting objects:  57% (4/7)[Kremote: Counting objects:  71% (5/7)[Kremote: Counting objects:  85% (6/7)[Kremote: Counting objects: 100% (7/7)[Kremote: Counting objects: 100% (7/7), done.[K
+remote: Compressing objects: 100% (1/1)[Kremote: Compressing objects: 100% (1/1), done.[K
+remote: Total 4 (delta 3), reused 4 (delta 3), pack-reused 0 (from 0)[K
+Unpacking objects:  25% (1/4)Unpacking objects:  50% (2/4)Unpacking objects:  75% (3/4)Unpacking objects: 100% (4/4)Unpacking objects: 100% (4/4), 364 bytes | 10.00 KiB/s, done.
+From github.com:SShekarriz/UCFMT1
+   36bc4a3..1c65692  main       -> origin/main
+Updating 36bc4a3..1c65692
+Fast-forward
+ scripts/sensitivity_permutations.R | 2 [32m+[m[31m-[m
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript sensitivity_permutations.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Setup Metagenomics"
+[?25h[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics for each permutation"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+[1] 11
+[1] 12
+[1] 13
+[1] 14
+[1] 15
+[1] 16
+[1] 17
+[1] 18
+[1] 19
+[1] 20
+[1] 21
+[1] 22
+[1] 23
+[1] 24
+[1] 25
+[1] 26
+[1] 27
+[1] 28
+[1] 29
+[1] 30
+[1] 31
+[1] 32
+[1] 33
+[1] 34
+[1] 35
+[1] 36
+[1] 37
+[1] 38
+[1] 39
+[1] 40
+[1] 41
+[1] 42
+[1] 43
+[1] 44
+[1] 45
+[1] 46
+[1] 47
+[1] 48
+[1] 49
+[1] 50
+[1] 51
+[1] 52
+[1] 53
+[1] 54
+[1] 55
+[1] 56
+[1] 57
+[1] 58
+[1] 59
+[1] 60
+[1] 61
+[1] 62
+[1] 63
+[?25hError in sens_perm_df(perm_lst[["stat_arr"]]) : 
+  object 'stat_mat' not found
+Calls: sens_perm_df ... mutate -> arrange -> mutate -> pivot_longer -> as.data.frame
+Execution halted
+[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript sensitivity_permutations.R [K[K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ R
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[?2004h> set.seed(5)[K4[K[K4)
+[?2004l[?2004h> library(tidyverse)
+[?2004l── [1mAttaching core tidyverse packages[22m ───────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?2004h> theme_set(theme_bw())
+[?2004l[?25h[?2004h> source('./permutation_functions.R')
+[?2004l[?25h[?2004h> source('./sensitivity_functions.R')
+[?2004l[?25h[?2004h> pvals = matrix(nrow = 10, ncol = 3)
+[?2004l[?25h[?2004h> colnames(pvals) = c('PEngraftedFeatures', 'PEngraftmentEvents', 
+[?2004l[?2004h+                      'PWeightedEvents')
+[?2004l[?25h[?2004h> rownames(pvals) = c('FMTvPl_16s','ResvNoRes_16s',
+[?2004l[?2004h+                     'FMTvPl_species','ResvNoRes_species',
+[?2004l[?2004h+                     'FMTvPl_strain','ResvNoRes_strain',
+[?2004l[?2004h+                     'FMTvPl_mags','ResvNoRes_mags',
+[?2004l[?2004h+                     'FMTvPl_genes','ResvNoRes_genes')
+[?2004l[?25h[?2004h> load('../processed_data/mgm_setup.rds')
+[?2004l[?25h[?2004h> load('../processed_data/eng_ge.rds')
+[?2004l[?25h[?2004h> load('../sensitivity/intermed/engr_arr.RData')
+[?2004l[?25h[?2004h> load('../sensitivity/intermed/cts_arrs.RData')
+[?2004l[?25h[?2004h> n = dim(arr_cts)[1]
+[?2004l[?25h[?2004h> obs_sn = matrix(nrow = n, ncol = 3)
+[?2004l[?25h[?2004h> for (i in 1:n){
+[?2004l[?2004h+     obs_sn[1,] = get_stats(arr_cts[i,,])
+[?2004l[?2004h+ }
+[?2004l[?25h[?2004h> obs_ge = get_stats(cts_ge)
+[?2004l[?25h[?2004h> plt_all = sens_fig_13_df(arr_cts, 'Treatment')
+[?2004l[?25h[?2004h> sens_plt = sens_plot_fig_13(plt_all, 'Treatment')
+[?2004l[?25h[?2004h> sens_plt
+[?2004l[?25h[?2004h> ggsave('../sensitivity/intermed/f1_sens_plt.png', sens_plt,
+[?2004l[?2004h+        height = 10, width = 12)
+[?2004l[?25h[?2004h> 
+[?2004l[K[?2004h> f2_df = sens_fig_2_df(arr_cts)
+[?2004l[?25h[?2004h> f2_ge = sens_plot_fig2(f2_df)
+[?2004l[?25h[?2004h> f2_ge
+[?2004l[?25h[?2004h> ggsave('../sensitivity/f2_sens_plt.png',f2_ge, height = 10, width = 12)
+[?2004l[?25h[?2004h> nperm - [K[K[K = 20
+[?2004l[?25h[?2004h> nperm = 20perm_lst = rep_perms(engr_arr, arr_cts, nperm, tx_pv_mgm, 'Treatment')[C[C[9Pggsave('../sensitivity/f2_sens_plt.png',f2_ge, height = 10, width = 12)[C[Cnperm = 20perm_lst = rep_perms(engr_arr, arr_cts, nperm, tx_pv_mgm, 'Treatment')[C[C[Kperm_lst = rep_perms(engr_arr, arr_cts, nperm, tx_pv_mgm, 'Treatment')
+[?2004l[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+[1] 11
+[1] 12
+[1] 13
+[1] 14
+[1] 15
+[1] 16
+[1] 17
+[1] 18
+[1] 19
+[1] 20
+[1] 21
+[1] 22
+[1] 23
+[1] 24
+[1] 25
+[1] 26
+[1] 27
+[1] 28
+[1] 29
+[1] 30
+[1] 31
+[1] 32
+[1] 33
+[1] 34
+[1] 35
+[1] 36
+[1] 37
+[1] 38
+[1] 39
+[1] 40
+[1] 41
+[1] 42
+[1] 43
+[1] 44
+[1] 45
+[1] 46
+[1] 47
+[1] 48
+[1] 49
+[1] 50
+[1] 51
+[1] 52
+[1] 53
+[1] 54
+[1] 55
+[1] 56
+[1] 57
+[1] 58
+[1] 59
+[1] 60
+[1] 61
+[1] 62
+[1] 63
+[?25h[?2004h> perm_df = sens_perm_df(perm_lst[['stat_arr']])
+[?2004lError in sens_perm_df(perm_lst[["stat_arr"]]) : 
+  object 'stat_mat' not found
+[?2004h> n[Kstat_arr = perm_lst[['stat_arr']]
+[?2004l[?25h[?2004h> n = dim(stat_arr)[1]
+[?2004l[?25h[?2004h> reps = dimnames(arr_cts)$replicate
+[?2004l[?25h[?2004h> tmp = get_reps(reps)
+[?2004l[?25h[?2004h> abs = tmp[['abs']]
+[?2004l[?25h[?2004h> pres = tmp[['pres']]
+[?2004l[?25h[?2004h> sens_perm_df = function(stat_arr){
+[?2004l[?2004h+     
+[?2004l[?2004h+     n = dim(stat_arr)[1]
+[?2004l[?2004h+     reps = dimnames(arr_cts)$replicate
+[?2004l[?2004h+     tmp = get_reps(reps)
+[?2004l[?2004h+     abs = tmp[['abs']]
+[?2004l[?2004h+     pres = tmp[['pres']]
+[?2004l[?2004h+     
+[?2004l[?2004h+     sm_all = data.frame(test_stat = NA, values = NA, obs_val = NA,
+[?2004l[?2004h+                         Replicate = NA, AbsCutoff = NA, PresCutoff = NA)
+[?2004l[?2004h+     for (i in 1:n){
+[?2004l[?2004h+ stat_mat = stat_arr[i,,]
+[?2004l[?2004h+         sm_df = (as.data.frame(stat_mat)
+[?2004l[?2004h+                  %>% pivot_longer(everything(),names_to = 'test_stat',
+[?2004l[?2004h+                                   values_to = 'values')
+[?2004l[?2004h+                  %>% mutate(test_stat = factor(test_stat, 
+[?2004l[?2004h+                                                levels = c('fx','xfx','x2fx')))
+[?2004l[?2004h+                  %>% arrange(test_stat)
+[?2004l[?2004h+                  %>% mutate(obs_val = rep(stat_mat[1,],
+[?2004l[?2004h+                                           each = nrow(stat_mat)),
+[?2004l[?2004h+                             Replicate = reps[i],
+[?2004l[?2004h+                             AbsCutoff = abs[i],
+[?2004l[?2004h+                             PresCutoff = pres[i]))
+[?2004l[?2004h+         sm_all = rbind(sm_all, sm_df)
+[?2004l[?2004h+     }
+[?2004l[?2004h+     sm_all = sm_all[-1,]
+[?2004l[?2004h+     
+[?2004l[?2004h+     return(sm_all)
+[?2004l[?2004h+ }
+[?2004l[?25h[?2004h> perm_df = sens_perm_df(perm_lst[['stat_arr']])
+[?2004l[?25h[?2004h> perm_fx = sens_perm_plot(perm_df, 'fx')
+[?2004l[?25h[?2004h> perm_xfx = sens_perm_plot(perm_df, 'xfx')
+[?2004l[?25h[?2004h> perm_x2fx = sens_perm_plot(perm_df, 'x2fx')
+[?2004l[?25h[?2004h> ggsave('../sensitivity/intermed/perm_fx.png', perm_fx, 
+[?2004l[?2004h+        height = 10, width = 12)
+[?2004l[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?2004h> ggsave('../sensitivity/intermed/perm_xfx.png', perm_xfx, 
+[?2004l[?2004h+        height = 10, width = 12)
+[?2004l[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?2004h> ggsave('../sensitivity/intermed/perm_x2fx.png', perm_x2fx, 
+[?2004l[?2004h+        height = 10, width = 12)
+[?2004l[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?2004h> q()
+[?2004l[?2004hSave workspace image? [y/n/c]: n
+[?2004l[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript sensitivity_permutations.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ───────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Setup Metagenomics"
+[?25h[?25h[1] "Genes Setup"
+[?25h^C
+Execution halted
+[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript sensitivity_permutations.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ───────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Setup Metagenomics"
+[?25h[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics for each permutation"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+[1] 11
+[1] 12
+[1] 13
+[1] 14
+[1] 15
+[1] 16
+[1] 17
+[1] 18
+[1] 19
+[1] 20
+[1] 21
+[1] 22
+[1] 23
+[1] 24
+[1] 25
+[1] 26
+[1] 27
+[1] 28
+[1] 29
+[1] 30
+[1] 31
+[1] 32
+[1] 33
+[1] 34
+[1] 35
+[1] 36
+[1] 37
+[1] 38
+[1] 39
+[1] 40
+[1] 41
+[1] 42
+[1] 43
+[1] 44
+[1] 45
+[1] 46
+[1] 47
+[1] 48
+[1] 49
+[1] 50
+[1] 51
+[1] 52
+[1] 53
+[1] 54
+[1] 55
+[1] 56
+[1] 57
+[1] 58
+[1] 59
+[1] 60
+[1] 61
+[1] 62
+[1] 63
+[?25hError in save(perm_lst, "../sensitivity/intermed/perm_lst.RData") : 
+  object ‘../sensitivity/intermed/perm_lst.RData’ not found
+Execution halted
+[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [K(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ cd [K[K[Kls
+batch_sensitivity.R  [0m[01;34mOldScripts[0m               sensitivity_analysis.Rmd
+data_processing.Rmd  paperfig_functions.R     sensitivity_functions.R
+make_paperFigs.Rmd   permutation_functions.R  [01;32msensitivity_permutations.R[0m
+obj_and_desc.html    Rplots.pdf               [01;32mtest_permutation.R[0m
+obj_and_desc.Rmd     [01;32mrun_permutation.R[0m        UHGG.Rmd
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ lsRscript sensitivity_permutations.R ls[K[Kvim sensitivity_permutations.R 
+[?1049h[22;0;0t[>4;2m[?1h=[?2004h[1;60r[?12h[?12l[22;2t[22;1t[27m[29m[m[H[2J[?25l[60;1H"sensitivity_permutations.R" 135L, 4046C[2;1H▽[6n[2;1H  [1;1H[>c]10;?]11;?[1;1H[33m  1 [m[34m#!/usr/bin/env Rscript[m
+[33m  2 
+  3 [m[34m##### Setup #####[m
+[33m  4 [m[36mprint[m[35m([m[31m'Setup'[m[35m)[m
+[33m  5 
+  6 [m[34m# Import packages, set working directory, source functions[m
+[33m  7 [m[36mset.seed[m[35m([m[31m4[m[35m)[m
+[33m  8 [m[35mlibrary[m[35m([mtidyverse[35m)[m
+[33m  9 [m[36mtheme_set[m[35m([m[36mtheme_bw[m[35m())[m
+[33m 10 [m[34m# setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')[m
+[33m 11 [m[35msource[m[35m([m[31m'./permutation_functions.R'[m[35m)[m
+[33m 12 [m[35msource[m[35m([m[31m'./sensitivity_functions.R'[m[35m)[m
+[33m 13 
+ 14 [m[34m# Create the p-value storage matrix[m
+[33m 15 [mpvals [33m=[m [32mmatrix[m[35m([mnrow [33m=[m [31m10[m[35m,[m ncol [33m=[m [31m3[m[35m)[m
+[33m 16 [m[36mcolnames[m[35m([mpvals[35m)[m [33m=[m [36mc[m[35m([m[31m'PEngraftedFeatures'[m[35m,[m [31m'PEngraftmentEvents'[m[35m,[m
+[33m 17 [m[21C[31m'PWeightedEvents'[m[35m)[m
+[33m 18 [m[36mrownames[m[35m([mpvals[35m)[m [33m=[m [36mc[m[35m([m[31m'FMTvPl_16s'[m[35m,[m[31m'ResvNoRes_16s'[m[35m,[m
+[33m 19 [m[20C[31m'FMTvPl_species'[m[35m,[m[31m'ResvNoRes_species'[m[35m,[m
+[33m 20 [m[20C[31m'FMTvPl_strain'[m[35m,[m[31m'ResvNoRes_strain'[m[35m,[m
+[33m 21 [m[20C[31m'FMTvPl_mags'[m[35m,[m[31m'ResvNoRes_mags'[m[35m,[m
+[33m 22 [m[20C[31m'FMTvPl_genes'[m[35m,[m[31m'ResvNoRes_genes'[m[35m)[m
+[33m 23 
+ 24 
+ 25 [m[34m#### Setup Metagenomics ####[m
+[33m 26 [m[36mprint[m[35m([m[31m'Setup Metagenomics'[m[35m)[m
+[33m 27 
+ 28 [m[36mload[m[35m([m[31m'../processed_data/mgm_setup.rds'[m[35m)[m
+[33m 29 
+ 30 [m[34m#### Genes Setup ####[m
+[33m 31 [m[36mprint[m[35m([m[31m'Genes Setup'[m[35m)[m
+[33m 32 
+ 33 [m[36mload[m[35m([m[31m'../processed_data/eng_ge.rds'[m[35m)[m
+[33m 34 [m[36mload[m[35m([m[31m'../sensitivity/intermed/engr_arr.RData'[m[35m)[m
+[33m 35 [m[36mload[m[35m([m[31m'../sensitivity/intermed/cts_arrs.RData'[m[35m)[m
+[33m 36 
+ 37 [m[34m#### Genes FMT vs Placebo ####[m
+[33m 38 [m[36mprint[m[35m([m[31m'Genes FMT vs Placebo'[m[35m)[m
+[33m 39 
+ 40 [m[34m#### Calculate the observed test statistics[m
+[33m 41 [m[36mprint[m[35m([m[31m'Calculate the observed test statistics for each permutation'[m[35m)[m
+[33m 42 
+ 43 [m[34m# make a place to put them[m
+[33m 44 [mn [33m=[m [36mdim[m[35m([marr_cts[35m)[[m[31m1[m[35m][m
+[33m 45 [mobs_sn [33m=[m [32mmatrix[m[35m([mnrow [33m=[m n[35m,[m ncol [33m=[m [31m3[m[35m)[m
+[33m 46 [m[33mfor[m [35m([mi [33min[m [31m1[m[35m:[mn[35m){[m
+[33m 47 [m    obs_sn[35m[[m[31m1[m[35m,][m [33m=[m [36mget_stats[m[35m([marr_cts[35m[[mi[35m,,])[m
+[33m 48 [m[35m}[m
+[33m 49 [m[36mrownames[m[35m([mobs_sn[35m)[m [33m=[m [36mdimnames[m[35m([marr_cts[35m)$[mreplicate
+[33m 50 [mobs_ge [33m=[m [36mget_stats[m[35m([mcts_ge[35m)[m
+[33m 51 
+ 52 [m[34m#### Genes Plot FMT vs Placebo ####[m
+[33m 53 [mplt_all [33m=[m [36msens_fig_13_df[m[35m([marr_cts[35m,[m [31m'Treatment'[m[35m)[m
+[33m 54 [msens_plt [33m=[m [36msens_plot_fig_13[m[35m([mplt_all[35m,[m [31m'Treatment'[m[35m)[m
+[33m 55 [msens_plt
+[33m 56 [m[36mggsave[m[35m([m[31m'../sensitivity/intermed/f1_sens_plt.png'[m[35m,[m sens_plt[35m,[m
+[33m 57 [m[7Cheight [33m=[m [31m10[m[35m,[m width [33m=[m [31m12[m[35m)[m
+[33m 58 
+ 59 [mf2_df [33m=[m [36msens_fig_2_df[m[35m([marr_cts[35m)[m[60;63H1,1[11CTop[1;5H[?25h[?25l[60;1H[K[60;1H/[?2004h[?25hsave[?25l[62C56,3[10CTop[56;7H[?25h[?25l[60;1H[K[60;1H/[?2004h[?25h[?25l/save[1;59r[1;1H[3M[1;60r[57;1H[33m 60 [mf2_ge [33m=[m [36msens_plot_fig2[m[35m([mf2_df[35m)[m
+[33m 61 [mf2_ge
+[33m 62 [m[36mggsave[m[35m([m[31m'../sensitivity/f2_sens_plt.png'[m[35m,[mf2_ge[35m,[m height [33m=[m [31m10[m[35m,[m width [33m=[m [31m12[m[35m)[m[60;1H[K[60;63H62,3[11C3%[59;7H[?25h[?25l[60;63H[K[60;1H/[?2004h[?25h[?25l/save[1;59r[1;1H[10M[1;60r[50;1H[33m 63 
+ 64 [m[34m#### Permute [m
+[33m 65 [m[36mprint[m[35m([m[31m'Permute'[m[35m)[m
+[33m 66 
+ 67 [m[34m# This uses tens of GB of RAM and should be done on alpsr only[m
+[33m 68 
+ 69 [m[34m# Iterate through the replicates to do the permutations[m
+[33m 70 [mnperm [33m=[m [31m2000[m
+[33m 71 [mperm_lst [33m=[m [36mrep_perms[m[35m([mengr_arr[35m,[m arr_cts[35m,[m nperm[35m,[m tx_pv_mgm[35m,[m [31m'Treatment'[m[35m)[m
+[33m 72 [m[36msave[m[35m([mperm_lst[35m,[m [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;1H[K[60;63H72,1[10C17%[59;5H[?25h[?25l[60;67H4[59;18H[?25h[?25l
+[1m-- INSERT --[m[60;63H[K[60;63H72,15[9C17%[59;19H[?25h[?25l  [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H6[59;20H[?25h[?25lf [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H7[59;21H[?25h[?25li [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H8[59;22H[?25h[?25ll [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H9[59;23H[?25h[?25le [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;66H20[59;24H[?25h[?25l  [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H1[59;25H[?25h[?25l[33m=[m [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H2[59;26H[?25h[?25l  [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;67H3[59;27H[?25h[60;1H[K[59;26H[?25l[60;63H72,22[9C17%[59;26H[?25h[?25l [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[59;68H[K[59;26H[?25h[?25l[60;63H[K[60;1H:[?2004h[?25hw[?25l"sensitivity_permutations.R" 135L, 4053C written[14C72,22[9C17%[60;63H[K[60;63H72,22[9C17%[59;26H[?25h[27m[29m[m[H[2J[?25l[1;1H[33m 14 [m[34m# Create the p-value storage matrix[m
+[33m 15 [mpvals [33m=[m [32mmatrix[m[35m([mnrow [33m=[m [31m10[m[35m,[m ncol [33m=[m [31m3[m[35m)[m
+[33m 16 [m[36mcolnames[m[35m([mpvals[35m)[m [33m=[m [36mc[m[35m([m[31m'PEngraftedFeatures'[m[35m,[m [31m'PEngraftmentEvents'[m[35m,[m
+[33m 17 [m[21C[31m'PWeightedEvents'[m[35m)[m
+[33m 18 [m[36mrownames[m[35m([mpvals[35m)[m [33m=[m [36mc[m[35m([m[31m'FMTvPl_16s'[m[35m,[m[31m'ResvNoRes_16s'[m[35m,[m
+[33m 19 [m[20C[31m'FMTvPl_species'[m[35m,[m[31m'ResvNoRes_species'[m[35m,[m
+[33m 20 [m[20C[31m'FMTvPl_strain'[m[35m,[m[31m'ResvNoRes_strain'[m[35m,[m
+[33m 21 [m[20C[31m'FMTvPl_mags'[m[35m,[m[31m'ResvNoRes_mags'[m[35m,[m
+[33m 22 [m[20C[31m'FMTvPl_genes'[m[35m,[m[31m'ResvNoRes_genes'[m[35m)[m
+[33m 23 
+ 24 
+ 25 [m[34m#### Setup Metagenomics ####[m
+[33m 26 [m[36mprint[m[35m([m[31m'Setup Metagenomics'[m[35m)[m
+[33m 27 
+ 28 [m[36mload[m[35m([m[31m'../processed_data/mgm_setup.rds'[m[35m)[m
+[33m 29 
+ 30 [m[34m#### Genes Setup ####[m
+[33m 31 [m[36mprint[m[35m([m[31m'Genes Setup'[m[35m)[m
+[33m 32 
+ 33 [m[36mload[m[35m([m[31m'../processed_data/eng_ge.rds'[m[35m)[m
+[33m 34 [m[36mload[m[35m([m[31m'../sensitivity/intermed/engr_arr.RData'[m[35m)[m
+[33m 35 [m[36mload[m[35m([m[31m'../sensitivity/intermed/cts_arrs.RData'[m[35m)[m
+[33m 36 
+ 37 [m[34m#### Genes FMT vs Placebo ####[m
+[33m 38 [m[36mprint[m[35m([m[31m'Genes FMT vs Placebo'[m[35m)[m
+[33m 39 
+ 40 [m[34m#### Calculate the observed test statistics[m
+[33m 41 [m[36mprint[m[35m([m[31m'Calculate the observed test statistics for each permutation'[m[35m)[m
+[33m 42 
+ 43 [m[34m# make a place to put them[m
+[33m 44 [mn [33m=[m [36mdim[m[35m([marr_cts[35m)[[m[31m1[m[35m][m
+[33m 45 [mobs_sn [33m=[m [32mmatrix[m[35m([mnrow [33m=[m n[35m,[m ncol [33m=[m [31m3[m[35m)[m
+[33m 46 [m[33mfor[m [35m([mi [33min[m [31m1[m[35m:[mn[35m){[m
+[33m 47 [m    obs_sn[35m[[m[31m1[m[35m,][m [33m=[m [36mget_stats[m[35m([marr_cts[35m[[mi[35m,,])[m
+[33m 48 [m[35m}[m
+[33m 49 [m[36mrownames[m[35m([mobs_sn[35m)[m [33m=[m [36mdimnames[m[35m([marr_cts[35m)$[mreplicate
+[33m 50 [mobs_ge [33m=[m [36mget_stats[m[35m([mcts_ge[35m)[m
+[33m 51 
+ 52 [m[34m#### Genes Plot FMT vs Placebo ####[m
+[33m 53 [mplt_all [33m=[m [36msens_fig_13_df[m[35m([marr_cts[35m,[m [31m'Treatment'[m[35m)[m
+[33m 54 [msens_plt [33m=[m [36msens_plot_fig_13[m[35m([mplt_all[35m,[m [31m'Treatment'[m[35m)[m
+[33m 55 [msens_plt
+[33m 56 [m[36mggsave[m[35m([m[31m'../sensitivity/intermed/f1_sens_plt.png'[m[35m,[m sens_plt[35m,[m
+[33m 57 [m[7Cheight [33m=[m [31m10[m[35m,[m width [33m=[m [31m12[m[35m)[m
+[33m 58 
+ 59 [mf2_df [33m=[m [36msens_fig_2_df[m[35m([marr_cts[35m)[m
+[33m 60 [mf2_ge [33m=[m [36msens_plot_fig2[m[35m([mf2_df[35m)[m
+[33m 61 [mf2_ge
+[33m 62 [m[36mggsave[m[35m([m[31m'../sensitivity/f2_sens_plt.png'[m[35m,[mf2_ge[35m,[m height [33m=[m [31m10[m[35m,[m width [33m=[m [31m12[m[35m)[m
+[33m 63 
+ 64 [m[34m#### Permute [m
+[33m 65 [m[36mprint[m[35m([m[31m'Permute'[m[35m)[m
+[33m 66 
+ 67 [m[34m# This uses tens of GB of RAM and should be done on alpsr only[m
+[33m 68 
+ 69 [m[34m# Iterate through the replicates to do the permutations[m
+[33m 70 [mnperm [33m=[m [31m2000[m
+[33m 71 [mperm_lst [33m=[m [36mrep_perms[m[35m([mengr_arr[35m,[m arr_cts[35m,[m nperm[35m,[m tx_pv_mgm[35m,[m [31m'Treatment'[m[35m)[m
+[33m 72 [m[36msave[m[35m([mperm_lst[35m,[m file [33m=[m [31m'../sensitivity/intermed/perm_lst.RData'[m[35m)[m[60;63H72,22[9C17%[59;26H[?25h[?25l[60;63H[K[60;1H:[?2004h[?25hx[?25l[?2004l[23;2t[23;1t[60;1H[K[60;1H[?2004l[?1l>[?25h[>4;m[?1049l[23;0;0t(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [H[2J(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ R
+
+R version 4.3.2 (2023-10-31) -- "Eye Holes"
+Copyright (C) 2023 The R Foundation for Statistical Computing
+Platform: x86_64-conda-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[?2004h> ?save
+[?2004l[?1049h[22;0;0t[?1h=save                   package:base                    R Documentation
+
+[4mSave[24m [4mR[24m [4mObjects[24m
+
+[4mDescription[24m:
+
+     ‘save’ writes an external representation of R objects to the
+     specified file.  The objects can be read back from the file at a
+     later date by using the function ‘load’ or ‘attach’ (or ‘data’ in
+     some cases).
+
+     ‘save.image()’ is just a short-cut for ‘save my current
+     workspace’, i.e., ‘save(list = ls(all.names = TRUE), file =
+     ".RData", envir = .GlobalEnv)’.  It is also what happens with
+     ‘q("yes")’.
+
+[4mUsage[24m:
+
+     save(..., list = character(),
+          file = stop("'file' must be specified"),
+          ascii = FALSE, version = NULL, envir = parent.frame(),
+          compress = isTRUE(!ascii), compression_level,
+          eval.promises = TRUE, precheck = TRUE)
+     
+     save.image(file = ".RData", version = NULL, ascii = FALSE,
+                compress = !ascii, safe = TRUE)
+     
+[4mArguments[24m:
+
+     ...: the names of the objects to be saved (as symbols or character
+          strings).
+
+    list: a character vector (or ‘NULL’) containing the names of
+          objects to be saved.
+
+    file: a (writable binary-mode) connection or the name of the file
+          where the data will be saved (when tilde expansion is done).
+          Must be a file name for ‘save.image’ or ‘version = 1’.
+
+   ascii: if ‘TRUE’, an ASCII representation of the data is written.
+          The default value of ‘ascii’ is ‘FALSE’ which leads to a
+          binary file being written.  If ‘NA’ and ‘version >= 2’, a
+          different ASCII representation is used which writes
+          double/complex numbers as binary fractions.
+
+ version: the workspace format version to use.  ‘NULL’ specifies the
+          current default format (3).  Version 1 was the default from R
+          0.99.0 to R 1.3.1 and version 2 from R 1.4.0 to 3.5.0.
+          Version 3 is supported from R 3.5.0.
+
+   envir: environment to search for objects to be saved.
+
+compress: logical or character string specifying whether saving to a
+          named file is to use compression.  ‘TRUE’ corresponds to
+          ‘gzip’ compression, and character strings ‘"gzip"’, ‘"bzip2"’
+          or ‘"xz"’ specify the type of compression.  Ignored when
+          ‘file’ is a connection and for workspace format version 1.
+
+compression_level: integer: the level of compression to be used.
+:[K[K[?1l>[?1049l[23;0;0t[?2004h> q()
+[?2004l[?2004hSave workspace image? [y/n/c]: n
+[?2004l(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript sensitivity_permutations.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ──────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Setup Metagenomics"
+[?25h[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics for each permutation"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[1] 1
+[1] 2
+[1] 3
+[1] 4
+[1] 5
+[1] 6
+[1] 7
+[1] 8
+[1] 9
+[1] 10
+[1] 11
+[1] 12
+[1] 13
+[1] 14
+[1] 15
+[1] 16
+[1] 17
+[1] 18
+[1] 19
+[1] 20
+[1] 21
+[1] 22
+[1] 23
+[1] 24
+[1] 25
+[1] 26
+[1] 27
+[1] 28
+[1] 29
+[1] 30
+[1] 31
+[1] 32
+[1] 33
+[1] 34
+[1] 35
+[1] 36
+[1] 37
+[1] 38
+[1] 39
+[1] 40
+[1] 41
+[1] 42
+[1] 43
+[1] 44
+[1] 45
+[1] 46
+[1] 47
+[1] 48
+[1] 49
+[1] 50
+[1] 51
+[1] 52
+[1] 53
+[1] 54
+[1] 55
+[1] 56
+[1] 57
+[1] 58
+[1] 59
+[1] 60
+[1] 61
+[1] 62
+[1] 63
+[?25h[?25h[?25h[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ ls ../[K[K[K[K[K[Kcd ../sensitivity/intermed/
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mintermed[00m$ ls
+arr_prof.RData  [0m[01;35mf1_sens_plt.png[0m     perm_lst.RData  [01;35msens_plt.png[0m
+cts_arrs.RData  lst_prof_don.RData  [01;35mperm_x2fx.png[0m
+engr_arr.RData  [01;35mperm_fx.png[0m         [01;35mperm_xfx.png[0m
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mintermed[00m$ git [K[K[K[Kcd ../../
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mUCFMT1[00m$ git st
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	[31mmodified:   plots/f1_16s.pdf[m
+	[31mmodified:   plots/f1_ge.pdf[m
+	[31mmodified:   plots/f1_mg.pdf[m
+	[31mmodified:   plots/f1_sp.pdf[m
+	[31mmodified:   plots/f1_st.pdf[m
+	[31mmodified:   plots/f2_16s.pdf[m
+	[31mmodified:   plots/f2_ge.pdf[m
+	[31mmodified:   plots/f2_mg.pdf[m
+	[31mmodified:   plots/f2_sp.pdf[m
+	[31mmodified:   plots/f2_st.pdf[m
+	[31mmodified:   plots/f3_16s.pdf[m
+	[31mmodified:   plots/f3_ge.pdf[m
+	[31mmodified:   plots/f3_mg.pdf[m
+	[31mmodified:   plots/f3_sp.pdf[m
+	[31mmodified:   plots/f3_st.pdf[m
+	[31mmodified:   plots/pl_pv_16s.pdf[m
+	[31mmodified:   plots/pl_pv_16s_rem.pdf[m
+	[31mmodified:   plots/pl_pv_ge.pdf[m
+	[31mmodified:   plots/pl_pv_ge_rem.pdf[m
+	[31mmodified:   plots/pl_pv_mg.pdf[m
+	[31mmodified:   plots/pl_pv_mg_rem.pdf[m
+	[31mmodified:   plots/pl_pv_sp.pdf[m
+	[31mmodified:   plots/pl_pv_sp_rem.pdf[m
+	[31mmodified:   plots/pl_pv_st.pdf[m
+	[31mmodified:   plots/pl_pv_st_rem.pdf[m
+	[31mmodified:   scripts/sensitivity_functions.R[m
+	[31mmodified:   scripts/sensitivity_permutations.R[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	[31mlogs/2024-02-05_run_permutations.screenlog[m
+	[31mlogs/2024-02-14_run_permutations.screenlog[m
+	[31mlogs/2024-02-27_run_permutations.screenlog[m
+	[31mlogs/2024-03-04_run_permutations.screenlog[m
+	[31mlogs/sens_perm.screenlog[m
+	[31mpermut_data/intermed/[m
+	[31mprocessed_data/[m
+	[31mscripts/Rplots.pdf[m
+	[31msensitivity/[m
+
+no changes added to commit (use "git add" and/or "git commit -a")
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mUCFMT1[00m$ git add logs/[K[K[K[K[K[K[K[K[K[K[K[K[K

@@ -1,0 +1,246 @@
+cd ../scripts/
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript run_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ───────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h  fx  xfx x2fx 
+   0    0    0 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?25h[?25h[?25h[?25h[1] "16S Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25hrs_pv
+NoRes   Res 
+   14     6 
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx     xfx    x2fx
+[1,]  10.56   11.67    1.85
+[2,] -55.96  -80.73 -144.49
+[3,] -23.22  -42.09  -98.25
+[4,] -67.91 -109.70 -214.52
+[5,] -12.27   -7.06   -3.06
+[6,] -32.01  -45.52  -73.72
+[?25h   fx   xfx  x2fx 
+0.748 0.817 0.917 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Setup Metagenomics"
+[?25h[?25h[?25h[?25h[1] "Species Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Species FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h   fx   xfx  x2fx 
+0.019 0.015 0.013 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Species Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h   fx   xfx  x2fx 
+0.281 0.320 0.359 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Strains Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Strains FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h   fx   xfx  x2fx 
+0.012 0.006 0.005 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Strains Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h   fx   xfx  x2fx 
+0.296 0.288 0.281 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "MAGs Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25hWarning message:
+[1m[22m`cols` is now required when using `unnest()`.
+[36mℹ[39m Please use `cols = c(file_contents)`. 
+[?25h[?25h[1m[22mJoining with `by = join_by(contig)`
+[1m[22m`summarise()` has grouped output by 'sample'. You can override using the
+`.groups` argument.
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "MAGs FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  48  76  154
+[2,] -32 -46  -82
+[3,]  33  46   80
+[4,]  38  56  100
+[5,]  16  20   28
+[6,] -40 -62 -124
+[?25h[?25h   fx   xfx  x2fx 
+0.027 0.012 0.008 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "MAGs Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h     fx xfx x2fx
+[1,] 35  50   80
+[2,]  4   0  -10
+[3,]  9  18   36
+[4,] 41  58   98
+[5,]  1   4    8
+[6,] -8  -6   -4
+[?25h[?25h   fx   xfx  x2fx 
+0.202 0.207 0.271 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h   fx   xfx  x2fx 
+0.001 0.001 0.001 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Genes Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h   fx   xfx  x2fx 
+0.858 0.869 0.859 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Write the p-value table"
+[?25hWarning message:
+In write.csv(pvals, file = "../results/permuation_pvals.csv", row.names = TRUE,  :
+  attempt to set 'col.names' ignored
+[?25h[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git st
+git: 'st' is not a git command. See 'git --help'.
+
+The most similar commands are
+	status
+	reset
+	stage
+	stash
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 4 commits.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	[32mmodified:   run_permutation.R[m
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	[31mmodified:   ../plots/f1_16s.pdf[m
+	[31mmodified:   ../plots/f1_ge.pdf[m
+	[31mmodified:   ../plots/f1_mg.pdf[m
+	[31mmodified:   ../plots/f1_sp.pdf[m
+	[31mmodified:   ../plots/f2_16s.pdf[m
+	[31mmodified:   ../plots/f2_ge.pdf[m
+	[31mmodified:   ../plots/f2_mg.pdf[m
+	[31mmodified:   ../plots/f2_sp.pdf[m
+	[31mmodified:   ../plots/f3_16s.pdf[m
+	[31mmodified:   ../plots/f3_ge.pdf[m
+	[31mmodified:   ../plots/f3_mg.pdf[m
+	[31mmodified:   ../plots/f3_sp.pdf[m
+	[31mmodified:   ../plots/pl_pv_16s.pdf[m
+	[31mmodified:   ../plots/pl_pv_16s_rem.pdf[m
+	[31mmodified:   ../plots/pl_pv_ge.pdf[m
+	[31mmodified:   ../plots/pl_pv_ge_rem.pdf[m
+	[31mmodified:   ../plots/pl_pv_mg.pdf[m
+	[31mmodified:   ../plots/pl_pv_mg_rem.pdf[m
+	[31mmodified:   ../plots/pl_pv_sp.pdf[m
+	[31mmodified:   ../plots/pl_pv_sp_rem.pdf[m
+	[31mmodified:   ../plots/pl_pv_st.pdf[m
+	[31mmodified:   ../plots/pl_pv_st_rem.pdf[m
+	[31mmodified:   ../results/permuation_pvals.csv[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	[31m../logs/2024-02-05_run_permutations.screenlog[m
+	[31m../logs/2024-02-14_run_permutations.screenlog[m
+	[31m../permut_data/intermed/[m
+	[31m../plots/f1_st.pdf[m
+	[31m../plots/f2_st.pdf[m
+	[31m../plots/f3_st.pdf[m
+	[31mRplots.pdf[m
+
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git add [K pl[K[K../plots/ ../results/
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 4 commits.
+  (use "git push" to publish your local commits)
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	[32mmodified:   ../plots/f1_16s.pdf[m
+	[32mmodified:   ../plots/f1_ge.pdf[m
+	[32mmodified:   ../plots/f1_mg.pdf[m
+	[32mmodified:   ../plots/f1_sp.pdf[m
+	[32mnew file:   ../plots/f1_st.pdf[m
+	[32mmodified:   ../plots/f2_16s.pdf[m
+	[32mmodified:   ../plots/f2_ge.pdf[m
+	[32mmodified:   ../plots/f2_mg.pdf[m
+	[32mmodified:   ../plots/f2_sp.pdf[m
+	[32mnew file:   ../plots/f2_st.pdf[m
+	[32mmodified:   ../plots/f3_16s.pdf[m
+	[32mmodified:   ../plots/f3_ge.pdf[m
+	[32mmodified:   ../plots/f3_mg.pdf[m
+	[32mmodified:   ../plots/f3_sp.pdf[m
+	[32mnew file:   ../plots/f3_st.pdf[m
+	[32mmodified:   ../plots/pl_pv_16s.pdf[m
+	[32mmodified:   ../plots/pl_pv_16s_rem.pdf[m
+	[32mmodified:   ../plots/pl_pv_ge.pdf[m
+	[32mmodified:   ../plots/pl_pv_ge_rem.pdf[m
+	[32mmodified:   ../plots/pl_pv_mg.pdf[m
+	[32mmodified:   ../plots/pl_pv_mg_rem.pdf[m
+	[32mmodified:   ../plots/pl_pv_sp.pdf[m
+	[32mmodified:   ../plots/pl_pv_sp_rem.pdf[m
+	[32mmodified:   ../plots/pl_pv_st.pdf[m
+	[32mmodified:   ../plots/pl_pv_st_rem.pdf[m
+	[32mmodified:   ../results/permuation_pvals.csv[m
+	[32mmodified:   run_permutation.R[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	[31m../logs/2024-02-05_run_permutations.screenlog[m
+	[31m../logs/2024-02-14_run_permutations.screenlog[m
+	[31m../permut_data/intermed/[m
+	[31mRplots.pdf[m
+
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git ct -m "up[K[Kre-ran mag permutation with new cuto ffs"
+git: 'ct' is not a git command. See 'git --help'.
+
+The most similar command is
+	fetch
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git ct -m "re-ran mag permutation with new cutoffs"[A[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C[C -m "re-ran mag permutation with new cutoff[1Ps"[A(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [C[C[C[C[Co -m "re-ran mag permutation with new cutoffs"[A(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [C[C[C[C[C[Cm -m "re-ran mag permutation with new cuto[Cfs"[A(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [C[C[C[C[C[C[Cm -m "re-ran mag permutation with new cutoffs"[A(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [C[C[C[C[C[C[C[Ci -m "re-ran mag permutation with new cutoffs"[A(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [C[C[C[C[C[C[C[C[Ct -m "re-ran mag permutation with new cutoffs"[A(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ [C[C[C[C[C[C[C[C[C[C
+
+[main 52107a3] re-ran mag permutation with new cutoffs
+ 27 files changed, 52 insertions(+), 51 deletions(-)
+ create mode 100644 plots/f1_st.pdf
+ create mode 100644 plots/f2_st.pdf
+ create mode 100644 plots/f3_st.pdf
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ git push origin
+Enumerating objects: 166, done.
+Counting objects:   0% (1/112)Counting objects:   1% (2/112)Counting objects:   2% (3/112)Counting objects:   3% (4/112)Counting objects:   4% (5/112)Counting objects:   5% (6/112)Counting objects:   6% (7/112)Counting objects:   7% (8/112)Counting objects:   8% (9/112)Counting objects:   9% (11/112)Counting objects:  10% (12/112)Counting objects:  11% (13/112)Counting objects:  12% (14/112)Counting objects:  13% (15/112)Counting objects:  14% (16/112)Counting objects:  15% (17/112)Counting objects:  16% (18/112)Counting objects:  17% (20/112)Counting objects:  18% (21/112)Counting objects:  19% (22/112)Counting objects:  20% (23/112)Counting objects:  21% (24/112)Counting objects:  22% (25/112)Counting objects:  23% (26/112)Counting objects:  24% (27/112)Counting objects:  25% (28/112)Counting objects:  26% (30/112)Counting objects:  27% (31/112)Counting objects:  28% (32/112)Counting objects:  29% (33/112)Counting objects:  30% (34/112)Counting objects:  31% (35/112)Counting objects:  32% (36/112)Counting objects:  33% (37/112)Counting objects:  34% (39/112)Counting objects:  35% (40/112)Counting objects:  36% (41/112)Counting objects:  37% (42/112)Counting objects:  38% (43/112)Counting objects:  39% (44/112)Counting objects:  40% (45/112)Counting objects:  41% (46/112)Counting objects:  42% (48/112)Counting objects:  43% (49/112)Counting objects:  44% (50/112)Counting objects:  45% (51/112)Counting objects:  46% (52/112)Counting objects:  47% (53/112)Counting objects:  48% (54/112)Counting objects:  49% (55/112)Counting objects:  50% (56/112)Counting objects:  51% (58/112)Counting objects:  52% (59/112)Counting objects:  53% (60/112)Counting objects:  54% (61/112)Counting objects:  55% (62/112)Counting objects:  56% (63/112)Counting objects:  57% (64/112)Counting objects:  58% (65/112)Counting objects:  59% (67/112)Counting objects:  60% (68/112)Counting objects:  61% (69/112)Counting objects:  62% (70/112)Counting objects:  63% (71/112)Counting objects:  64% (72/112)Counting objects:  65% (73/112)Counting objects:  66% (74/112)Counting objects:  67% (76/112)Counting objects:  68% (77/112)Counting objects:  69% (78/112)Counting objects:  70% (79/112)Counting objects:  71% (80/112)Counting objects:  72% (81/112)Counting objects:  73% (82/112)Counting objects:  74% (83/112)Counting objects:  75% (84/112)Counting objects:  76% (86/112)Counting objects:  77% (87/112)Counting objects:  78% (88/112)Counting objects:  79% (89/112)Counting objects:  80% (90/112)Counting objects:  81% (91/112)Counting objects:  82% (92/112)Counting objects:  83% (93/112)Counting objects:  84% (95/112)Counting objects:  85% (96/112)Counting objects:  86% (97/112)Counting objects:  87% (98/112)Counting objects:  88% (99/112)Counting objects:  89% (100/112)Counting objects:  90% (101/112)Counting objects:  91% (102/112)Counting objects:  92% (104/112)Counting objects:  93% (105/112)Counting objects:  94% (106/112)Counting objects:  95% (107/112)Counting objects:  96% (108/112)Counting objects:  97% (109/112)Counting objects:  98% (110/112)Counting objects:  99% (111/112)Counting objects: 100% (112/112)Counting objects: 100% (112/112), done.
+Delta compression using up to 80 threads
+Compressing objects:   1% (1/71)Compressing objects:   2% (2/71)Compressing objects:   4% (3/71)Compressing objects:   5% (4/71)Compressing objects:   7% (5/71)Compressing objects:   8% (6/71)Compressing objects:   9% (7/71)Compressing objects:  11% (8/71)Compressing objects:  12% (9/71)Compressing objects:  14% (10/71)Compressing objects:  15% (11/71)Compressing objects:  16% (12/71)Compressing objects:  18% (13/71)Compressing objects:  19% (14/71)Compressing objects:  21% (15/71)Compressing objects:  22% (16/71)Compressing objects:  23% (17/71)Compressing objects:  25% (18/71)Compressing objects:  26% (19/71)Compressing objects:  28% (20/71)Compressing objects:  29% (21/71)Compressing objects:  30% (22/71)Compressing objects:  32% (23/71)Compressing objects:  33% (24/71)Compressing objects:  35% (25/71)Compressing objects:  36% (26/71)Compressing objects:  38% (27/71)Compressing objects:  39% (28/71)Compressing objects:  40% (29/71)Compressing objects:  42% (30/71)Compressing objects:  43% (31/71)Compressing objects:  45% (32/71)Compressing objects:  46% (33/71)Compressing objects:  47% (34/71)Compressing objects:  49% (35/71)Compressing objects:  50% (36/71)Compressing objects:  52% (37/71)Compressing objects:  53% (38/71)Compressing objects:  54% (39/71)Compressing objects:  56% (40/71)Compressing objects:  57% (41/71)Compressing objects:  59% (42/71)Compressing objects:  60% (43/71)Compressing objects:  61% (44/71)Compressing objects:  63% (45/71)Compressing objects:  64% (46/71)Compressing objects:  66% (47/71)Compressing objects:  67% (48/71)Compressing objects:  69% (49/71)Compressing objects:  70% (50/71)Compressing objects:  71% (51/71)Compressing objects:  73% (52/71)Compressing objects:  74% (53/71)Compressing objects:  76% (54/71)Compressing objects:  77% (55/71)Compressing objects:  78% (56/71)Compressing objects:  80% (57/71)Compressing objects:  81% (58/71)Compressing objects:  83% (59/71)Compressing objects:  84% (60/71)Compressing objects:  85% (61/71)Compressing objects:  87% (62/71)Compressing objects:  88% (63/71)Compressing objects:  90% (64/71)Compressing objects:  91% (65/71)Compressing objects:  92% (66/71)Compressing objects:  94% (67/71)Compressing objects:  95% (68/71)Compressing objects:  97% (69/71)Compressing objects:  98% (70/71)Compressing objects: 100% (71/71)Compressing objects: 100% (71/71), done.
+Writing objects:   1% (1/73)Writing objects:   2% (2/73)Writing objects:   4% (3/73)Writing objects:   5% (4/73)Writing objects:   6% (5/73)Writing objects:   8% (6/73)Writing objects:   9% (7/73)Writing objects:  10% (8/73)Writing objects:  12% (9/73)Writing objects:  13% (10/73)Writing objects:  15% (11/73)Writing objects:  16% (12/73)Writing objects:  17% (13/73)Writing objects:  19% (14/73)Writing objects:  21% (16/73)Writing objects:  23% (17/73)Writing objects:  24% (18/73)Writing objects:  26% (19/73)Writing objects:  27% (20/73)Writing objects:  28% (21/73)Writing objects:  30% (22/73)Writing objects:  31% (23/73)Writing objects:  32% (24/73)Writing objects:  34% (25/73)Writing objects:  35% (26/73)Writing objects:  36% (27/73)Writing objects:  38% (28/73)Writing objects:  39% (29/73)Writing objects:  41% (30/73)Writing objects:  42% (31/73)Writing objects:  43% (32/73)Writing objects:  45% (33/73)Writing objects:  46% (34/73)Writing objects:  47% (35/73)Writing objects:  49% (36/73)Writing objects:  50% (37/73)Writing objects:  53% (39/73)Writing objects:  54% (40/73)Writing objects:  56% (41/73)Writing objects:  57% (42/73)Writing objects:  58% (43/73)Writing objects:  60% (44/73)Writing objects:  61% (45/73)Writing objects:  63% (46/73)Writing objects:  64% (47/73)Writing objects:  65% (48/73)Writing objects:  67% (49/73)Writing objects:  68% (50/73)Writing objects:  69% (51/73)Writing objects:  71% (52/73)Writing objects:  72% (53/73)Writing objects:  73% (54/73)Writing objects:  75% (55/73)Writing objects:  76% (56/73)Writing objects:  78% (57/73)Writing objects:  79% (58/73)Writing objects:  80% (59/73)Writing objects:  82% (60/73)Writing objects:  83% (61/73)Writing objects:  84% (62/73)Writing objects:  86% (63/73)Writing objects:  87% (64/73)Writing objects:  89% (65/73)Writing objects:  90% (66/73)Writing objects:  91% (67/73)Writing objects:  93% (68/73)Writing objects:  94% (69/73)Writing objects:  95% (70/73)Writing objects:  97% (71/73)Writing objects:  98% (72/73)Writing objects: 100% (73/73)Writing objects: 100% (73/73), 24.16 KiB | 1.51 MiB/s, done.
+Total 73 (delta 64), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/64)[Kremote: Resolving deltas:   1% (1/64)[Kremote: Resolving deltas:   3% (2/64)[Kremote: Resolving deltas:   4% (3/64)[Kremote: Resolving deltas:   6% (4/64)[Kremote: Resolving deltas:   7% (5/64)[Kremote: Resolving deltas:   9% (6/64)[Kremote: Resolving deltas:  10% (7/64)[Kremote: Resolving deltas:  12% (8/64)[Kremote: Resolving deltas:  14% (9/64)[Kremote: Resolving deltas:  15% (10/64)[Kremote: Resolving deltas:  17% (11/64)[Kremote: Resolving deltas:  18% (12/64)[Kremote: Resolving deltas:  20% (13/64)[Kremote: Resolving deltas:  21% (14/64)[Kremote: Resolving deltas:  23% (15/64)[Kremote: Resolving deltas:  25% (16/64)[Kremote: Resolving deltas:  26% (17/64)[Kremote: Resolving deltas:  28% (18/64)[Kremote: Resolving deltas:  29% (19/64)[Kremote: Resolving deltas:  31% (20/64)[Kremote: Resolving deltas:  32% (21/64)[Kremote: Resolving deltas:  34% (22/64)[Kremote: Resolving deltas:  35% (23/64)[Kremote: Resolving deltas:  37% (24/64)[Kremote: Resolving deltas:  39% (25/64)[Kremote: Resolving deltas:  40% (26/64)[Kremote: Resolving deltas:  42% (27/64)[Kremote: Resolving deltas:  43% (28/64)[Kremote: Resolving deltas:  45% (29/64)[Kremote: Resolving deltas:  46% (30/64)[Kremote: Resolving deltas:  48% (31/64)[Kremote: Resolving deltas:  50% (32/64)[Kremote: Resolving deltas:  51% (33/64)[Kremote: Resolving deltas:  53% (34/64)[Kremote: Resolving deltas:  54% (35/64)[Kremote: Resolving deltas:  56% (36/64)[Kremote: Resolving deltas:  57% (37/64)[Kremote: Resolving deltas:  59% (38/64)[Kremote: Resolving deltas:  60% (39/64)[Kremote: Resolving deltas:  62% (40/64)[Kremote: Resolving deltas:  64% (41/64)[Kremote: Resolving deltas:  65% (42/64)[Kremote: Resolving deltas:  67% (43/64)[Kremote: Resolving deltas:  68% (44/64)[Kremote: Resolving deltas:  70% (45/64)[Kremote: Resolving deltas:  71% (46/64)[Kremote: Resolving deltas:  73% (47/64)[Kremote: Resolving deltas:  75% (48/64)[Kremote: Resolving deltas:  76% (49/64)[Kremote: Resolving deltas:  78% (50/64)[Kremote: Resolving deltas:  79% (51/64)[Kremote: Resolving deltas:  81% (52/64)[Kremote: Resolving deltas:  82% (53/64)[Kremote: Resolving deltas:  84% (54/64)[Kremote: Resolving deltas:  85% (55/64)[Kremote: Resolving deltas:  87% (56/64)[Kremote: Resolving deltas:  89% (57/64)[Kremote: Resolving deltas:  90% (58/64)[Kremote: Resolving deltas:  92% (59/64)[Kremote: Resolving deltas:  93% (60/64)[Kremote: Resolving deltas:  95% (61/64)[Kremote: Resolving deltas:  96% (62/64)[Kremote: Resolving deltas:  98% (63/64)[Kremote: Resolving deltas: 100% (64/64)[Kremote: Resolving deltas: 100% (64/64), completed with 30 local objects.[K
+To github.com:SShekarriz/UCFMT1.git
+   5ade531..52107a3  main -> main
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ cd ![K~/Proj[K[K[K[K[K[K[K[K[K

@@ -1,0 +1,327 @@
+Rscript [K[K[K[K[K[K[K[Kconda activate ucfmt1
+
+EnvironmentNameNotFound: Could not find conda environment: ucfmt1
+You can list all discoverable environments with `conda info --envs`.
+
+
+(base) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ conda info --envs
+# conda environments:
+#
+base                  *  /opt/software/miniconda3
+DRAM                     /opt/software/miniconda3/envs/DRAM
+FimTyper                 /opt/software/miniconda3/envs/FimTyper
+Hisat2_2.2.1             /opt/software/miniconda3/envs/Hisat2_2.2.1
+PathoFact                /opt/software/miniconda3/envs/PathoFact
+R                        /opt/software/miniconda3/envs/R
+RNaseH_depl              /opt/software/miniconda3/envs/RNaseH_depl
+SCAPP                    /opt/software/miniconda3/envs/SCAPP
+UCFMT1                   /opt/software/miniconda3/envs/UCFMT1
+antismash                /opt/software/miniconda3/envs/antismash
+anvio-7.1                /opt/software/miniconda3/envs/anvio-7.1
+anvio-7.1.S              /opt/software/miniconda3/envs/anvio-7.1.S
+bakta                    /opt/software/miniconda3/envs/bakta
+barrnapenv               /opt/software/miniconda3/envs/barrnapenv
+bedops                   /opt/software/miniconda3/envs/bedops
+biobakery                /opt/software/miniconda3/envs/biobakery
+biobakery3               /opt/software/miniconda3/envs/biobakery3
+breseq                   /opt/software/miniconda3/envs/breseq
+breseq_0371              /opt/software/miniconda3/envs/breseq_0371
+bwa                      /opt/software/miniconda3/envs/bwa
+bwa_0.7.17_samtools_1.18     /opt/software/miniconda3/envs/bwa_0.7.17_samtools_1.18
+card                     /opt/software/miniconda3/envs/card
+carveme_1.5.2            /opt/software/miniconda3/envs/carveme_1.5.2
+checkm-genome            /opt/software/miniconda3/envs/checkm-genome
+coinfinder_1.2.1         /opt/software/miniconda3/envs/coinfinder_1.2.1
+cutadapt                 /opt/software/miniconda3/envs/cutadapt
+cutadaptenv.old          /opt/software/miniconda3/envs/cutadaptenv.old
+dbCAN                    /opt/software/miniconda3/envs/dbCAN
+eggnog                   /opt/software/miniconda3/envs/eggnog
+ete3_3.1.3               /opt/software/miniconda3/envs/ete3_3.1.3
+fastp_0.23.4             /opt/software/miniconda3/envs/fastp_0.23.4
+fastq-multx              /opt/software/miniconda3/envs/fastq-multx
+fastqc                   /opt/software/miniconda3/envs/fastqc
+filtlong                 /opt/software/miniconda3/envs/filtlong
+filtlong_0.2.1           /opt/software/miniconda3/envs/filtlong_0.2.1
+flye                     /opt/software/miniconda3/envs/flye
+globus                   /opt/software/miniconda3/envs/globus
+gtdbtk-2.1.0             /opt/software/miniconda3/envs/gtdbtk-2.1.0
+gtdbtk-2.3.2             /opt/software/miniconda3/envs/gtdbtk-2.3.2
+htseq                    /opt/software/miniconda3/envs/htseq
+illumina-utils           /opt/software/miniconda3/envs/illumina-utils
+iqtree_2.2.6             /opt/software/miniconda3/envs/iqtree_2.2.6
+kraken                   /opt/software/miniconda3/envs/kraken
+leehom                   /opt/software/miniconda3/envs/leehom
+mafft_7.520              /opt/software/miniconda3/envs/mafft_7.520
+mauve                    /opt/software/miniconda3/envs/mauve
+metabat2.15              /opt/software/miniconda3/envs/metabat2.15
+metaphlan2               /opt/software/miniconda3/envs/metaphlan2
+metaphlan3               /opt/software/miniconda3/envs/metaphlan3
+metaphlan4               /opt/software/miniconda3/envs/metaphlan4
+metaphlan_4.0.4          /opt/software/miniconda3/envs/metaphlan_4.0.4
+minimap2                 /opt/software/miniconda3/envs/minimap2
+minimap2_2.26            /opt/software/miniconda3/envs/minimap2_2.26
+minimap_2.15             /opt/software/miniconda3/envs/minimap_2.15
+mmseq2                   /opt/software/miniconda3/envs/mmseq2
+multiqc                  /opt/software/miniconda3/envs/multiqc
+multiqc_1.14             /opt/software/miniconda3/envs/multiqc_1.14
+multiqc_1.18             /opt/software/miniconda3/envs/multiqc_1.18
+nanoplot                 /opt/software/miniconda3/envs/nanoplot
+ncbi_datasets            /opt/software/miniconda3/envs/ncbi_datasets
+orthofinder_2.5.4        /opt/software/miniconda3/envs/orthofinder_2.5.4
+pacbio                   /opt/software/miniconda3/envs/pacbio
+panaroo                  /opt/software/miniconda3/envs/panaroo
+panaroo_1.3.2            /opt/software/miniconda3/envs/panaroo_1.3.2
+peppan_1.0.6             /opt/software/miniconda3/envs/peppan_1.0.6
+prokka                   /opt/software/miniconda3/envs/prokka
+prokka2                  /opt/software/miniconda3/envs/prokka2
+pureclip_v1.3.1          /opt/software/miniconda3/envs/pureclip_v1.3.1
+pyani                    /opt/software/miniconda3/envs/pyani
+quast                    /opt/software/miniconda3/envs/quast
+quast_5.2.0              /opt/software/miniconda3/envs/quast_5.2.0
+rgi                      /opt/software/miniconda3/envs/rgi
+rgi_6.0.2                /opt/software/miniconda3/envs/rgi_6.0.2
+roary_3.12.0             /opt/software/miniconda3/envs/roary_3.12.0
+roary_3.12.0_new         /opt/software/miniconda3/envs/roary_3.12.0_new
+run_dbcan                /opt/software/miniconda3/envs/run_dbcan
+samestr                  /opt/software/miniconda3/envs/samestr
+samtools_bowtie2         /opt/software/miniconda3/envs/samtools_bowtie2
+scoary-2                 /opt/software/miniconda3/envs/scoary-2
+scoary_1.6.16            /opt/software/miniconda3/envs/scoary_1.6.16
+simlord                  /opt/software/miniconda3/envs/simlord
+snippy                   /opt/software/miniconda3/envs/snippy
+sourmash_4.6.1           /opt/software/miniconda3/envs/sourmash_4.6.1
+spades                   /opt/software/miniconda3/envs/spades
+strainscan               /opt/software/miniconda3/envs/strainscan
+subread_2.0.6            /opt/software/miniconda3/envs/subread_2.0.6
+taxonkit                 /opt/software/miniconda3/envs/taxonkit
+thelefse                 /opt/software/miniconda3/envs/thelefse
+trimmomatic              /opt/software/miniconda3/envs/trimmomatic
+unicycler                /opt/software/miniconda3/envs/unicycler
+
+(base) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ conda info --envs[Ks | less
+[?1049h[22;0;0t[?1h=# conda environments:
+#
+base                  *  /opt/software/miniconda3
+DRAM                     /opt/software/miniconda3/envs/DRAM
+FimTyper                 /opt/software/miniconda3/envs/FimTyper
+Hisat2_2.2.1             /opt/software/miniconda3/envs/Hisat2_2.2.1
+PathoFact                /opt/software/miniconda3/envs/PathoFact
+R                        /opt/software/miniconda3/envs/R
+RNaseH_depl              /opt/software/miniconda3/envs/RNaseH_depl
+SCAPP                    /opt/software/miniconda3/envs/SCAPP
+UCFMT1                   /opt/software/miniconda3/envs/UCFMT1
+antismash                /opt/software/miniconda3/envs/antismash
+anvio-7.1                /opt/software/miniconda3/envs/anvio-7.1
+anvio-7.1.S              /opt/software/miniconda3/envs/anvio-7.1.S
+bakta                    /opt/software/miniconda3/envs/bakta
+barrnapenv               /opt/software/miniconda3/envs/barrnapenv
+bedops                   /opt/software/miniconda3/envs/bedops
+biobakery                /opt/software/miniconda3/envs/biobakery
+biobakery3               /opt/software/miniconda3/envs/biobakery3
+breseq                   /opt/software/miniconda3/envs/breseq
+breseq_0371              /opt/software/miniconda3/envs/breseq_0371
+bwa                      /opt/software/miniconda3/envs/bwa
+bwa_0.7.17_samtools_1.18     /opt/software/miniconda3/envs/bwa_0.7.17_sa mtools_1.18
+card                     /opt/software/miniconda3/envs/card
+carveme_1.5.2            /opt/software/miniconda3/envs/carveme_1.5.2
+checkm-genome            /opt/software/miniconda3/envs/checkm-genome
+coinfinder_1.2.1         /opt/software/miniconda3/envs/coinfinder_1.2.1
+cutadapt                 /opt/software/miniconda3/envs/cutadapt
+cutadaptenv.old          /opt/software/miniconda3/envs/cutadaptenv.old
+dbCAN                    /opt/software/miniconda3/envs/dbCAN
+eggnog                   /opt/software/miniconda3/envs/eggnog
+ete3_3.1.3               /opt/software/miniconda3/envs/ete3_3.1.3
+fastp_0.23.4             /opt/software/miniconda3/envs/fastp_0.23.4
+fastq-multx              /opt/software/miniconda3/envs/fastq-multx
+fastqc                   /opt/software/miniconda3/envs/fastqc
+filtlong                 /opt/software/miniconda3/envs/filtlong
+filtlong_0.2.1           /opt/software/miniconda3/envs/filtlong_0.2.1
+flye                     /opt/software/miniconda3/envs/flye
+globus                   /opt/software/miniconda3/envs/globus
+gtdbtk-2.1.0             /opt/software/miniconda3/envs/gtdbtk-2.1.0
+gtdbtk-2.3.2             /opt/software/miniconda3/envs/gtdbtk-2.3.2
+htseq                    /opt/software/miniconda3/envs/htseq
+illumina-utils           /opt/software/miniconda3/envs/illumina-utils
+iqtree_2.2.6             /opt/software/miniconda3/envs/iqtree_2.2.6
+kraken                   /opt/software/miniconda3/envs/kraken
+leehom                   /opt/software/miniconda3/envs/leehom
+mafft_7.520              /opt/software/miniconda3/envs/mafft_7.520
+mauve                    /opt/software/miniconda3/envs/mauve
+metabat2.15              /opt/software/miniconda3/envs/metabat2.15
+metaphlan2               /opt/software/miniconda3/envs/metaphlan2
+:[K[K[?1l>[?1049l[23;0;0t(base) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ conda activate UCFMT1
+(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript run_permutation.R 
+[1] "Setup"
+── [1mAttaching core tidyverse packages[22m ──────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.4
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.4.4     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.0
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "16S FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25htx_pv
+    FMT Placebo 
+     20      31 
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h^[[B^[[B^[[B^[[B^[[B^[[B^[[A^[[A^[[A^[[A^[[A^[[A[?25h         fx    xfx    x2fx
+[1,] 143.13 375.52 1277.42
+[2,]   2.12  24.72  163.82
+[3,]   3.42 -56.65 -331.03
+[4,]  38.76 145.89  617.71
+[5,]  36.52  73.48  236.16
+[6,] -19.04 -56.65 -206.79
+[?25h[?25h  fx  xfx x2fx 
+   0    0    0 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[?25h[?25h[?25h[?25h[1] "16S Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25hrs_pv
+NoRes   Res 
+   14     6 
+[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h[?25h         fx     xfx    x2fx
+[1,]  10.56   11.67    1.85
+[2,] -55.96  -80.73 -144.49
+[3,] -23.22  -42.09  -98.25
+[4,] -67.91 -109.70 -214.52
+[5,] -12.27   -7.06   -3.06
+[6,] -32.01  -45.52  -73.72
+[?25h   fx   xfx  x2fx 
+0.748 0.817 0.917 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Setup Metagenomics"
+[?25h[?25h[?25h[?25h[1] "Species Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Species FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h       fx  xfx x2fx
+[1,]  170  296  666
+[2,]   28   28   18
+[3,]   24   52  154
+[4,]    1  -36 -176
+[5,] -154 -234 -462
+[6,]  -29  -26  -30
+[?25h[?25h   fx   xfx  x2fx 
+0.019 0.015 0.013 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Species Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,] 103 143  225
+[2,]  80 121  209
+[3,] -42 -69 -125
+[4,]  32  39   53
+[5,]  14  37   89
+[6,] -24 -41  -87
+[?25h[?25h   fx   xfx  x2fx 
+0.281 0.320 0.359 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Strains Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Strains FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h        fx   xfx   x2fx
+[1,] 22990 43220 106122
+[2,] 18041 31934  72670
+[3,] 18928 37576  91466
+[4,]  2110 -2244 -17508
+[5,]  6347 18356  55804
+[6,] 15972 28366  63396
+[?25h[?25h   fx   xfx  x2fx 
+0.012 0.006 0.005 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Strains Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h         fx    xfx   x2fx
+[1,]  12769  19616  35784
+[2,]  -3098  -4386  -8736
+[3,]  -1050  -1874  -6824
+[4,]    861   4546  13960
+[5,]  -9077 -12764 -20154
+[6,] -22770 -34764 -65882
+[?25h[?25h   fx   xfx  x2fx 
+0.296 0.288 0.281 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "MAGs Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25hWarning message:
+[1m[22m`cols` is now required when using `unnest()`.
+[36mℹ[39m Please use `cols = c(file_contents)`. 
+[?25h[?25h[1m[22mJoining with `by = join_by(contig)`
+[1m[22m`summarise()` has grouped output by 'sample'. You can override using
+the `.groups` argument.
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "MAGs FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  40  56  102
+[2,] -36 -52  -92
+[3,]   3   4   12
+[4,] -24 -34  -60
+[5,]  28  42   76
+[6,] -36 -52  -92
+[?25h[?25h   fx   xfx  x2fx 
+0.013 0.010 0.005 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "MAGs Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h      fx xfx x2fx
+[1,]  36  47   67
+[2,] -31 -41  -65
+[3,]   6   7    7
+[4,]  23  33   59
+[5,] -29 -41  -73
+[6,] -24 -35  -63
+[?25h[?25h   fx   xfx  x2fx 
+0.055 0.062 0.216 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Genes Setup"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Genes FMT vs Placebo"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h[?25h          fx     xfx    x2fx
+[1,]  213297  321465  613797
+[2,]   53362   86153  168809
+[3,]  -34872  -50321  -88717
+[4,]   56493   72625  106273
+[5,] -111084 -170937 -332707
+[6,]   73579   91413  123435
+[?25h[?25h   fx   xfx  x2fx 
+0.001 0.001 0.001 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Genes Res vs NoRes"
+[?25h[1] "Calculate the observed test statistics"
+[?25h[?25h[?25h[?25h[?25h[?25h[1] "Permute"
+[?25h[?25h^[[B^[[B^[[B^[[B^[[B^[[B[?25h         fx    xfx   x2fx
+[1,]  12769  19616  35784
+[2,] -64817 -75866 -95598
+[3,] 134836 187812 312150
+[4,] -41568 -58926 -96660
+[5,]   3767  -2914 -17724
+[6,]  71779  87258 118362
+[?25h[?25h   fx   xfx  x2fx 
+0.858 0.869 0.859 
+[?25h[?25h[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1m[22m`stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+[?25h[1] "Write the p-value table"
+[?25hWarning message:
+In write.csv(pvals, file = "../results/permuation_pvals.csv", row.names = TRUE,  :
+  attempt to set 'col.names' ignored
+[?25h[?25h(UCFMT1) [01;32mszamosjc@alpsr4[00m:[01;34mscripts[00m$ Rscript run_permutation.R [5Pconda activate UCFMT1info --envs | less[Kactivate ucfmt1[6Pgit pull originconda activate ucfmt1[4Pinfo --envs | less[3Pactivate UCFMT1Rscript run_permutation.R [K

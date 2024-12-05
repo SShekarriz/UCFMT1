@@ -5,3 +5,6 @@ data/genes_FMT-Res
 data/genes_of_interest/
 data/Assembly
 .Rproj.user
+sensitivity/*
+permut_data/*
+processed_data/*
