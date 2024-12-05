@@ -169,6 +169,7 @@ sens_perm_df = function(stat_arr){
     sm_all = data.frame(test_stat = NA, values = NA, obs_val = NA,
                         Replicate = NA, AbsCutoff = NA, PresCutoff = NA)
     for (i in 1:n){
+		stat_mat = stat_arr[i,,]
         sm_df = (as.data.frame(stat_mat)
                  %>% pivot_longer(everything(),names_to = 'test_stat',
                                   values_to = 'values')
