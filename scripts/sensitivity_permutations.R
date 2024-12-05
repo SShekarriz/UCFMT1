@@ -38,7 +38,7 @@ load('../sensitivity/intermed/cts_arrs.RData')
 print('Genes FMT vs Placebo')
 
 #### Calculate the observed test statistics
-print('Calculate the observed test statistics for each permutation')
+print('Calculate the observed test statistics for each replicate')
 
 # make a place to put them
 n = dim(arr_cts)[1]
