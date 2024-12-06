@@ -17,9 +17,14 @@ sens_fig_13_df = function(arr_cts, txrm){
     pres = tmp[['pres']]
     
     # Create the base of the dataframe
-    
-    plt_all = data.frame(Npats = NA, Treatment = NA, Count = NA, Replicate = NA,
-                         AbsCutoff = NA, PresCutoff = NA)
+    if (txrm == 'Treatment'){ 
+        plt_all = data.frame(Npats = NA, Treatment = NA, Count = NA, 
+                             Replicate = NA, AbsCutoff = NA, PresCutoff = NA)
+    } else {
+        
+        plt_all = data.frame(Npats = NA, Remission = NA, Count = NA,
+                             Replicate = NA, AbsCutoff = NA, PresCutoff = NA)
+    }
     for (i in 1:n){
         cts = arr_cts[i,,]
         cts = cts[rowSums(cts)>0,] 
@@ -202,4 +207,9 @@ sens_perm_plot = function(sm_all, test){
                    linetype = 2) +
         facet_grid(PresCutoff~AbsCutoff)
     return(pl_pv)
+}
+
+calc_lab = function(n) {
+    labs = ifelse(n != 0, as.character(n), '<0.0005')
+    return(labs)
 }

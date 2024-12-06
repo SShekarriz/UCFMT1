@@ -36,12 +36,12 @@ long_mark_ge = mark_to_long(marker_lvl_ge)
 print('Make engr_ge')
 engr_ge = get_engraft(long_mark_ge, mapfile_mgm, 25,
                       90, Treatment %in% c('FMT', 'Placebo'))
-engr_arr = array(dim = c(nrow(all_cutoff), 755662, 24),
-                 dimnames = list('replicate' = paste('abs', all_cutoff$abs,
-                                                     'pres', all_cutoff$pres,
-                                                     sep = '_'),
-                                 'genes' = rownames(engr_ge),
-                                 'samples' = colnames(engr_ge)))
+# engr_arr = array(dim = c(nrow(all_cutoff), 755662, 24),
+#                  dimnames = list('replicate' = paste('abs', all_cutoff$abs,
+#                                                      'pres', all_cutoff$pres,
+#                                                      sep = '_'),
+#                                  'genes' = rownames(engr_ge),
+#                                  'samples' = colnames(engr_ge)))
 # for (i in 1:nrow(all_cutoff)){
 #     cp = all_cutoff$pres[i]
 #     ca = all_cutoff$abs[i]
@@ -52,10 +52,10 @@ engr_arr = array(dim = c(nrow(all_cutoff), 755662, 24),
 
 # save(engr_arr, file = '../sensitivity/intermed/engr_arr.RData')
 print('load engr_arr')
-# load('../sensitivity/intermed/engr_arr.RData')
-
-# cts_ge = count_engraft(engr_ge, tx_pv_mgm, 'Treatment')
-# cts_ge_rem = count_engraft(engr_ge, rs_pv_mgm, 'Remission')
+load('../sensitivity/intermed/engr_arr.RData')
+# 
+cts_ge = count_engraft(engr_ge, tx_pv_mgm, 'Treatment')
+cts_ge_rem = count_engraft(engr_ge, rs_pv_mgm, 'Remission')
 # arr_cts = array(dim = c(nrow(all_cutoff), 755662, 2),
 #                 dimnames = list('replicate' = dimnames(engr_arr)$replicate,
 #                                 'genes' = dimnames(engr_arr)$genes,
@@ -70,14 +70,14 @@ print('load engr_arr')
 # }
 # save(arr_cts, arr_cts_rem, file = '../sensitivity/intermed/cts_arrs.RData')
 print('load cts_arr')
-# load('../sensitivity/intermed/cts_arrs.RData')
+load('../sensitivity/intermed/cts_arrs.RData')
 
 ### Process Data for Visualization
 
 # profile the feature types:
 print('make profile ge')
-# profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, 25, 90,
-#                              Treatment %in% c('FMT', 'Placebo'))
+profile_ge = get_profile_pat(long_mark_ge, mapfile_mgm, 25, 90,
+                             Treatment %in% c('FMT', 'Placebo'))
 # arr_prof = array(dim = c(nrow(all_cutoff), 755662, 24),
 #                  dimnames = list('replicate' = dimnames(engr_arr)$replicate,
 #                                  'genes' = rownames(profile_ge),
@@ -93,24 +93,42 @@ print('make profile ge')
 # }
 
 # save(arr_prof, file = '../sensitivity/intermed/arr_prof.RData')
+load('../sensitivity/intermed/arr_prof.RData')
 
 
 profile_ge_don = get_profile_don(long_mark_ge, mapfile_mgm, 25, 90,
                                  Treatment %in% c('FMT','Placebo'))
 
-lst_prof_don = list()
-nms = paste('abs', all_cutoff$abs, 'pres', all_cutoff$pres, sep = '_')
-print('start the for loop')
-for (i in 1:length(nms)){
-    ca = all_cutoff$abs[i]
-    cp = all_cutoff$pres[i]
-    
-    print(i)
-    print(nms[i])
-    lst_prof_don[[nms[i]]] = get_profile_don(long_mark_ge, mapfile_mgm,
-                                             ca, cp, Treatment %in% c('FMT', 
-                                                                      'Placebo'))
-}
+# lst_prof_don = list()
+# nms = paste('abs', all_cutoff$abs, 'pres', all_cutoff$pres, sep = '_')
+# print('start the for loop')
+# for (i in 1:length(nms)){
+#     ca = all_cutoff$abs[i]
+#     cp = all_cutoff$pres[i]
+#     
+#     print(i)
+#     print(nms[i])
+#     lst_prof_don[[nms[i]]] = get_profile_don(long_mark_ge, mapfile_mgm,
+#                                              ca, cp, Treatment %in% c('FMT', 
+#                                                                       'Placebo'))
+# }
+# 
+# save(lst_prof_don, profile_ge_don, 
+#      file = '../sensitivity/intermed/lst_prof_don.RData')
+load('../sensitivity/intermed/lst_prof_don.RData')
 
-save(lst_prof_don, profile_ge_don, 
-     file = '../sensitivity/intermed/lst_prof_don.RData')
+# Wait, what is gene coverage actually doing anyway?
+
+cov_hist = ggplot(long_mark_ge, aes(x = abundance)) +
+    geom_histogram(bins = 100) +
+    theme_bw()
+
+cov_hist_log = cov_hist + scale_y_log10()
+cov_hist_sqrt = cov_hist + scale_y_sqrt()
+cov_hist
+cov_hist_log
+cov_hist_sqrt
+
+ggsave('../sensitivity/gene_cov_hist.png', cov_hist)
+ggsave('../sensitivity/gene_cov_hist_log.png', cov_hist_log)
+ggsave('../sensitivity/gene_cov_hist_sqrt.png', cov_hist_sqrt)
