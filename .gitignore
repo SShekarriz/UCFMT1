@@ -8,3 +8,4 @@ data/Assembly
 sensitivity/*
 permut_data/*
 processed_data/*
+plots/*

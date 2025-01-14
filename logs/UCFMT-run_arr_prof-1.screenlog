@@ -1,0 +1,152 @@
+cd scripts/
+[?2004l[?2004h(base) jcszamosi@bioinformation2:scripts$ Rscript batch_sensitivity.R 
+[?2004l── Attaching core tidyverse packages ──────────────────────────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25hError in array(dim = c(nrow(all_cutoff), 10000, 24), dimnames = list(replicate = paste("abs",  : 
+  length of 'dimnames' [2] not equal to array extent
+Execution halted
+[?25h[?2004h(base) jcszamosi@bioinformation2:scripts$ Rscript batch_sensitivity.R 
+[?2004l── Attaching core tidyverse packages ──────────────────────────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25h[?25h[?25h[1] "start the for loop"
+[?25h[1] 1
+[1] "made the matrix"
+[1] 2
+[1] "made the matrix"
+[1] 3
+[1] "made the matrix"
+[1] 4
+[1] "made the matrix"
+[1] 5
+[1] "made the matrix"
+[1] 6
+[1] "made the matrix"
+[1] 7
+[1] "made the matrix"
+[1] 8
+[1] "made the matrix"
+[1] 9
+[1] "made the matrix"
+[1] 10
+[1] "made the matrix"
+[1] 11
+[1] "made the matrix"
+[1] 12
+[1] "made the matrix"
+[1] 13
+[1] "made the matrix"
+[1] 14
+[1] "made the matrix"
+[1] 15
+[1] "made the matrix"
+[1] 16
+[1] "made the matrix"
+[1] 17
+[1] "made the matrix"
+[1] 18
+[1] "made the matrix"
+[1] 19
+[1] "made the matrix"
+[1] 20
+[1] "made the matrix"
+[1] 21
+[1] "made the matrix"
+[1] 22
+[1] "made the matrix"
+[1] 23
+[1] "made the matrix"
+[1] 24
+[1] "made the matrix"
+[1] 25
+[1] "made the matrix"
+[1] 26
+[1] "made the matrix"
+[1] 27
+[1] "made the matrix"
+[1] 28
+[1] "made the matrix"
+[1] 29
+[1] "made the matrix"
+[1] 30
+[1] "made the matrix"
+[1] 31
+[1] "made the matrix"
+[1] 32
+[1] "made the matrix"
+[1] 33
+[1] "made the matrix"
+[1] 34
+[1] "made the matrix"
+[1] 35
+[1] "made the matrix"
+[1] 36
+[1] "made the matrix"
+[1] 37
+[1] "made the matrix"
+[1] 38
+[1] "made the matrix"
+[1] 39
+[1] "made the matrix"
+[1] 40
+[1] "made the matrix"
+[1] 41
+[1] "made the matrix"
+[1] 42
+[1] "made the matrix"
+[1] 43
+[1] "made the matrix"
+[1] 44
+[1] "made the matrix"
+[1] 45
+[1] "made the matrix"
+[1] 46
+[1] "made the matrix"
+[1] 47
+[1] "made the matrix"
+[1] 48
+[1] "made the matrix"
+[1] 49
+[1] "made the matrix"
+[1] 50
+[1] "made the matrix"
+[1] 51
+[1] "made the matrix"
+[1] 52
+[1] "made the matrix"
+[1] 53
+[1] "made the matrix"
+[1] 54
+[1] "made the matrix"
+[1] 55
+[1] "made the matrix"
+[1] 56
+[1] "made the matrix"
+[1] 57
+[1] "made the matrix"
+[1] 58
+[1] "made the matrix"
+[1] 59
+[1] "made the matrix"

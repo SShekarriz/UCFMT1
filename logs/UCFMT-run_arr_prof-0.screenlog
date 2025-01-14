@@ -1,0 +1,39 @@
+cd scripts/
+[?2004l[?2004h(base) jcszamosi@bioinformation2:scripts$ RScscript batch_sensitivity.R 
+[?2004l── Attaching core tidyverse packages ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+^C
+Execution halted
+[?25h[?2004h(base) jcszamosi@bioinformation2:scripts$ Rscript batch_sensitivity.R 
+[?2004l── Attaching core tidyverse packages ───────────────────────────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.4     ✔ readr     2.1.5
+✔ forcats   1.0.0     ✔ stringr   1.5.1
+✔ ggplot2   3.5.1     ✔ tibble    3.2.1
+✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+✔ purrr     1.0.2     
+── Conflicts ─────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[?25h[1] "load cts_arr"
+[?25h[?25h[1] "make profile ge"
+[?25h[?25h[?25h[1] "start the for loop"
+[?25h[1] 1
+[1] 2
+Error in arr_prof[i, , ] <- get_profile_pat(long_mark_ge, mapfile_mgm,  : 
+  incorrect number of subscripts
+Execution halted
+[?25h[?2004h(base) jcszamosi@bioinformation2:scripts$ exit
+[?2004llogout

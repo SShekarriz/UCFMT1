@@ -1,0 +1,728 @@
+Rscript batch_sensitivity.R 
+[?2004l── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25hError: object 'profile_ge' not found
+Execution halted
+[?25h[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ Rscript batch_sensitivity.R 
+[?2004l── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25h[1] "start the for loop"
+[?25hError in save(arr_prof, file = "../sensitivity/intermed/arr_prof.RData") : 
+  object ‘arr_prof’ not found
+Execution halted
+[?25h[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ Rscript batch_sensitivity.R 
+[?2004l── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25h[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[?25h[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[?25h[?25h[?25h[1] "start the for loop"
+[?25h[1] 1
+[1] "abs_0_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 2
+[1] "abs_5_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 3
+[1] "abs_10_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 4
+[1] "abs_15_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 5
+[1] "abs_20_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 6
+[1] "abs_25_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 7
+[1] "abs_30_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 8
+[1] "abs_35_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 9
+[1] "abs_40_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 10
+[1] "abs_0_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 11
+[1] "abs_5_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 12
+[1] "abs_10_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 13
+[1] "abs_15_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 14
+[1] "abs_20_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 15
+[1] "abs_25_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 16
+[1] "abs_30_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 17
+[1] "abs_35_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 18
+[1] "abs_40_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 19
+[1] "abs_0_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 20
+[1] "abs_5_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 21
+[1] "abs_10_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 22
+[1] "abs_15_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 23
+[1] "abs_20_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 24
+[1] "abs_25_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 25
+[1] "abs_30_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 26
+[1] "abs_35_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 27
+[1] "abs_40_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 28
+[1] "abs_0_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 29
+[1] "abs_5_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 30
+[1] "abs_10_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 31
+[1] "abs_15_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 32
+[1] "abs_20_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 33
+[1] "abs_25_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 34
+[1] "abs_30_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 35
+[1] "abs_35_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 36
+[1] "abs_40_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 37
+[1] "abs_0_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 38
+[1] "abs_5_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 39
+[1] "abs_10_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 40
+[1] "abs_15_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 41
+[1] "abs_20_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 42
+[1] "abs_25_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 43
+[1] "abs_30_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 44
+[1] "abs_35_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 45
+[1] "abs_40_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 46
+[1] "abs_0_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 47
+[1] "abs_5_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 48
+[1] "abs_10_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 49
+[1] "abs_15_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 50
+[1] "abs_20_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 51
+[1] "abs_25_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 52
+[1] "abs_30_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 53
+[1] "abs_35_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 54
+[1] "abs_40_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 55
+[1] "abs_0_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 56
+[1] "abs_5_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 57
+[1] "abs_10_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 58
+[1] "abs_15_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 59
+[1] "abs_20_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 60
+[1] "abs_25_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 61
+[1] "abs_30_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 62
+[1] "abs_35_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 63
+[1] "abs_40_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[?25h[?25h[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ Rscript batch_sensitivity.R 
+[?2004l── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25h^C
+Execution halted
+[?25h[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ Rscript batch_sensitivity.R 
+[?2004l── [1mAttaching core tidyverse packages[22m ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25h[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[?25h[?25h[?25h[1] "start the for loop"
+[?25h[1] 1
+[1] "abs_0_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 2
+[1] "abs_5_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 3
+[1] "abs_10_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 4
+[1] "abs_15_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 5
+[1] "abs_20_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 6
+[1] "abs_25_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 7
+[1] "abs_30_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 8
+[1] "abs_35_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 9
+[1] "abs_40_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 10
+[1] "abs_0_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 11
+[1] "abs_5_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 12
+[1] "abs_10_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 13
+[1] "abs_15_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 14
+[1] "abs_20_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 15
+[1] "abs_25_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 16
+[1] "abs_30_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 17
+[1] "abs_35_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 18
+[1] "abs_40_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 19
+[1] "abs_0_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 20
+[1] "abs_5_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 21
+[1] "abs_10_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 22
+[1] "abs_15_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 23
+[1] "abs_20_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 24
+[1] "abs_25_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 25
+[1] "abs_30_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 26
+[1] "abs_35_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 27
+[1] "abs_40_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 28
+[1] "abs_0_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 29
+[1] "abs_5_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 30
+[1] "abs_10_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 31
+[1] "abs_15_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 32
+[1] "abs_20_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 33
+[1] "abs_25_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 34
+[1] "abs_30_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 35
+[1] "abs_35_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 36
+[1] "abs_40_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 37
+[1] "abs_0_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 38
+[1] "abs_5_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 39
+[1] "abs_10_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 40
+[1] "abs_15_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 41
+[1] "abs_20_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 42
+[1] "abs_25_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 43
+[1] "abs_30_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 44
+[1] "abs_35_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 45
+[1] "abs_40_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 46
+[1] "abs_0_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 47
+[1] "abs_5_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 48
+[1] "abs_10_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 49
+[1] "abs_15_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 50
+[1] "abs_20_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 51
+[1] "abs_25_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 52
+[1] "abs_30_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 53
+[1] "abs_35_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 54
+[1] "abs_40_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 55
+[1] "abs_0_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 56
+[1] "abs_5_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 57
+[1] "abs_10_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 58
+[1] "abs_15_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 59
+[1] "abs_20_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 60
+[1] "abs_25_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 61
+[1] "abs_30_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 62
+[1] "abs_35_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 63
+[1] "abs_40_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[?25hError in gzfile(file, "wb") : cannot open the connection
+Calls: save -> gzfile
+In addition: Warning message:
+In gzfile(file, "wb") :
+  cannot open compressed file 'sensitivity/intermed/lst_prof_don.RData', probable reason 'No such file or directory'
+Execution halted
+[?25h[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ [K(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ Rscript batch_sensitivity.R 
+[?2004l── [1mAttaching core tidyverse packages[22m ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 2.0.0 ──
+[32m✔[39m [34mdplyr    [39m 1.1.4     [32m✔[39m [34mreadr    [39m 2.1.5
+[32m✔[39m [34mforcats  [39m 1.0.0     [32m✔[39m [34mstringr  [39m 1.5.1
+[32m✔[39m [34mggplot2  [39m 3.5.1     [32m✔[39m [34mtibble   [39m 3.2.1
+[32m✔[39m [34mlubridate[39m 1.9.3     [32m✔[39m [34mtidyr    [39m 1.3.1
+[32m✔[39m [34mpurrr    [39m 1.0.2     
+── [1mConflicts[22m ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+[31m✖[39m [34mdplyr[39m::[32mfilter()[39m masks [34mstats[39m::filter()
+[31m✖[39m [34mdplyr[39m::[32mlag()[39m    masks [34mstats[39m::lag()
+[36mℹ[39m Use the conflicted package ([3m[34m<http://conflicted.r-lib.org/>[39m[23m) to force all conflicts to become errors
+[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[?25h[1] "Make long mark ge"
+[?25h[?25h[1] "Make engr_ge"
+[?25h[?25h[?25h[1] "load engr_arr"
+[?25h[1] "load cts_arr"
+[?25h[1] "make profile ge"
+[?25h[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[?25h[?25h[?25h[1] "start the for loop"
+[?25h[1] 1
+[1] "abs_0_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 2
+[1] "abs_5_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 3
+[1] "abs_10_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 4
+[1] "abs_15_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 5
+[1] "abs_20_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 6
+[1] "abs_25_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 7
+[1] "abs_30_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 8
+[1] "abs_35_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 9
+[1] "abs_40_pres_70"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 10
+[1] "abs_0_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 11
+[1] "abs_5_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 12
+[1] "abs_10_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 13
+[1] "abs_15_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 14
+[1] "abs_20_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 15
+[1] "abs_25_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 16
+[1] "abs_30_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 17
+[1] "abs_35_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 18
+[1] "abs_40_pres_75"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 19
+[1] "abs_0_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 20
+[1] "abs_5_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 21
+[1] "abs_10_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 22
+[1] "abs_15_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 23
+[1] "abs_20_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 24
+[1] "abs_25_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 25
+[1] "abs_30_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 26
+[1] "abs_35_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 27
+[1] "abs_40_pres_80"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 28
+[1] "abs_0_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the `.groups` argument.
+[1] 29
+[1] "abs_5_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 30
+[1] "abs_10_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 31
+[1] "abs_15_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 32
+[1] "abs_20_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 33
+[1] "abs_25_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 34
+[1] "abs_30_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 35
+[1] "abs_35_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 36
+[1] "abs_40_pres_85"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 37
+[1] "abs_0_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 38
+[1] "abs_5_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 39
+[1] "abs_10_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 40
+[1] "abs_15_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 41
+[1] "abs_20_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 42
+[1] "abs_25_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 43
+[1] "abs_30_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 44
+[1] "abs_35_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 45
+[1] "abs_40_pres_90"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 46
+[1] "abs_0_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 47
+[1] "abs_5_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 48
+[1] "abs_10_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 49
+[1] "abs_15_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 50
+[1] "abs_20_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 51
+[1] "abs_25_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 52
+[1] "abs_30_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 53
+[1] "abs_35_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 54
+[1] "abs_40_pres_95"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 55
+[1] "abs_0_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 56
+[1] "abs_5_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 57
+[1] "abs_10_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 58
+[1] "abs_15_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 59
+[1] "abs_20_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 60
+[1] "abs_25_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 61
+[1] "abs_30_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 62
+[1] "abs_35_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[1] 63
+[1] "abs_40_pres_100"
+[1m[22m`summarise()` has grouped output by 'Marker'. You can override using the
+`.groups` argument.
+[?25h[?25h[?25h[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ [K(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mscripts[00m$ cd ../sensitivity/intermed/
+[?2004l[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mintermed[00m$ ls
+[?2004larr_prof.RData  cts_arrs.RData  engr_arr.RData  lst_prof_don.RData
+[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mintermed[00m$ du -sh *
+[?2004l48M	arr_prof.RData
+1.5G	cts_arrs.RData
+8.6G	engr_arr.RData
+631M	lst_prof_don.RData
+[?2004h(base) [01;32mjcszamosi@bioinformation2[00m:[01;34mintermed[00m$ 
