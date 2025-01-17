@@ -28,11 +28,14 @@ rs_pv_16s = pat_to_vect(filter(mapfile_16s, Treatment == 'FMT'), 'Fig_lab',
 
 ```{r}
 setup_16s = c('mapfile_16s', 'tx_pv_16s', 'rs_pv_16s')
+if (!dir.exists('../processed_data/')){
+  dir.create('../processed_data/')
+}
 save(list = setup_16s, file = '../processed_data/setup_16s.rds')
 ```
 
 
-### Run Engraftment Analysis
+### Identify and Count Engraftment Events
 
 ```{r}
 # Import the 16s ASV data
@@ -62,7 +65,8 @@ cts_16s_plt_rem = count_engraft(engr_16s, rs_pv_16s, 'Remission')
 ```
 
 ### Process Data for Visualization
-Benchmarking and profiling.
+
+#### Benchmarking and profiling.
 
 ```{r}
 # Using the same core DonorB ASVs as the engraftment uses: strains16s
@@ -255,65 +259,13 @@ save(list = unique(c(eng_st, fig_st, oth_st)),
 ### Run Engraftment Functions
 
 ```{r}
-##### Read in the contig IDs and their bins ####
-c_inBin <- read.csv("../data/Assembly/contigs_inBins.txt", sep = "\t", header = F)
-c_inMAG <- read.csv("../data/Assembly/contigs_inMAGs.txt", sep = "\t", header = F)
-colnames(c_inBin) <- c("contig", "bin_id")
-colnames(c_inMAG) <- c("contig", "bin_id")
-
-# NB that c_inMAG is a proper subset of c_inBin, so I'm not sure we need both.
-
-# Get a vector of the unique MAG ids.
-MAGs = (c_inMAG 
-        %>% select(bin_id) 
-        %>% distinct() 
-        %>% pull())
-
-
-##### Read in the MAG coverage ####
-# define colnames for marker_lvl_mg
-heads_cover <- c("sample.id",
-                 "contig", "startpos", "endpos", 
-                 "numreads", "covbases", "coverage", "meandepth",
-                 "meanbaseq", "meanmapq",
-                 "ReadSampling", "Quality")
-
-path="../data/perfect_mapping/DBD"
-patt="_perfect_.*.cover" # these are sample coverage files. Rows are contigs.
-marker_lvl_mg = (data.frame(sample.id = paste(dir(path,
-                                                  pattern = patt))) 
-                 # read each file from the directory (current path) and then unnest
-                 %>% mutate(file_contents = map(sample.id, ~ 
-                                                    read.csv(file.path(path, .),
-                                                             sep = "\t", header = F,
-                                                             comment.char = "#"))) 
-                 %>% unnest() 
-                 %>%  mutate(sample.id = gsub("_perfect_BDB.cover", 
-                                              "", sample.id)))
-colnames(marker_lvl_mg) <- heads_cover
-
-# Join the coverage info with the bin info, filter to only keep mags, calculate
-# normalized coverage
-marker_lvl_mg_all = (marker_lvl_mg 
-                     %>% left_join(c_inBin) 
-                     %>% mutate(bin_q= case_when(bin_id %in% MAGs ~ paste("MAG"),
-                                                 TRUE ~ paste("Bin"))) 
-                     %>% filter(bin_q == "MAG") 
-                     %>% select(-bin_q) 
-                     %>% dplyr::rename(sample=sample.id) 
-                     %>% group_by(sample, bin_id) 
-                     %>% summarise(bin_len= sum(endpos),
-                                   bin_covbases=sum(covbases),
-                                   bin_numreads=sum(numreads),
-                                   bin_coverage=bin_covbases/bin_len*100))
-
-# Keep only the patient samples, reshape the numbers, and name the Marker column
+load('../data/MAGs.RData')
+marker_lvl_mg_all = read.csv('../data/marker_lvl_mg.csv')
 marker_lvl_mg = (marker_lvl_mg_all 
                  %>% filter(str_detect(sample, "PMCL")) 
                  %>% select(sample, bin_id, bin_coverage) 
                  %>% spread(sample, bin_coverage) 
                  %>% rename(Marker= bin_id))
-
 # Set the presence and absence cutoffs for patients. DonorB doesn't need these
 # because all the MAGs come from donor B
 cutoff_pres_mg = 75
@@ -360,7 +312,7 @@ save(list = unique(c(eng_mg, fig_mg, oft_mg)),
 ```{r}
 ### Import the data
 
-marker_lvl_ge <- read.csv("../data/genes_lvl.csv")
+marker_lvl_ge <- read.csv("../data/genes_lvl.lrg")
 
 # Set the presence and absence cutoffs for patients. These aren't used for donor
 # B because all the genes came from the donor B assemblies.
