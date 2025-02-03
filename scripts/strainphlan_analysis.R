@@ -1,16 +1,11 @@
 library(tidyverse)
+theme_set(theme_classic())
+library(cowplot)
 
 map <- "data/UCFMT1_METAmap.txt"
 precom_thresh = "data/VallesColomerM_2022_Jan21_thresholds.tsv"
-path = "strainphlan"
-patt = "_nGD.tsv"
-
-pwdis = (data.frame(marker.id = paste(dir(path, pattern = patt))) 
-         %>% mutate(file_contents = map(marker.id, ~ 
-                                            read_tsv(file.path(path, .),
-                                                     col_names = F))) 
-         %>% unnest() 
-         %>% mutate(marker.id = gsub(patt, "", marker.id)))
+pwd = 'data/strainsharing_pairdist.csv'
+pwdis = read.csv(pwd)
 
 length(unique(pwdis$marker.id))
 
@@ -87,9 +82,7 @@ write.csv(engr_sgbs, file = 'results/engrafted_sgbs.csv')
 fig1 = ggplot(results, aes(patients, Engraftment, color=Treatment)) +
   geom_line() + geom_point() +
   scale_color_manual(values = c("FMT" = "#1a9641",
-                               "Placebo" = "#bababa")) +
-  theme_bw() +
-  theme()
+                               "Placebo" = "#bababa"))
 
 results_rem = (eng_events 
                %>% filter(Treatment == "FMT") 
@@ -101,9 +94,7 @@ results_rem = (eng_events
 fig3 = ggplot(results_rem, aes(patients, Engraftment, color=Remission)) +
   geom_line() + geom_point() +
   scale_color_manual(values = c("Res" = "#2b83ba",
-                               "NoRes" = "#d7191c")) +
-  theme_bw() +
-  theme()
+                               "NoRes" = "#d7191c"))
 
 head(eng_events)
 
@@ -134,5 +125,17 @@ tst1 = (eng_events
 fig2 = ggplot(tst1, aes(n, colour = Category, fill = Category)) +
     geom_bar(stat = 'count') +
     scale_fill_manual(values = fig2_cols) +
-    scale_colour_manual(values = fig2_cols) +
-    theme_classic()
+    scale_colour_manual(values = fig2_cols)
+fig1
+fig2
+fig3
+
+
+ss_fig = plot_grid(fig1, fig2, fig3, ncol = 1)
+ss_fig
+
+ggsave('plots_paper/suppl_strainshare.svg', ss_fig, height = 12, width = 10,
+       units = 'cm')
+
+ggsave('plots_paper/suppl_strainshare.png', ss_fig, height = 12, width = 10,
+       units = 'cm')
