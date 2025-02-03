@@ -1,13 +1,17 @@
 #!/usr/bin/env Rscript
 
-##### Setup #####
+# Run Permutations ####
+
+# This must be run from inside the top-level directory. I recommend running it 
+# using Rscript, because it can take a long time.
+
+## Setup #####
 print('Setup')
 
 # Import packages, set working directory, source functions
 set.seed(4)
 library(tidyverse)
 theme_set(theme_bw())
-# setwd('~/Projects/Favours/Sharok/UCFMT1/scripts/')
 source('./scripts/permutation_functions.R')
 
 # Create the p-value storage matrix
@@ -21,18 +25,18 @@ rownames(pvals) = c('FMTvPl_16s','ResvNoRes_16s',
                     'FMTvPl_genes','ResvNoRes_genes')
 
 
-##### 16S Setup #####
+## 16S Setup #####
 print('16S Setup')
 load('./processed_data/setup_16s.rds')
 
-### Import the data ###
+### Import the data ####
 
 load('./processed_data/eng_16s.rds')
 
-#### 16S FMT vs Placebo ####
+### 16S FMT vs Placebo ####
 print('16S FMT vs Placebo')
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 # The uneven numbers in the two groups make our test invalid. Subsample to fix
@@ -65,25 +69,24 @@ obs_16s = colMeans(obs_16s_all)
 
 cts_16s = apply(cts_16s_all, c(1,2), mean)
 
-#### 16S Plot FMT vs Placebo ####
+#### Plot ####
 
 # I think the only sensible way to plot this is to plot the full data and just
 # talk about what we did for the statistics in the methods section. The counting
 # is done in prep_data.R
 
-#### Fig 1 
+# Fig 1 
 f1_16s = plot_fig_13(cts_16s_plt, 'Treatment')
-ggsave('../plots/f1_16s.pdf',f1_16s, height = 5, width = 5.5)
+ggsave('./plots/f1_16s.pdf',f1_16s, height = 5, width = 5.5)
 f1_16s
        
 
-#### Fig 2 
-
+# Fig 2 
 f2_16s = plot_fig_2(cts_16s_plt)
-ggsave('../plots/f2_16s.pdf',f2_16s, height = 5, width = 5.5)
+ggsave('./plots/f2_16s.pdf',f2_16s, height = 5, width = 5.5)
 f2_16s
 
-#### Permute 
+#### Permute ####
 print('Permute')
 
 # We are doing 2000 permutations in total. This includes 1999 permuted values
@@ -94,8 +97,8 @@ perms_16s = do_permute(engr_16s, cts_16s, obs_16s, tx_pv_16s, nperm,
                        subsample = nsamp, txrm = 'Treatment')
 head(perms_16s[['stat_mat']])
 # Save the permuted data
-save(perms_16s, file = '../permut_data/intermed/perms_16s.RData')
-# load('../permut_data/intermed/perms_16s.RData')
+save(perms_16s, file = './permut_data/intermed/perms_16s.RData')
+# load('./permut_data/intermed/perms_16s.RData')
 
 # Calculate the p-values
 (pvals_16s = get_pvals(perms_16s[['stat_mat']]))
@@ -105,24 +108,26 @@ pvals['FMTvPl_16s',] = round(pvals_16s, 5)
 
 pl_pv_16s = plot_permutation(perms_16s[['stat_mat']])
 pl_pv_16s
-ggsave('../plots/pl_pv_16s.pdf',pl_pv_16s, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_16s.pdf',pl_pv_16s, height = 10, width = 5.5)
 
-#### 16S Plot Res vs. NoRes ####
+### 16S Res vs. NoRes ####
+
+print('16S Res vs NoRes')
+
+#### Plot ####
 
 # I think the only sensible way to plot this is to plot the full data and just
 # talk about what we did for the statistics in the methods section. The counts
 # is done in prep_data.R.
 
-#### Fig 1 
-
+# Fig 1 
 f3_16s = plot_fig_13(cts_16s_plt_rem, 'Remission')
 f3_16s
-ggsave('../plots/f3_16s.pdf',f3_16s, height = 5, width = 5.5)
+ggsave('./plots/f3_16s.pdf',f3_16s, height = 5, width = 5.5)
 
-#### 16S Res vs NoRes ####
-print('16S Res vs NoRes')
+#### Subsample ####
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 # Subsample 100 times to get means
@@ -154,7 +159,7 @@ cts_16s_rem = apply(cts_16s_rem_all, c(1,2), mean)
 # counts
 obs_16s_rem = colMeans(obs_16s_rem_all)
 
-#### Permute
+#### Permute ####
 print('Permute')
 
 # We are doing 2000 permutations in total. This includes 1999 permuted values
@@ -164,8 +169,8 @@ nperm = 2000
 perms_16s_rem = do_permute(engr_16s, cts_16s_rem, obs_16s_rem, rs_pv_16s, nperm,
                            subsample = nsamp, txrm = 'Remission')
 # Save the permuted data
-save(perms_16s_rem, file = '../permut_data/intermed/perms_16s_rem.RData')
-# load('../permut_data/intermed/perms_16s_rem.RData')
+save(perms_16s_rem, file = './permut_data/intermed/perms_16s_rem.RData')
+# load('./permut_data/intermed/perms_16s_rem.RData')
 head(perms_16s_rem[['stat_mat']])
 
 # Calculate and store the p-values
@@ -174,44 +179,46 @@ pvals['ResvNoRes_16s',] = round(pvals_16s_rem, 5)
 
 pl_pv_16s_rem = plot_permutation(perms_16s_rem[['stat_mat']])
 pl_pv_16s_rem
-ggsave('../plots/pl_pv_16s_rem.pdf',pl_pv_16s_rem, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_16s_rem.pdf',pl_pv_16s_rem, height = 10, width = 5.5)
 
 
-#### Setup Metagenomics ####
+## Setup Metagenomics ####
+
 print('Setup Metagenomics')
+load('./processed_data/mgm_setup.rds')
 
-load('../processed_data/mgm_setup.rds')
+## Species ####
 
-#### Species Setup ####
+### Setup ####
+
 print('Species Setup')
 
+### Import the data ####
+load('./processed_data/eng_sp.rds')
 
-### Import the data
-load('../processed_data/eng_sp.rds')
-
-#### Species FMT vs Placebo ####
+### Species FMT vs Placebo ####
 print('Species FMT vs Placebo')
 
-### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 # Get the engraftment counts and calculate the test statistics
 obs_sp = get_stats(cts_sp)
 
-#### Species Plot FMT vs Placebo ####
 
-#### Fig 1
+#### Plot ####
+
+# Fig 1
 f1_sp = plot_fig_13(cts_sp, 'Treatment')
 f1_sp
-ggsave('../plots/f1_sp.pdf',f1_sp, height = 5, width = 5.5)
+ggsave('./plots/f1_sp.pdf',f1_sp, height = 5, width = 5.5)
 
-#### Fig 2 
-
+# Fig 2 
 f2_sp = plot_fig_2(cts_sp)
 f2_sp
-ggsave('../plots/f2_sp.pdf',f2_sp, height = 5, width = 5.5)
+ggsave('./plots/f2_sp.pdf',f2_sp, height = 5, width = 5.5)
 
-### Permute 
+#### Permute ####
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
@@ -221,8 +228,8 @@ perms_sp = do_permute(engr_sp, cts_sp, obs_sp, tx_pv_mgm, nperm,
 head(perms_sp[['stat_mat']])
 
 # Save the permuted data so we don't have to do this all again
-save(perms_sp, file = '../permut_data/intermed/perms_sp.RData')
-#  load('../permut_data/intermed/perms_sp.RData')
+save(perms_sp, file = './permut_data/intermed/perms_sp.RData')
+#  load('./permut_data/intermed/perms_sp.RData')
 
 # Calculate the p-values, double them, and store them
 (pvals_sp = get_pvals(perms_sp[['stat_mat']]))
@@ -231,24 +238,23 @@ pvals['FMTvPl_species',] = round(pvals_sp, 5)
 # Look at the distribution
 pl_pv_sp = plot_permutation(perms_sp[['stat_mat']])
 pl_pv_sp
-ggsave('../plots/pl_pv_sp.pdf',pl_pv_sp, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_sp.pdf',pl_pv_sp, height = 10, width = 5.5)
 
 
-#### Species Res vs NoRes ####
+### Species Res vs NoRes ####
 print('Species Res vs NoRes')
 
-### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_sp_rem = get_stats(cts_sp_rem)
 
-#### Species Plot Res vs. NoRes ####
-
+#### Plot ####
 f3_sp = plot_fig_13(cts_sp_rem, 'Remission')
 f3_sp
-ggsave('../plots/f3_sp.pdf',f3_sp, height = 5, width = 5.5)
+ggsave('./plots/f3_sp.pdf',f3_sp, height = 5, width = 5.5)
 
-#### Permute
+#### Permute ####
 print('Permute')
 
 # Permute 1999 times and include the observed value in the null distribution
@@ -258,8 +264,8 @@ perms_sp_rem = do_permute(engr_sp, cts_sp_rem, obs_sp_rem, rs_pv_mgm, nperm,
 head(perms_sp_rem[['stat_mat']])
 
 # Save the permuted values
-save(perms_sp_rem, file = '../permut_data/intermed/perms_sp_rem.RData')
-# load('../permut_data/intermed/perms_sp_rem.RData')
+save(perms_sp_rem, file = './permut_data/intermed/perms_sp_rem.RData')
+# load('./permut_data/intermed/perms_sp_rem.RData')
 
 # Calculate the p-values, double them, and store them
 (pvals_sp_rem = get_pvals(perms_sp_rem[['stat_mat']]))
@@ -268,35 +274,35 @@ pvals['ResvNoRes_species',] = round(pvals_sp_rem, 5)
 # Look at the distribution
 pl_pv_sp_rem = plot_permutation(perms_sp_rem[['stat_mat']])
 pl_pv_sp_rem
-ggsave('../plots/pl_pv_sp_rem.pdf',pl_pv_sp_rem, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_sp_rem.pdf',pl_pv_sp_rem, height = 10, width = 5.5)
 
-#### Strains Setup ####
+## Strains ####
+
+### Setup ####
 print('Strains Setup')
 
-### Import the data
+# Import the data
+load('./processed_data/eng_st.rds')
 
-load('../processed_data/eng_st.rds')
-
-
-#### Strains FMT vs Placebo ####
+### Strains FMT vs Placebo ####
 print('Strains FMT vs Placebo')
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_st = get_stats(cts_st)
 
-#### Strain Plot FMT vs Placebo
+#### Plot ####
 
 f1_st = plot_fig_13(cts_st, 'Treatment')
 f1_st
-ggsave('../plots/f1_st.pdf',f1_st, height = 5, width = 5.5)
+ggsave('./plots/f1_st.pdf',f1_st, height = 5, width = 5.5)
 
 f2_st = plot_fig_2(cts_st)
 f2_st
-ggsave('../plots/f2_st.pdf',f2_st, height = 5, width = 5.5)
+ggsave('./plots/f2_st.pdf',f2_st, height = 5, width = 5.5)
 
-#### Permute 
+#### Permute ####
 print('Permute')
 
 # 1999 permutations plus the observed value go in the null distribution
@@ -306,8 +312,8 @@ perms_st = do_permute(engr_st, cts_st, obs_st, tx_pv_mgm, nperm,
 head(perms_st[['stat_mat']])
 
 # Save the permuted values
-save(perms_st, file = '../permut_data/intermed/perms_st.RData')
-# load('../permut_data/intermed/perms_st.RData')
+save(perms_st, file = './permut_data/intermed/perms_st.RData')
+# load('./permut_data/intermed/perms_st.RData')
 
 # Calculate, double, and store the p-values
 (pvals_st = get_pvals(perms_st[['stat_mat']]))
@@ -316,23 +322,23 @@ pvals['FMTvPl_strain',] = round(pvals_st, 5)
 # Look at the distribution
 pl_pv_st = plot_permutation(perms_st[['stat_mat']])
 pl_pv_st
-ggsave('../plots/pl_pv_st.pdf',pl_pv_st, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_st.pdf',pl_pv_st, height = 10, width = 5.5)
 
-#### Strains Res vs NoRes ####
+### Strains Res vs NoRes ####
 print('Strains Res vs NoRes')
 
-#### Calculate the observed test statistics
+### Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_st_rem = get_stats(cts_st_rem)
 
-#### Strain Plot Res vs NoRes
+#### Plot ####
 
 f3_st = plot_fig_13(cts_st_rem, 'Remission')
 f3_st
-ggsave('../plots/f3_st.pdf',f3_st, height = 5, width = 5.5)
+ggsave('./plots/f3_st.pdf',f3_st, height = 5, width = 5.5)
 
-#### Permute
+#### Permute ####
 print('Permute')
 
 nperm = 2000
@@ -341,8 +347,8 @@ perms_st_rem = do_permute(engr_st, cts_st_rem, obs_st_rem, rs_pv_mgm, nperm,
 head(perms_st_rem[['stat_mat']])
 
 # Save the permuted values
-save(perms_st_rem, file = '../permut_data/intermed/perms_st_rem.RData')
-# load('../permut_data/intermed/perms_st_rem.RData')
+save(perms_st_rem, file = './permut_data/intermed/perms_st_rem.RData')
+# load('./permut_data/intermed/perms_st_rem.RData')
 
 # calculate, double, and store the p-values
 (pvals_st_rem = get_pvals(perms_st_rem[['stat_mat']]))
@@ -351,34 +357,37 @@ pvals['ResvNoRes_strain',] = round(pvals_st_rem, 5)
 # Look at the distribution
 pl_pv_st_rem = plot_permutation(perms_st_rem[['stat_mat']])
 pl_pv_st_rem
-ggsave('../plots/pl_pv_st_rem.pdf',pl_pv_st_rem, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_st_rem.pdf',pl_pv_st_rem, height = 10, width = 5.5)
 
-#### MAGs Setup ####
+## MAGs ####
+
+### Setup ####
 print('MAGs Setup')
 
-### Import the data
+# Import the data
 
-load('../processed_data/eng_mg.rds')
+load('./processed_data/eng_mg.rds')
 
-#### MAGs FMT vs Placebo ####
+### MAGs FMT vs Placebo ####
 print('MAGs FMT vs Placebo')
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_mg = get_stats(cts_mg)
 
-#### MAGs Plot FMT vs Placebo
+#### Plot ####
 
 f1_mg = plot_fig_13(cts_mg, 'Treatment')
 f1_mg
-ggsave('../plots/f1_mg.pdf',f1_mg, height = 5, width = 5.5)
+ggsave('./plots/f1_mg.pdf',f1_mg, height = 5, width = 5.5)
 
 f2_mg = plot_fig_2(cts_mg)
 f2_mg
-ggsave('../plots/f2_mg.pdf',f2_mg, height = 5, width = 5.5)
+ggsave('./plots/f2_mg.pdf',f2_mg, height = 5, width = 5.5)
 
-#### Permute 
+#### Permute ####
+
 print('Permute')
 
 nperm = 2000
@@ -386,8 +395,8 @@ perms_mg = do_permute(engr_mg, cts_mg, obs_mg, tx_pv_mgm, nperm,
                       txrm = 'Treatment')
 head(perms_mg[['stat_mat']])
 # save the permuted data
-save(perms_mg, file = '../permut_data/intermed/perms_mg.RData')
-# load('../permut_data/intermed/perms_mg.RData')
+save(perms_mg, file = './permut_data/intermed/perms_mg.RData')
+# load('./permut_data/intermed/perms_mg.RData')
 
 # calculate, double, and store the p-values
 (pvals_mg = get_pvals(perms_mg[['stat_mat']]))
@@ -396,23 +405,23 @@ pvals['FMTvPl_mags',] = round(pvals_mg, 5)
 # Look at the distribution
 pl_pv_mg = plot_permutation(perms_mg[['stat_mat']])
 pl_pv_mg
-ggsave('../plots/pl_pv_mg.pdf',pl_pv_mg, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_mg.pdf',pl_pv_mg, height = 10, width = 5.5)
 
-#### MAGs Res vs NoRes ####
+### MAGs Res vs NoRes ####
 print('MAGs Res vs NoRes')
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_mg_rem = get_stats(cts_mg_rem)
 
-#### MAGs Plot Res Vs NoRes
+#### Plot ####
 
 f3_mg = plot_fig_13(cts_mg_rem,'Remission')
 f3_mg
-ggsave('../plots/f3_mg.pdf',f3_mg, height = 5, width = 5.5)
+ggsave('./plots/f3_mg.pdf',f3_mg, height = 5, width = 5.5)
 
-#### Permute
+#### Permute ####
 print('Permute')
 
 nperm = 2000
@@ -420,8 +429,8 @@ perms_mg_rem = do_permute(engr_mg, cts_mg_rem, obs_mg_rem, rs_pv_mgm, nperm,
                           txrm = 'Remission')
 head(perms_mg_rem[['stat_mat']])
 # save the permutations
-save(perms_mg_rem, file = '../permut_data/intermed/perms_mg_rem.RData')
-# load('../permut_data/intermed/perms_mg_rem.RData')
+save(perms_mg_rem, file = './permut_data/intermed/perms_mg_rem.RData')
+# load('./permut_data/intermed/perms_mg_rem.RData')
 
 # calculate, double, and store the p-values
 (pvals_mg_rem = get_pvals(perms_mg_rem[['stat_mat']]))
@@ -430,44 +439,47 @@ pvals['ResvNoRes_mags',] = round(pvals_mg_rem, 5)
 # Look at the distribution
 pl_pv_mg_rem = plot_permutation(perms_mg_rem[['stat_mat']])
 pl_pv_mg_rem
-ggsave('../plots/pl_pv_mg_rem.pdf',pl_pv_mg_rem, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_mg_rem.pdf',pl_pv_mg_rem, height = 10, width = 5.5)
 
 
-#### Genes Setup ####
+## Genes ####
+
+### Setup ####
 print('Genes Setup')
 
-load('../processed_data/eng_ge.rds')
+load('./processed_data/eng_ge.rds')
 
-#### Genes FMT vs Placebo ####
+### Genes FMT vs Placebo ####
 print('Genes FMT vs Placebo')
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_ge = get_stats(cts_ge)
 
-#### Genes Plot FMT vs Placebo ####
+#### Plot ####
 
 f1_ge = plot_fig_13(cts_ge, 'Treatment')
 f1_ge
-ggsave('../plots/f1_ge.pdf',f1_ge, height = 5, width = 5.5)
+ggsave('./plots/f1_ge.pdf',f1_ge, height = 5, width = 5.5)
 
 f2_ge = plot_fig_2(cts_ge)
 f2_ge
-ggsave('../plots/f2_ge.pdf',f2_ge, height = 5, width = 5.5)
+ggsave('./plots/f2_ge.pdf',f2_ge, height = 5, width = 5.5)
 
-#### Permute 
+#### Permute ####
 print('Permute')
 
-# This uses tens of GB of RAM and should be done on alpsr only
+# This uses tens of GB of RAM and should only be done on a server that can 
+# handle it
 nperm = 2000
 perms_ge = do_permute(engr_ge, cts_ge, obs_ge, tx_pv_mgm, nperm,
                       txrm = 'Treatment')
 head(perms_ge[['stat_mat']])
 
 # Save the permutations
-save(perms_ge, file = '../permut_data/intermed/perms_ge.RData')
-# load('../permut_data/intermed/perms_ge.RData')
+save(perms_ge, file = './permut_data/intermed/perms_ge.RData')
+# load('./permut_data/intermed/perms_ge.RData')
 
 # Calculate, double, and store the p-values
 (pvals_ge = get_pvals(perms_ge[['stat_mat']]))
@@ -476,22 +488,23 @@ pvals['FMTvPl_genes',] = round(pvals_ge, 5)
 # Look at the distribution
 pl_pv_ge = plot_permutation(perms_ge[['stat_mat']])
 pl_pv_ge
-ggsave('../plots/pl_pv_ge.pdf',pl_pv_ge, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_ge.pdf',pl_pv_ge, height = 10, width = 5.5)
 
-#### Genes Res vs NoRes ####
+### Genes Res vs NoRes ####
 print('Genes Res vs NoRes')
 
-#### Calculate the observed test statistics
+# Calculate the observed test statistics
 print('Calculate the observed test statistics')
 
 obs_ge_rem = get_stats(cts_ge_rem)
 
-#### Genes Plot Res vs NoRes
+#### Plot ####
+
 f3_ge = plot_fig_13(cts_ge_rem, 'Remission')
 f3_ge
-ggsave('../plots/f3_ge.pdf',f3_ge, height = 5, width = 5.5)
+ggsave('./plots/f3_ge.pdf',f3_ge, height = 5, width = 5.5)
 
-#### Permute
+#### Permute ####
 print('Permute')
 
 # This uses tens of GB of RAM and should be done on alpsr only
@@ -500,8 +513,8 @@ perms_ge_rem = do_permute(engr_ge, cts_ge_rem, obs_st_rem, rs_pv_mgm, nperm,
                           txrm = 'Remission')
 head(perms_ge_rem[['stat_mat']])
 # save the permutations
-save(perms_ge_rem, file = '../permut_data/intermed/perms_ge_rem.RData')
-# load('../permut_data/intermed/perms_ge_rem.RData')
+save(perms_ge_rem, file = './permut_data/intermed/perms_ge_rem.RData')
+# load('./permut_data/intermed/perms_ge_rem.RData')
 # calculated, double, and store the p-values
 (pvals_ge_rem = get_pvals(perms_ge_rem[['stat_mat']]))
 pvals['ResvNoRes_genes',] = round(pvals_ge_rem, 5)
@@ -509,10 +522,10 @@ pvals['ResvNoRes_genes',] = round(pvals_ge_rem, 5)
 # Look at the distribution
 pl_pv_ge_rem = plot_permutation(perms_ge_rem[['stat_mat']])
 pl_pv_ge_rem
-ggsave('../plots/pl_pv_ge_rem.pdf',pl_pv_ge_rem, height = 10, width = 5.5)
+ggsave('./plots/pl_pv_ge_rem.pdf',pl_pv_ge_rem, height = 10, width = 5.5)
 
 # Write the p-value table
 print('Write the p-value table')
 
-write.csv(pvals, file = '../results/permuation_pvals.csv', 
+write.csv(pvals, file = './results/permuation_pvals.csv', 
           row.names = TRUE, col.names = NA)
